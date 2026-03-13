@@ -38,7 +38,7 @@ git add -f unpackage/dist/build/web/
 git status --short
 git status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
-git commit -m "pub page: 更新页面"   # commit message 需要包含 pub page 才会部署
+git commit -m "pub page: 更新页面"   # 如果想要更新github page的话
 git push github main
 git push origin main
 ```

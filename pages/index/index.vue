@@ -651,20 +651,49 @@ function onShareTimeline() {
 	border: 2rpx solid rgba(255, 255, 255, 0.1);
 	border-radius: 50%;
 	cursor: pointer;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	z-index: 999;
+	overflow: hidden;
+}
+
+.github-link::before {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.github-link:hover::before {
+	opacity: 1;
 }
 
 .github-link:hover {
-	transform: scale(1.1) rotate(360deg);
-	background: rgba(255, 255, 255, 0.15);
-	border-color: rgba(255, 255, 255, 0.2);
+	transform: scale(1.15) rotate(360deg);
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
+}
+
+.github-link:active {
+	transform: scale(1.05) rotate(360deg);
 }
 
 .github-icon {
 	width: 40rpx;
 	height: 40rpx;
 	transition: transform 0.3s ease;
+}
+
+.github-link:hover .github-icon {
+	animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.1); }
 }
 
 /* CSS变量 - 浅色模式 */
@@ -723,10 +752,23 @@ function onShareTimeline() {
 	border-radius: 20rpx;
 	font-size: 24rpx;
 	white-space: nowrap;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	cursor: default;
+}
+
+.info-tag:hover {
+	transform: translateY(-2rpx);
+	background-color: rgba(22, 27, 34, 0.25);
+	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
 .info-icon {
 	font-size: 28rpx;
+	transition: transform 0.3s ease;
+}
+
+.info-tag:hover .info-icon {
+	transform: scale(1.2);
 }
 
 .info-label {
@@ -911,16 +953,42 @@ function onShareTimeline() {
 	border: 2rpx solid rgba(124, 107, 206, 0.3);
 	border-radius: 20rpx;
 	font-size: 24rpx;
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	cursor: pointer;
 	font-weight: 500;
+	position: relative;
+	overflow: hidden;
+}
+
+/* 按钮波纹效果 */
+.page-nav-btn::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	background: rgba(255, 255, 255, 0.3);
+	border-radius: 50%;
+	transform: translate(-50%, -50%);
+	transition: width 0.4s ease, height 0.4s ease;
+}
+
+.page-nav-btn:active::after {
+	width: 300rpx;
+	height: 300rpx;
 }
 
 .page-nav-btn:hover:not(.disabled) {
 	background-color: var(--primary-color);
 	color: #fff;
 	border-color: var(--primary-color);
-	transform: translateY(-2rpx);
+	transform: translateY(-4rpx) scale(1.02);
+	box-shadow: 0 8rpx 20rpx rgba(124, 107, 206, 0.3);
+}
+
+.page-nav-btn:active:not(.disabled) {
+	transform: translateY(0) scale(0.98);
 }
 
 .page-nav-btn.disabled {
@@ -931,6 +999,25 @@ function onShareTimeline() {
 .page-nav-icon {
 	font-size: 28rpx;
 	font-weight: bold;
+	transition: transform 0.3s ease;
+}
+
+.page-nav-btn:hover:not(.disabled) .page-nav-icon {
+	animation: arrowBounce 0.6s ease infinite;
+}
+
+.prev-btn:hover:not(.disabled) .page-nav-icon {
+	animation: arrowBounceLeft 0.6s ease infinite;
+}
+
+@keyframes arrowBounce {
+	0%, 100% { transform: translateX(0); }
+	50% { transform: translateX(6rpx); }
+}
+
+@keyframes arrowBounceLeft {
+	0%, 100% { transform: translateX(0); }
+	50% { transform: translateX(-6rpx); }
 }
 
 .page-nav-text {
@@ -956,7 +1043,7 @@ function onShareTimeline() {
 	border: 2rpx solid rgba(208, 215, 222, 0.3);
 	border-radius: 20rpx;
 	font-size: 24rpx;
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	cursor: pointer;
 	font-weight: 500;
 }
@@ -965,11 +1052,22 @@ function onShareTimeline() {
 	background-color: var(--primary-color);
 	color: #fff;
 	border-color: var(--primary-color);
+	transform: translateY(-4rpx) scale(1.02);
+	box-shadow: 0 8rpx 20rpx rgba(85, 70, 163, 0.25);
+}
+
+.settings-btn:active {
+	transform: translateY(0) scale(0.98);
 }
 
 .settings-icon {
 	margin-right: 8rpx;
 	font-size: 28rpx;
+	transition: transform 0.3s ease;
+}
+
+.settings-btn:hover .settings-icon {
+	animation: spin 1s linear infinite;
 }
 
 .settings-text {
@@ -987,7 +1085,7 @@ function onShareTimeline() {
 	border: 2rpx solid rgba(208, 215, 222, 0.3);
 	border-radius: 20rpx;
 	font-size: 24rpx;
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	cursor: pointer;
 	font-weight: 500;
 }
@@ -996,11 +1094,22 @@ function onShareTimeline() {
 	background-color: var(--primary-color);
 	color: #fff;
 	border-color: var(--primary-color);
+	transform: translateY(-4rpx) scale(1.02);
+	box-shadow: 0 8rpx 20rpx rgba(85, 70, 163, 0.25);
+}
+
+.theme-toggle-btn:active {
+	transform: translateY(0) scale(0.98);
 }
 
 .theme-icon {
 	margin-right: 8rpx;
 	font-size: 28rpx;
+	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-btn:hover .theme-icon {
+	transform: rotate(180deg) scale(1.2);
 }
 
 .theme-text {
@@ -1017,8 +1126,18 @@ function onShareTimeline() {
 	color: #fff;
 	border-radius: 20rpx;
 	font-size: 24rpx;
-	transition: all 0.3s;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	cursor: pointer;
+}
+
+.refresh-btn:hover {
+	background-color: rgba(64, 158, 255, 0.8);
+	transform: translateY(-4rpx) scale(1.02);
+	box-shadow: 0 8rpx 20rpx rgba(64, 158, 255, 0.35);
+}
+
+.refresh-btn:active {
+	transform: translateY(0) scale(0.98);
 }
 
 .refresh-btn.loading {
@@ -1028,6 +1147,11 @@ function onShareTimeline() {
 .refresh-icon {
 	margin-right: 8rpx;
 	display: inline-block;
+	transition: transform 0.3s ease;
+}
+
+.refresh-btn:hover .refresh-icon {
+	animation: rotate 1s linear infinite;
 }
 
 .refresh-btn.loading .refresh-icon {
@@ -1055,6 +1179,12 @@ function onShareTimeline() {
 	justify-content: center;
 	padding: 100rpx 20rpx;
 	flex: 1;
+	animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(20rpx); }
+	to { opacity: 1; transform: translateY(0); }
 }
 
 .loading-spinner {
@@ -1063,7 +1193,7 @@ function onShareTimeline() {
 	border: 4rpx solid #e8e8e8;
 	border-top-color: #409eff;
 	border-radius: 50%;
-	animation: spin 1s linear infinite;
+	animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 	margin-bottom: 20rpx;
 }
 
@@ -1076,6 +1206,12 @@ function onShareTimeline() {
 .loading-text {
 	font-size: 28rpx;
 	color: var(--text-tertiary);
+	animation: pulse 1.5s ease infinite;
+}
+
+@keyframes loadingPulse {
+	0%, 100% { opacity: 0.6; }
+	50% { opacity: 1; }
 }
 
 .plugin-scroll {
@@ -1101,11 +1237,18 @@ function onShareTimeline() {
 	align-items: center;
 	justify-content: center;
 	padding: 100rpx 20rpx;
+	animation: fadeIn 0.5s ease;
 }
 
 .empty-icon {
 	font-size: 120rpx;
 	margin-bottom: 20rpx;
+	animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-16rpx); }
 }
 
 .empty-text {
@@ -1143,13 +1286,39 @@ function onShareTimeline() {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	position: relative;
+	overflow: hidden;
+}
+
+.page-btn::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	background: rgba(255, 255, 255, 0.3);
+	border-radius: 50%;
+	transform: translate(-50%, -50%);
+	transition: width 0.4s ease, height 0.4s ease;
+}
+
+.page-btn:active::after {
+	width: 200rpx;
+	height: 200rpx;
 }
 
 .page-btn:hover:not(.disabled) {
 	background-color: var(--primary-color);
 	color: white;
 	border-color: var(--primary-color);
+	transform: translateY(-4rpx);
+	box-shadow: 0 6rpx 16rpx rgba(85, 70, 163, 0.25);
+}
+
+.page-btn:active:not(.disabled) {
+	transform: translateY(0);
 }
 
 .page-btn.disabled {

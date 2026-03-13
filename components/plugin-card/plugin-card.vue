@@ -212,11 +212,41 @@ const handleClick = () => {
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	box-shadow: 0 0 0 2rpx transparent inset;
 	cursor: pointer;
+	position: relative;
+	overflow: hidden;
+}
+
+/* 卡片光泽效果 */
+.plugin-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 50%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.1),
+		transparent
+	);
+	transition: left 0.5s ease;
+	pointer-events: none;
+}
+
+.plugin-card:hover::before {
+	left: 100%;
 }
 
 .plugin-card:hover {
-	box-shadow: 0 0 0 2rpx var(--primary-color, #5546a3) inset, 0 8rpx 24rpx rgba(85, 70, 163, 0.15);
-	transform: translateY(-4rpx) scale(1.01);
+	box-shadow: 0 0 0 2rpx var(--primary-color, #5546a3) inset, 0 12rpx 32rpx rgba(85, 70, 163, 0.2);
+	transform: translateY(-6rpx) scale(1.02);
+}
+
+/* 点击效果 */
+.plugin-card:active {
+	transform: translateY(-2rpx) scale(0.98);
+	transition: all 0.1s ease;
 }
 
 /* 头部 */
@@ -239,6 +269,13 @@ const handleClick = () => {
 	align-items: center;
 	justify-content: center;
 	font-size: 56rpx;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.plugin-card:hover .category-icon {
+	transform: scale(1.1) rotate(5deg);
+	border-color: var(--primary-color, #5546a3);
+	box-shadow: 0 4rpx 16rpx rgba(85, 70, 163, 0.2);
 }
 
 .header-main {
@@ -335,11 +372,28 @@ const handleClick = () => {
 	font-size: 28rpx;
 	color: #d0d7de;
 	line-height: 1;
-	transition: color 0.3s ease;
+	transition: all 0.3s ease;
+	display: inline-block;
 }
 
 .star.filled {
 	color: var(--warning-color, #bf8700);
+}
+
+/* 悬浮时星星依次跳动 */
+.plugin-card:hover .star {
+	animation: starBounce 0.5s ease forwards;
+}
+
+.plugin-card:hover .star:nth-child(1) { animation-delay: 0s; }
+.plugin-card:hover .star:nth-child(2) { animation-delay: 0.05s; }
+.plugin-card:hover .star:nth-child(3) { animation-delay: 0.1s; }
+.plugin-card:hover .star:nth-child(4) { animation-delay: 0.15s; }
+.plugin-card:hover .star:nth-child(5) { animation-delay: 0.2s; }
+
+@keyframes starBounce {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.3); }
 }
 
 .rating-value {
@@ -375,7 +429,7 @@ const handleClick = () => {
 	color: var(--text-secondary, #656d76);
 	overflow: hidden;
 	margin-bottom: -8rpx;
-	transition: color 0.3s ease;
+	transition: all 0.3s ease;
 }
 
 .footer-item {
@@ -384,6 +438,11 @@ const handleClick = () => {
 	gap: 8rpx;
 	flex-shrink: 0;
 	overflow: hidden;
+	transition: all 0.3s ease;
+}
+
+.plugin-card:hover .footer-item {
+	color: var(--primary-color, #5546a3);
 }
 
 .footer-icon {
@@ -392,6 +451,11 @@ const handleClick = () => {
 	width: 32rpx;
 	margin-right: 4rpx;
 	vertical-align: -2rpx;
+	transition: transform 0.3s ease;
+}
+
+.plugin-card:hover .footer-icon {
+	transform: scale(1.2);
 }
 
 .footer-text {
@@ -417,6 +481,12 @@ const handleClick = () => {
 	cursor: pointer;
 	vertical-align: middle;
 	overflow: hidden;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.plugin-card:hover .author-avatar {
+	transform: scale(1.15) rotate(10deg);
+	box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
 }
 
 .avatar-img {

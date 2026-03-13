@@ -193,11 +193,19 @@ const handleCategoryClick = (key) => {
 	cursor: pointer;
 	color: var(--text-primary, #1f2328);
 	border: 2rpx solid var(--border-color, #d0d7de);
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .collapse-btn:hover {
-	background-color: var(--bg-secondary, #f8f8f9);
+	background-color: var(--primary-color, #5546a3);
+	color: #fff;
+	border-color: var(--primary-color, #5546a3);
+	transform: scale(1.1);
+	box-shadow: 0 4rpx 16rpx rgba(85, 70, 163, 0.3);
+}
+
+.collapse-btn:active {
+	transform: scale(0.95);
 }
 
 .sidebar-content {
@@ -224,24 +232,54 @@ const handleCategoryClick = (key) => {
 	align-items: center;
 	padding: 0 16rpx;
 	margin: 8rpx 0;
-	border-radius: 0;
+	border-radius: 8rpx;
 	font-size: 28rpx;
 	color: var(--k-text-normal, #656d76);
 	cursor: pointer;
-	transition: color 0.5s;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	min-width: 0;
 	overflow: hidden;
 	height: 48rpx;
 	z-index: 2;
 	gap: 8rpx;
+	position: relative;
+}
+
+/* 悬浮背景效果 */
+.filter-item::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 0;
+	height: 100%;
+	background: var(--primary-color, #5546a3);
+	opacity: 0.1;
+	border-radius: 8rpx;
+	transition: width 0.3s ease;
+}
+
+.filter-item:hover::before {
+	width: 100%;
 }
 
 .filter-item:hover {
 	color: var(--k-text-dark, #1f2328);
+	transform: translateX(8rpx);
+}
+
+.filter-item:active {
+	transform: translateX(4rpx) scale(0.98);
 }
 
 .filter-item.active {
 	color: var(--k-text-active, #5546a3);
+	font-weight: 600;
+}
+
+.filter-item.active::before {
+	width: 100%;
+	opacity: 0.15;
 }
 
 .filter-item.verified.active {
@@ -276,6 +314,11 @@ const handleCategoryClick = (key) => {
 	width: 56rpx;
 	align-items: center;
 	justify-content: center;
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-item:hover .filter-icon {
+	transform: scale(1.2) rotate(10deg);
 }
 
 .filter-text {

@@ -97,7 +97,14 @@ const handleRemoveTag = (index) => {
 	margin: 0 auto;
 	max-width: 1200rpx;
 	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	border: 2rpx solid transparent;
+}
+
+.search-bar:focus-within {
+	box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.25);
+	border-color: var(--primary-color, #667eea);
+	transform: scale(1.01);
 }
 
 .search-icon {
@@ -105,6 +112,13 @@ const handleRemoveTag = (index) => {
 	color: var(--text-tertiary, #8c959f);
 	margin-right: 16rpx;
 	opacity: 0.5;
+	transition: all 0.3s ease;
+}
+
+.search-bar:focus-within .search-icon {
+	opacity: 1;
+	transform: scale(1.1);
+	color: var(--primary-color, #667eea);
 }
 
 .search-input {
@@ -120,6 +134,18 @@ const handleRemoveTag = (index) => {
 	color: var(--text-tertiary, #999);
 	padding: 0 10rpx;
 	cursor: pointer;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	border-radius: 50%;
+}
+
+.clear-icon:hover {
+	color: var(--danger-color, #f85149);
+	transform: rotate(90deg) scale(1.2);
+	background: rgba(248, 81, 73, 0.1);
+}
+
+.clear-icon:active {
+	transform: rotate(90deg) scale(0.9);
 }
 
 .search-tags {
@@ -150,29 +176,50 @@ const handleRemoveTag = (index) => {
 	white-space: nowrap;
 	cursor: pointer;
 	user-select: none;
-	transition: all 0.3s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
-	animation: slideIn 0.3s ease;
+	animation: tagPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	position: relative;
+	overflow: hidden;
 }
 
-@keyframes slideIn {
-	from {
+/* 标签光泽效果 */
+.search-tag::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+	transition: left 0.5s ease;
+}
+
+.search-tag:hover::before {
+	left: 100%;
+}
+
+@keyframes tagPopIn {
+	0% {
 		opacity: 0;
-		transform: translateY(-10rpx);
+		transform: scale(0.5) translateY(-20rpx);
 	}
-	to {
+	60% {
+		transform: scale(1.1) translateY(0);
+	}
+	100% {
 		opacity: 1;
-		transform: translateY(0);
+		transform: scale(1) translateY(0);
 	}
 }
 
 .search-tag:hover {
-	transform: translateY(-2rpx);
-	box-shadow: 0 6rpx 16rpx rgba(102, 126, 234, 0.4);
+	transform: translateY(-4rpx) scale(1.05);
+	box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.4);
 }
 
 .search-tag:active {
-	transform: translateY(0);
+	transform: translateY(0) scale(0.95);
 }
 
 .tag-close {
@@ -180,5 +227,11 @@ const handleRemoveTag = (index) => {
 	font-weight: bold;
 	font-size: 28rpx;
 	opacity: 0.8;
+	transition: all 0.3s ease;
+}
+
+.search-tag:hover .tag-close {
+	opacity: 1;
+	transform: rotate(90deg);
 }
 </style>
