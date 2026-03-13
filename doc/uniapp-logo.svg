@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230" width="200" height="230">
+  <!-- Green rounded square background -->
+  <rect x="20" y="10" width="160" height="160" rx="24" ry="24" fill="#2B9939"/>
+
+  <!-- White U shape - geometric/blocky with flat bottom -->
+  <path d="
+    M 58 42
+    L 58 132
+    L 142 132
+    L 142 42
+    L 122 42
+    L 122 114
+    L 78 114
+    L 78 42
+    Z
+  " fill="#FFFFFF"/>
+
+  <!-- "uni-app" text -->
+  <text x="100" y="210" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#2B9939">uni-app</text>
+</svg>

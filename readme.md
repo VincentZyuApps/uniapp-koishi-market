@@ -12,7 +12,7 @@
 
 ## 🔗 在线访问
 
-- **GitHub Pages**：<https://vincentzyu233.github.io/uniapp-koishi-market/#/>
+- **GitHub Pages**：<https://vincentzyuapps.github.io/uniapp-koishi-market/#/>
 - **QQ 小程序**：搜索 **koishi的npm插件**，或访问 <https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16>
 
 ## 🛠️ 技术栈
