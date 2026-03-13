@@ -1,3 +1,5 @@
+![uniapp-koishi-market](https://socialify.git.ci/VincentZyuApps/uniapp-koishi-market/image?custom_description=%F0%9F%93%A6+%E5%9F%BA%E4%BA%8E+uni-app+%2B+Vue+3+%E7%9A%84+Koishi+%E6%8F%92%E4%BB%B6%E5%B8%82%E5%9C%BA%E6%B5%8F%E8%A7%88%E5%99%A8%EF%BC%8C%E6%94%AF%E6%8C%81%E5%A4%9A%E9%95%9C%E5%83%8F%E6%BA%90%E5%88%87%E6%8D%A2%E3%80%81%E6%8F%92%E4%BB%B6%E6%90%9C%E7%B4%A2%2F%E7%AD%9B%E9%80%89%2F%E6%8E%92%E5%BA%8F%EF%BC%8C%E5%B7%B2%E5%8F%91%E8%A1%8C%E5%88%B0GitHub+Pages+%E7%BD%91%E9%A1%B5%E7%AB%AF+%26+QQ+%E5%B0%8F%E7%A8%8B%E5%BA%8F%E3%80%82+&description=1&font=JetBrains+Mono&forks=1&issues=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2FVincentZyuApps%2Funiapp-koishi-market%2Frefs%2Fheads%2Fmain%2Fdoc%2Funiapp-logo.svg&name=1&owner=1&pulls=1&stargazers=1&theme=Auto)
+
 # uniapp-koishi-market
 
 > 基于 UniApp 开发的 Koishi 插件市场浏览器，支持 GitHub Pages 和 QQ 小程序。
