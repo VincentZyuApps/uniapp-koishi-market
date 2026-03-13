@@ -21,6 +21,10 @@ concurrency:
 
 jobs:
   deploy:
+    # 只有 commit message 包含 "pub page" 时才执行，手动触发时跳过此检查
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, 'pub page')
     runs-on: ubuntu-latest
     
     steps:
