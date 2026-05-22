@@ -32,6 +32,7 @@
 > **注意**：只有 commit message 中包含 `pub page` 时，才会触发 GitHub Pages 部署流程。  
 > 手动 `workflow_dispatch` 触发不受此限制。
 
+### git cli
 ```shell
 git add .
 git add -f unpackage/dist/build/web/

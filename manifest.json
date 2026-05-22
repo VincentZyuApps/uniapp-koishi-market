@@ -1,9 +1,9 @@
 {
-    "name" : "uniapp-mp-qwq-server-frontend",
+    "name" : "uniapp-koishi-market",
     "appid" : "__UNI__850E479",
-    "description" : "qwq拨无因果的神秘小服服",
-    "versionName" : "0.1.3-beta.1",
-    "versionCode" : 20260313,
+    "description" : "uniapp做的koishi插件市场前端捏",
+    "versionName" : "0.1.3-beta.2",
+    "versionCode" : 20260522,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {

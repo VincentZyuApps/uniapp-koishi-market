@@ -157,6 +157,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { onLoad } from "@dcloudio/uni-app";
 import { fetchMarketData, getCurrentEndpoint } from '@/utils/request.js'
+import { setPlugin } from '@/utils/plugin-store.js'
 import PluginCard from '@/components/plugin-card/plugin-card.vue'
 import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
 import SearchHeader from '@/components/search-header/search-header.vue'
@@ -374,10 +375,10 @@ const toggleCategory = (key) => {
 }
 
 const openPlugin = (plugin) => {
-	// 将插件数据编码后传递到详情页
-	const pluginData = encodeURIComponent(JSON.stringify(plugin));
+	const name = plugin.package?.name || plugin.name || plugin.shortname
+	setPlugin(name, plugin)
 	uni.navigateTo({
-		url: `/pages/plugin-detail/plugin-detail?plugin=${pluginData}`
+		url: `/pages/plugin-detail/plugin-detail?name=${encodeURIComponent(name)}`
 	})
 }
 

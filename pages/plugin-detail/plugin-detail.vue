@@ -266,6 +266,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { getPlugin } from '@/utils/plugin-store.js';
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
 import { simpleMd5 } from '@/utils/md5.js';
 // #ifdef MP-WEIXIN || MP-QQ
@@ -295,16 +296,38 @@ onLoad((options) => {
 		}
 		
 		// 接收插件数据
-		if (options.plugin) {
-			plugin.value = JSON.parse(decodeURIComponent(options.plugin));
+		const pluginName = options.name
+		const pluginRaw = options.plugin
+
+		if (pluginName) {
+			const name = decodeURIComponent(pluginName)
+			const data = getPlugin(name)
+			
+			if (data) {
+				plugin.value = data
+			} else {
+				console.error('插件数据未找到:', name)
+				uni.showToast({
+					title: '插件数据丢失，请返回重试',
+					icon: 'error',
+					duration: 2000
+				})
+				setTimeout(() => {
+					uni.navigateBack()
+				}, 2000)
+				return
+			}
 			
 			// 调试：打印当前插件的完整数据结构
 			console.log('=== 插件详情页 - 当前插件数据结构 ===')
 			console.log('插件名称:', plugin.value.shortname || plugin.value.name)
-			console.log('完整数据:', JSON.stringify(plugin.value, null, 2))
 			console.log('=======================================')
 			
 			isLoading.value = false;
+		} else if (pluginRaw) {
+			// 兼容旧版 URL 格式（直接传递 JSON）
+			plugin.value = JSON.parse(decodeURIComponent(pluginRaw))
+			isLoading.value = false
 		} else {
 			// 如果没有数据，显示错误并返回
 			uni.showToast({
