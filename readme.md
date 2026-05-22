@@ -2,12 +2,14 @@
 
 # uniapp-koishi-market
 
-> 基于 UniApp 开发的 Koishi 插件市场浏览器，支持 GitHub Pages、Cloudflare Pages 和 QQ 小程序。
+📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/uniapp-koishi-market)
-[![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/uniapp-koishi-market)
+<s>[![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/uniapp-koishi-market) (🔒已被Gitee强行Private，何意味)</s>
 [![GitLab](https://img.shields.io/badge/GitLab-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/VincentZyu233/uniapp-koishi-market)
 [![Codeberg](https://img.shields.io/badge/Codeberg-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/VincentZyu/uniapp-koishi-market)
+
+> 🙃 Gitee的repo被平台莫名其妙设为私有。开放？自由？不存在的
 
 ## 🔗 在线访问
 
@@ -51,5 +53,7 @@ git status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
 git commit -m "pub page: 更新页面"   # 如果想要更新ghpage和cfpage的话
 git push github main
-git push origin main
+git push gitee main
+git push gitlab main
+git push codeberg main
 ```

@@ -12,7 +12,7 @@
 			</view>
 			<!-- #endif -->
 			<view class="top-theme-btn" @click="toggleTheme">
-				<text class="top-theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</text>
+				<text class="top-theme-icon">{{ themeEmoji }}</text>
 			</view>
 		</view>
 		
@@ -178,8 +178,49 @@ const scrollTop = ref(0)
 // 侧边栏状态
 const sidebarCollapsed = ref(false)
 
-// 主题模式（默认黑暗模式）
-const isDarkMode = ref(true)
+// 主题模式（默认跟随系统）
+const themeMode = ref('system')
+let _cleanupSystemTheme = null
+
+const getSystemIsDark = () => {
+	// #ifdef WEB
+	return window.matchMedia('(prefers-color-scheme: dark)').matches
+	// #endif
+	// #ifdef MP-WEIXIN || MP-QQ
+	return (uni.getSystemInfoSync().theme || 'light') === 'dark'
+	// #endif
+	return true
+}
+
+const _systemChangeKey = ref(0)
+
+const setupSystemThemeListener = () => {
+	// #ifdef WEB
+	const mq = window.matchMedia('(prefers-color-scheme: dark)')
+	const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
+	mq.addEventListener('change', handler)
+	_cleanupSystemTheme = () => mq.removeEventListener('change', handler)
+	// #endif
+	// #ifdef MP-WEIXIN || MP-QQ
+	if (uni.onThemeChange) {
+		const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
+		uni.onThemeChange(handler)
+		_cleanupSystemTheme = () => { if (uni.offThemeChange) uni.offThemeChange(handler) }
+	}
+	// #endif
+}
+
+const isDarkMode = computed(() => {
+	void _systemChangeKey.value
+	if (themeMode.value === 'dark') return true
+	if (themeMode.value === 'light') return false
+	return getSystemIsDark()
+})
+
+const themeEmoji = computed(() => {
+	const map = { system: '🖥️', light: '☀️', dark: '🌙' }
+	return map[themeMode.value]
+})
 
 // 加载状态
 const isLoading = ref(false)
@@ -316,9 +357,10 @@ const toggleSidebar = () => {
 }
 
 const toggleTheme = () => {
-	isDarkMode.value = !isDarkMode.value
-	// 保存到本地存储
-	uni.setStorageSync('theme', isDarkMode.value ? 'dark' : 'light')
+	const modes = ['system', 'light', 'dark']
+	const idx = modes.indexOf(themeMode.value)
+	themeMode.value = modes[(idx + 1) % 3]
+	uni.setStorageSync('theme', themeMode.value)
 }
 
 const handleSearch = (word) => {
@@ -580,8 +622,8 @@ onMounted(() => {
 	
 	// 从本地存储加载主题设置
 	const savedTheme = uni.getStorageSync('theme')
-	if (savedTheme) {
-		isDarkMode.value = savedTheme === 'dark'
+	if (['system', 'light', 'dark'].includes(savedTheme)) {
+		themeMode.value = savedTheme
 	}
 	
 	// 计算每页显示数量
@@ -597,6 +639,9 @@ onMounted(() => {
 
 	// #endif
 	
+	// 系统主题变化监听（全平台）
+	setupSystemThemeListener()
+	
 	loadPlugins()
 })
 
@@ -604,6 +649,7 @@ onMounted(() => {
 onUnmounted(() => {
 	window.removeEventListener('resize', calculatePageSize)
 	window.removeEventListener('keydown', handleKeyDown)
+	_cleanupSystemTheme?.()
 })
 
 onLoad(()=>{

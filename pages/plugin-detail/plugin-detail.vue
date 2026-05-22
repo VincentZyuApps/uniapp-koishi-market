@@ -18,7 +18,7 @@
 				</view>
 				<!-- #endif -->
 				<view class="theme-toggle" @click="toggleTheme">
-					<text class="theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</text>
+					<text class="theme-icon">{{ themeEmoji }}</text>
 				</view>
 			</view>
 		</view>
@@ -275,7 +275,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { getPlugin } from '@/utils/plugin-store.js';
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
@@ -284,7 +284,49 @@ import { simpleMd5 } from '@/utils/md5.js';
 import { getStatusBarHeight } from '@/utils/system.js'
 // #endif
 
-const isDarkMode = ref(false);
+// 主题模式（默认跟随系统）
+const themeMode = ref('system')
+let _cleanupSystemTheme = null
+
+const getSystemIsDark = () => {
+	// #ifdef WEB
+	return window.matchMedia('(prefers-color-scheme: dark)').matches
+	// #endif
+	// #ifdef MP-WEIXIN || MP-QQ
+	return (uni.getSystemInfoSync().theme || 'light') === 'dark'
+	// #endif
+	return true
+}
+
+const _systemChangeKey = ref(0)
+
+const setupSystemThemeListener = () => {
+	// #ifdef WEB
+	const mq = window.matchMedia('(prefers-color-scheme: dark)')
+	const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
+	mq.addEventListener('change', handler)
+	_cleanupSystemTheme = () => mq.removeEventListener('change', handler)
+	// #endif
+	// #ifdef MP-WEIXIN || MP-QQ
+	if (uni.onThemeChange) {
+		const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
+		uni.onThemeChange(handler)
+		_cleanupSystemTheme = () => { if (uni.offThemeChange) uni.offThemeChange(handler) }
+	}
+	// #endif
+}
+
+const isDarkMode = computed(() => {
+	void _systemChangeKey.value
+	if (themeMode.value === 'dark') return true
+	if (themeMode.value === 'light') return false
+	return getSystemIsDark()
+})
+
+const themeEmoji = computed(() => {
+	const map = { system: '🖥️', light: '☀️', dark: '🌙' }
+	return map[themeMode.value]
+})
 const isLoading = ref(true);
 const plugin = ref({});
 const avatarError = ref(false);
@@ -302,8 +344,8 @@ onLoad((options) => {
 		
 		// 从localStorage读取主题设置
 		const savedTheme = uni.getStorageSync('theme');
-		if (savedTheme) {
-			isDarkMode.value = savedTheme === 'dark';
+		if (['system', 'light', 'dark'].includes(savedTheme)) {
+			themeMode.value = savedTheme;
 		}
 		
 		// 接收插件数据
@@ -368,10 +410,12 @@ const goBack = () => {
 	uni.navigateBack();
 };
 
-// 切换主题
+// 切换主题（三元循环：系统 → 白天 → 黑夜）
 const toggleTheme = () => {
-	isDarkMode.value = !isDarkMode.value;
-	uni.setStorageSync('theme', isDarkMode.value ? 'dark' : 'light');
+	const modes = ['system', 'light', 'dark']
+	const idx = modes.indexOf(themeMode.value)
+	themeMode.value = modes[(idx + 1) % 3]
+	uni.setStorageSync('theme', themeMode.value)
 };
 
 // 获取描述文本（中文优先）
@@ -558,6 +602,14 @@ onLoad(()=>{
 		withShareTicket: true,
 	});
 	// #endif
+})
+
+onMounted(() => {
+	setupSystemThemeListener()
+})
+
+onUnmounted(() => {
+	_cleanupSystemTheme?.()
 })
 </script>
 

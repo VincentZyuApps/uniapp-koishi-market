@@ -2,7 +2,7 @@
     "name" : "uniapp-koishi-market",
     "appid" : "__UNI__850E479",
     "description" : "uniapp做的koishi插件市场前端捏",
-    "versionName" : "0.1.4-beta.3",
+    "versionName" : "0.1.4-beta.5",
     "versionCode" : 20260523,
     "transformPx" : false,
     /* 5+App特有相关 */
