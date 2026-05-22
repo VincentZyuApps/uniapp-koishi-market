@@ -1,48 +1,66 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages & Cloudflare Pages
 
 on:
   push:
     branches:
-      - main  # 当推送到 main 分支时触发
+      - main
 
-  # 允许手动触发
   workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限
 permissions:
   contents: read
   pages: write
   id-token: write
+  deployments: write
 
-# 只允许一个并发部署
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    # 只有 commit message 包含 "pub page" 时才执行，手动触发时跳过此检查
+  # Job 1: 部署到 GitHub Pages
+  deploy-gh-pages:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.head_commit.message, 'pub page')
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './unpackage/dist/build/web'
-  
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
+  # Job 2: 部署到 Cloudflare Pages
+  deploy-cf-pages:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, 'pub page')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: uniapp-koishi-market
+          directory: unpackage/dist/build/web
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

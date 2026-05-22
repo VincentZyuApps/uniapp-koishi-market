@@ -7,8 +7,19 @@
 				<text class="back-text">返回</text>
 			</view>
 			<view class="header-title">插件详情</view>
-			<view class="theme-toggle" @click="toggleTheme">
-				<text class="theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</text>
+			<view class="header-actions">
+				<!-- #ifdef WEB -->
+				<view class="github-link" @click="openGithub">
+					<image 
+						class="github-icon" 
+						:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
+						mode="aspectFit"
+					/>
+				</view>
+				<!-- #endif -->
+				<view class="theme-toggle" @click="toggleTheme">
+					<text class="theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</text>
+				</view>
 			</view>
 		</view>
 		
@@ -520,6 +531,25 @@ const copyNpmAuthorLink = (username) => {
 	copyLink(npmAuthorUrl);
 };
 
+// 打开 GitHub 链接
+const openGithub = () => {
+	// #ifdef H5
+	window.open('https://github.com/VincentZyu233/uniapp-koishi-market', '_blank')
+	// #endif
+	
+	// #ifndef H5
+	uni.setClipboardData({
+		data: 'https://github.com/VincentZyu233/uniapp-koishi-market',
+		success: () => {
+			uni.showToast({
+				title: 'GitHub 链接已复制',
+				icon: 'success'
+			})
+		}
+	})
+	// #endif
+};
+
 onLoad(()=>{
 	// #ifdef MP-QQ
 	console.log("qq小程序的神秘要求捏");
@@ -797,7 +827,69 @@ onLoad(()=>{
 	font-size: 24rpx;
 }
 
-/* 可点击元素样式 */
+/* 顶部右侧操作按钮组 */
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+}
+
+.github-link {
+	width: 64rpx;
+	height: 64rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.08);
+	backdrop-filter: blur(10rpx) saturate(180%);
+	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
+	border: 2rpx solid rgba(255, 255, 255, 0.1);
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
+}
+
+.github-link::before {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.github-link:hover::before {
+	opacity: 1;
+}
+
+.github-link:hover {
+	transform: scale(1.15) rotate(360deg);
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
+}
+
+.github-link:active {
+	transform: scale(1.05) rotate(360deg);
+}
+
+.github-icon {
+	width: 40rpx;
+	height: 40rpx;
+	transition: transform 0.3s ease;
+}
+
+.github-link:hover .github-icon {
+	animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.1); }
+}
+
 .clickable {
 	cursor: pointer;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

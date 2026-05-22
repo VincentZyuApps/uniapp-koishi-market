@@ -1,22 +1,26 @@
 {
-  "name": "uniapp-koishi-market",
-  "version": "0.1.4-beta.1",
-  "main": "index.js",
-  "repository": "https://gitee.com/vincent-zyu/uniapp-qsfrontend",
-  "author": "VincentZyu <1830540513@qq.com>",
-  "license": "MIT",
-  "dependencies": {
-    "marked": "^15.0.8"
-  },
-  "scripts": {
-    "dev:h5": "uni --type h5 --watch",
-    "build:h5": "uni build -p h5"
-  },
-  "devDependencies": {
-    "@dcloudio/uni-cli-shared": "^2.0.2-4080720251210002",
-    "@dcloudio/vite-plugin-uni": "^3.0.0-alpha-3000020210521001",
-    "@vitejs/plugin-vue": "^6.0.3",
-    "@vue/compiler-sfc": "^3.5.25",
-    "vite": "^7.2.7"
-  }
+	"name": "uniapp-koishi-market",
+	"version": "0.1.4-beta.1",
+	"main": "index.js",
+	"author": "VincentZyu <1830540513@qq.com>",
+	"license": "MIT",
+	"homepage": "https://vincentzyuapps.github.io/uniapp-koishi-market/",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/VincentZyuApps/uniapp-koishi-market"
+	},
+	"dependencies": {
+		"marked": "^15.0.8"
+	},
+	"scripts": {
+		"dev:h5": "uni --type h5 --watch",
+		"build:h5": "uni build -p h5"
+	},
+	"devDependencies": {
+		"@dcloudio/uni-cli-shared": "^2.0.2-4080720251210002",
+		"@dcloudio/vite-plugin-uni": "^3.0.0-alpha-3000020210521001",
+		"@vitejs/plugin-vue": "^6.0.3",
+		"@vue/compiler-sfc": "^3.5.25",
+		"vite": "^7.2.7"
+	}
 }

@@ -1,15 +1,20 @@
 <template>
 	<view class="market-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
-		<!-- GitHub 链接 -->
-		<!-- #ifdef WEB -->
-		<view class="github-link" @click="openGithub">
-			<image 
-				class="github-icon" 
-				:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
-				mode="aspectFit"
-			/>
+		<!-- 顶部右侧按钮组 -->
+		<view class="top-actions">
+			<!-- #ifdef WEB -->
+			<view class="github-link" @click="openGithub">
+				<image 
+					class="github-icon" 
+					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
+					mode="aspectFit"
+				/>
+			</view>
+			<!-- #endif -->
+			<view class="top-theme-btn" @click="toggleTheme">
+				<text class="top-theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</text>
+			</view>
 		</view>
-		<!-- #endif -->
 		
 		<!-- 顶部搜索栏和信息栏 -->
 		<view class="top-section">
@@ -89,10 +94,6 @@
 						<view class="settings-btn" @click="goToSettings">
 							<text class="settings-icon">⚙️</text>
 							<text class="settings-text">设置</text>
-						</view>
-						<view class="theme-toggle-btn" @click="toggleTheme">
-							<text class="theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</text>
-							<text class="theme-text">{{ isDarkMode ? '浅色' : '深色' }}</text>
 						</view>
 						<view class="refresh-btn" @click="refreshPlugins" :class="{ loading: isLoading }">
 							<text class="refresh-icon">🔄</text>
@@ -636,11 +637,18 @@ function onShareTimeline() {
 </script>
 
 <style scoped>
-/* GitHub 链接 */
-.github-link {
+/* 顶部右侧按钮组 */
+.top-actions {
 	position: fixed;
 	top: 20rpx;
 	right: 20rpx;
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	z-index: 999;
+}
+
+.github-link {
 	width: 64rpx;
 	height: 64rpx;
 	display: flex;
@@ -653,7 +661,6 @@ function onShareTimeline() {
 	border-radius: 50%;
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	z-index: 999;
 	overflow: hidden;
 }
 
@@ -695,6 +702,53 @@ function onShareTimeline() {
 @keyframes pulse {
 	0%, 100% { transform: scale(1); }
 	50% { transform: scale(1.1); }
+}
+
+/* 顶部主题按钮 */
+.top-theme-btn {
+	width: 64rpx;
+	height: 64rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.08);
+	backdrop-filter: blur(10rpx) saturate(180%);
+	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
+	border: 2rpx solid rgba(255, 255, 255, 0.1);
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
+}
+
+.top-theme-btn::before {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.top-theme-btn:hover::before {
+	opacity: 1;
+}
+
+.top-theme-btn:hover {
+	transform: scale(1.15) rotate(180deg);
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
+}
+
+.top-theme-btn:active {
+	transform: scale(1.05);
+}
+
+.top-theme-icon {
+	font-size: 32rpx;
+	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* CSS变量 - 浅色模式 */
@@ -1075,48 +1129,6 @@ function onShareTimeline() {
 	white-space: nowrap;
 }
 
-.theme-toggle-btn {
-	display: flex;
-	align-items: center;
-	padding: 8rpx 20rpx;
-	background-color: rgba(248, 248, 249, 0.2);
-	backdrop-filter: blur(10rpx);
-	-webkit-backdrop-filter: blur(10rpx);
-	color: var(--text-primary);
-	border: 2rpx solid rgba(208, 215, 222, 0.3);
-	border-radius: 20rpx;
-	font-size: 24rpx;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	cursor: pointer;
-	font-weight: 500;
-}
-
-.theme-toggle-btn:hover {
-	background-color: var(--primary-color);
-	color: #fff;
-	border-color: var(--primary-color);
-	transform: translateY(-4rpx) scale(1.02);
-	box-shadow: 0 8rpx 20rpx rgba(85, 70, 163, 0.25);
-}
-
-.theme-toggle-btn:active {
-	transform: translateY(0) scale(0.98);
-}
-
-.theme-icon {
-	margin-right: 8rpx;
-	font-size: 28rpx;
-	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle-btn:hover .theme-icon {
-	transform: rotate(180deg) scale(1.2);
-}
-
-.theme-text {
-	white-space: nowrap;
-}
-
 .refresh-btn {
 	display: flex;
 	align-items: center;
@@ -1343,9 +1355,13 @@ function onShareTimeline() {
 
 /* 响应式布局 - 只在真正的小屏设备上应用 */
 @media (max-width: 600px) {
-	.github-link {
+	.top-actions {
 		top: 15rpx;
 		right: 15rpx;
+		gap: 12rpx;
+	}
+	
+	.github-link {
 		width: 56rpx;
 		height: 56rpx;
 	}
@@ -1353,6 +1369,15 @@ function onShareTimeline() {
 	.github-icon {
 		width: 34rpx;
 		height: 34rpx;
+	}
+	
+	.top-theme-btn {
+		width: 56rpx;
+		height: 56rpx;
+	}
+	
+	.top-theme-icon {
+		font-size: 28rpx;
 	}
 	
 	.top-section {
@@ -1432,7 +1457,6 @@ function onShareTimeline() {
 	}
 	
 	.settings-btn,
-	.theme-toggle-btn,
 	.refresh-btn {
 		flex: 1;
 		min-width: 0;
@@ -1442,7 +1466,6 @@ function onShareTimeline() {
 	}
 	
 	.settings-icon,
-	.theme-icon,
 	.refresh-icon {
 		font-size: 28rpx;
 	}
@@ -1494,14 +1517,12 @@ function onShareTimeline() {
 	}
 	
 	.settings-btn,
-	.theme-toggle-btn,
 	.refresh-btn {
 		padding: 14rpx 16rpx;
 		font-size: 22rpx;
 	}
 	
 	.settings-text,
-	.theme-text,
 	.refresh-text {
 		display: none;
 	}
