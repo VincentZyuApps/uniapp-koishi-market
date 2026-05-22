@@ -59,11 +59,13 @@
 			
 		<view class="spacer"></view>
 		
-		<view class="author-avatar" v-if="authorEmail">
+		<view class="author-avatar" v-if="authorEmail" :class="{ 'avatar-loading': avatarLoading }">
 			<image 
 				class="avatar-img" 
+				:class="{ 'avatar-loaded': !avatarLoading }"
 				:src="getAvatarUrl(authorEmail)"
 				mode="aspectFill"
+				@load="onAvatarLoad"
 				@error="handleAvatarError"
 			/>
 		</view>
@@ -73,7 +75,7 @@
 	</view>
 </view>
 </template><script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue'
 import { simpleMd5 } from '@/utils/md5.js'
 
@@ -87,6 +89,7 @@ const props = defineProps({
 const emit = defineEmits(['click'])
 
 const avatarError = ref(false)
+const avatarLoading = ref(true)
 
 // 获取作者邮箱
 const authorEmail = computed(() => {
@@ -113,6 +116,10 @@ const authorEmail = computed(() => {
 	return null
 })
 
+watch(authorEmail, () => {
+	avatarLoading.value = true
+})
+
 // 获取 Gravatar 头像 URL
 const getAvatarUrl = (email) => {
 	if (!email) return ''
@@ -121,6 +128,11 @@ const getAvatarUrl = (email) => {
 	// s=48 指定大小为 48x48 像素
 	const hash = simpleMd5(email.toLowerCase().trim())
 	return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=96`
+}
+
+// 处理头像加载成功
+const onAvatarLoad = () => {
+	avatarLoading.value = false
 }
 
 // 处理头像加载错误
@@ -493,6 +505,24 @@ const handleClick = () => {
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.avatar-loaded {
+	opacity: 1;
+}
+
+/* 加载中旋转动画 */
+.avatar-loading {
+	background: transparent !important;
+	border: 4rpx solid transparent;
+	border-top-color: var(--primary-color, #5546a3);
+	animation: avatarSpin 0.8s linear infinite;
+}
+
+@keyframes avatarSpin {
+	to { transform: rotate(360deg); }
 }
 
 .avatar-text {
