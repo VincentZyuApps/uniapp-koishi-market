@@ -42,7 +42,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
     environment:
-      name: github-pages
+      name: GitHub Pages
       url: ${{ steps.deployment.outputs.page_url }}
 
   # Job 2: 部署到 Cloudflare Pages
@@ -57,10 +57,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: uniapp-koishi-market
-          directory: unpackage/dist/build/web
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy unpackage/dist/build/web --project-name=uniapp-koishi-market
+
+    environment:
+      name: Cloudflare Pages
+      url: https://uniapp-koishi-market.pages.dev
