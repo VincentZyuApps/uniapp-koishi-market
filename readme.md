@@ -2,7 +2,20 @@
 
 # uniapp-koishi-market
 
-> 基于 UniApp 开发的 Koishi 插件市场浏览器，支持 GitHub Pages 和 QQ 小程序。
+> 基于 UniApp 开发的 Koishi 插件市场浏览器，支持 GitHub Pages、Cloudflare Pages 和 QQ 小程序。
+
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/uniapp-koishi-market)
+[![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/uniapp-koishi-market)
+[![GitLab](https://img.shields.io/badge/GitLab-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/VincentZyu233/uniapp-koishi-market)
+[![Codeberg](https://img.shields.io/badge/Codeberg-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/VincentZyu/uniapp-koishi-market)
+
+## 🔗 在线访问
+
+| 平台 | 入口 |
+| :--- | :--- |
+| **GitHub Pages** [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-181717?style=for-the-badge&logo=github)](https://vincentzyuapps.github.io/uniapp-koishi-market/#/) | <https://vincentzyuapps.github.io/uniapp-koishi-market/#/> |
+| **Cloudflare Pages** [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-online-F38020?style=for-the-badge&logo=cloudflare)](https://uniapp-koishi-market.pages.dev) | <https://uniapp-koishi-market.pages.dev> |
+| **QQ 小程序** [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | 搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16> |
 
 ## 📸 预览
 
@@ -11,11 +24,6 @@
 | Web 端 | ![preview-index](doc/preview-index.png) |
 | 插件详情 | ![preview-plugin-detail](doc/preview-plugin-detail.png) |
 | QQ 小程序 | ![qq-miniapp](doc/koishi的npm插件-qq小程序.png) |
-
-## 🔗 在线访问
-
-- **GitHub Pages**：<https://vincentzyuapps.github.io/uniapp-koishi-market/#/>
-- **QQ 小程序**：搜索 **koishi的npm插件**，或访问 <https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16>
 
 ## 🛠️ 技术栈
 
@@ -32,14 +40,16 @@
 > **注意**：只有 commit message 中包含 `pub page` 时，才会触发 GitHub Pages 部署流程。  
 > 手动 `workflow_dispatch` 触发不受此限制。
 
-### git cli
+### 📟 Git 命令行操作
 ```shell
-git add .
+# HBuilderX gui界面左上角： 发行 -> 发行到WebH5
+python py-util/generate_cf_redirects.py
+git add -A
 git add -f unpackage/dist/build/web/
 git status --short
 git status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
-git commit -m "pub page: 更新页面"   # 如果想要更新github page的话
+git commit -m "pub page: 更新页面"   # 如果想要更新ghpage和cfpage的话
 git push github main
 git push origin main
 ```
