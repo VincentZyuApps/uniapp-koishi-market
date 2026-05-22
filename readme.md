@@ -39,10 +39,10 @@
 
 ## 🚀 GitHub Action 部署
 
-> **注意**：只有 commit message 中包含 `pub page` 时，才会触发 GitHub Pages 部署流程。  
+> **注意**：只有 commit message 中包含 `pub page` 时，才会触发 GitHub Pages & Cloudflare Pages 部署流程。  
 > 手动 `workflow_dispatch` 触发不受此限制。
 
-### 📟 Git 命令行操作
+## 📟 Git 命令行操作
 ```shell
 # HBuilderX gui界面左上角： 发行 -> 发行到WebH5
 python py-util/generate_cf_redirects.py

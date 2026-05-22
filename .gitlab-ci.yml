@@ -8,6 +8,7 @@
 stages:
 - test
 - secret-detection
+- deploy
 sast:
   stage: test
 include:
@@ -17,3 +18,14 @@ variables:
   SECRET_DETECTION_ENABLED: 'true'
 secret_detection:
   stage: secret-detection
+
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - mv unpackage/dist/build/web public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /pub page/'
