@@ -5,19 +5,19 @@
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/uniapp-koishi-market)
-<s>[![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/uniapp-koishi-market) (🔒已被Gitee强行Private，何意味)</s>
+[![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/uniapp-koishi-market)
 [![GitLab](https://img.shields.io/badge/GitLab-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/VincentZyu233/uniapp-koishi-market)
 [![Codeberg](https://img.shields.io/badge/Codeberg-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/VincentZyu/uniapp-koishi-market)
 
-> 🙃 Gitee的repo被平台莫名其妙设为私有。开放？自由？不存在的
+> 🙃 Gitee的repo被平台莫名其妙设为🔒私有。开放？自由？不存在的
 
 ## 🔗 在线访问
 
 | 平台 | 入口 |
 | :--- | :--- |
-| **GitHub Pages** [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-181717?style=for-the-badge&logo=github)](https://vincentzyuapps.github.io/uniapp-koishi-market/#/) | <https://vincentzyuapps.github.io/uniapp-koishi-market/#/> |
-| **Cloudflare Pages** [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-online-F38020?style=for-the-badge&logo=cloudflare)](https://uniapp-koishi-market.pages.dev) | <https://uniapp-koishi-market.pages.dev> |
-| **QQ 小程序** [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | 搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16> |
+| [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-181717?style=for-the-badge&logo=github)](https://vincentzyuapps.github.io/uniapp-koishi-market/#/) | <https://vincentzyuapps.github.io/uniapp-koishi-market/#/> |
+| [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-online-F38020?style=for-the-badge&logo=cloudflare)](https://uniapp-koishi-market.pages.dev) | <https://uniapp-koishi-market.pages.dev> |
+| [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | 搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16> |
 
 ## 📸 预览
 
