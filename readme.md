@@ -17,6 +17,7 @@
 | :--- | :--- |
 | [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-181717?style=for-the-badge&logo=github)](https://vincentzyuapps.github.io/uniapp-koishi-market/#/) | 浏览器打开： <https://vincentzyuapps.github.io/uniapp-koishi-market/#/> |
 | [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-online-F38020?style=for-the-badge&logo=cloudflare)](https://uniapp-koishi-market.pages.dev) | 浏览器打开：<https://uniapp-koishi-market.pages.dev> |
+| [![GitLab Pages](https://img.shields.io/badge/GitLab%20Pages-online-FC6D26?style=for-the-badge&logo=gitlab)](https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/) | 浏览器打开：<https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/> |
 | [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | 搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16> |
 
 ## 📸 预览

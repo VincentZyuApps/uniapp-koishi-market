@@ -1,6 +1,6 @@
 # 构建与部署说明
 
-本项目的构建**在本地 HBuilderX 中完成**，构建产物提交到仓库后由 GitHub Actions 自动上传到两个托管平台。
+本项目的构建**在本地 HBuilderX 中完成**，构建产物提交到仓库后由 GitHub Actions 自动上传到多个托管平台。
 
 > **核心原则**：CI 不做构建，只负责上传——和你在本地 build 完手动拖文件到托管平台的行为完全一致。
 
@@ -14,7 +14,7 @@
 
 | 关键词 | 说明 | 触发动作 |
 | :--- | :--- | :--- |
-| `pub page` | 更新页面 | ✅ 部署到 GitHub Pages<br>✅ 部署到 Cloudflare Pages |
+| `pub page` | 更新页面 | ✅ 部署到 GitHub Pages<br>✅ 部署到 Cloudflare Pages<br>✅ 部署到 Zeabur<br>✅ 部署到 GitLab Pages（`.gitlab-ci.yml`） |
 
 **示例 Commit：**
 ```bash
@@ -51,9 +51,11 @@ git commit -m "pub page: v0.1.4 更新说明"
 - `assets/` 文件夹（含 JS、CSS 等资源）
 - `static/` 文件夹（含图片、字体等静态资源）
 
-### 生成 CF Pages 重定向规则
+### 生成重定向规则（CF Pages / Zeabur 共用）
 
-由于 `manifest.json` 中 `h5.router.base` 配置为 `/uniapp-koishi-market/`（适配 GitHub Pages 子路径），而 Cloudflare Pages 部署在根路径 `/` 下。需要生成 `_redirects` 文件让 CF Pages 自动映射路径。
+由于 `manifest.json` 中 `h5.router.base` 配置为 `/uniapp-koishi-market/`（适配 GitHub Pages 子路径），而 Cloudflare Pages、Zeabur、GitLab Pages（仅唯一域名模式）均部署在根路径 `/` 下。需要生成 `_redirects` 文件让这些平台自动映射路径。
+
+> `_redirects` 文件使用 Netlify 兼容语法，Cloudflare Pages 和 Zeabur 均原生支持。
 
 在项目根目录执行：
 
@@ -66,7 +68,7 @@ python py-util/generate_cf_redirects.py
 /uniapp-koishi-market/* /:splat 200
 ```
 
-> 效果：浏览器请求 `/uniapp-koishi-market/assets/xxx` → CF Pages 内部映射为 `/assets/xxx`，用户无感知。
+> 效果：浏览器请求 `/uniapp-koishi-market/assets/xxx` → 平台内部映射为 `/assets/xxx`，用户无感知。
 
 ### 提交构建产物
 
@@ -85,14 +87,17 @@ git push
 
 ### 方式一：GitHub Actions 自动部署（推荐）
 
-提交时 commit message 包含 `pub page`，推送后自动触发两个部署任务：
+提交时 commit message 包含 `pub page`，推送后自动触发部署任务：
 
 | 任务 | 目标平台 | 时长 |
 | :--- | :--- | :--- |
 | `deploy-gh-pages` | GitHub Pages | ~1 分钟 |
 | `deploy-cf-pages` | Cloudflare Pages | ~30 秒 |
+| `deploy-zeabur` | Zeabur | ~30 秒 |
 
-两个任务**并行执行**，互不影响。可以在 GitHub 仓库的 **Actions** 标签页查看进度。
+多个任务**并行执行**，互不影响。可以在 GitHub 仓库的 **Actions** 标签页查看进度。
+
+> GitLab Pages 由 `.gitlab-ci.yml` 独立触发，推送到 GitLab 的 `main` 分支且 commit 含 `pub page` 时自动部署。
 
 ### 方式二：手动上传到 Cloudflare Pages（备用）
 
@@ -132,9 +137,48 @@ npx wrangler pages deploy unpackage/dist/build/web --project-name uniapp-koishi-
 
 ---
 
+## 🚀 前置准备：手动创建 Zeabur 项目
+
+> **优势**：Zeabur 由亚洲团队开发，CDN 节点覆盖亚太地区，国内直连访问速度远优于 GitHub Pages 和 Cloudflare Pages。
+
+### ⚠️ 注意：Zeabur 也不做构建
+
+跟 Cloudflare Pages 一样，GitHub Actions 只负责把本地 HBuilderX 编译好的 `unpackage/dist/build/web/` 推送到 Zeabur，**不在 CI 中执行 yarn build**。
+
+Zeabur 支持 `_redirects` 文件（Netlify 兼容语法），`py-util/generate_cf_redirects.py` 生成的文件同样适用于 Zeabur。
+
+### 创建 Zeabur 项目
+
+1. 打开 [Zeabur 控制台](https://dash.zeabur.com)，使用 GitHub 账号登录
+2. 点击 **Create Project** → 填项目名 `uniapp-koishi-market`
+3. 进入项目，点击 **Add Service** → **GitHub**，授权并选择 `VincentZyu233/uniapp-koishi-market` 仓库
+4. Zeabur 会自动检测项目类型。由于本仓库根目录不是静态站点，需手动配置：
+   - **Root Directory** 设置为 `unpackage/dist/build/web`
+   - **Watch Paths** 设置为 `unpackage/dist/build/web/**`（只有产物目录变更才触发部署）
+   - 停止并删除 Zeabur 自动创建的 build/deploy 步骤，因为构建在本地完成
+5. 在 **Settings → Watch Paths** 中确认只监听产物目录，避免其他代码改动触发无关部署
+
+> **提示**：Zeabur 免费计划服务在无访问时会自动休眠（节省额度），下次访问有数秒冷启动延迟。如需持续在线，可升级到 Dev Plan ($5/月)。
+
+### 获取 Zeabur 部署所需参数
+
+在 Zeabur 控制台记下以下信息：
+
+| 参数 | 说明 | 示例 |
+| :--- | :--- | :--- |
+| API Token | 部署认证令牌 | 从 **Settings → API Tokens** 创建 |
+| Service ID | 服务的唯一标识 | 在服务详情页 URL 中获取 |
+
+API Token 创建步骤：
+1. 点击左下角头像 → **个人设置 (Account Settings)** → **API Tokens**
+2. 点击 **Create Token**，填写名称（如 `github-action`）
+3. 复制生成的 Token（仅显示一次）
+
+---
+
 ## 🔑 需要配置的 GitHub Secrets
 
-为了使 Cloudflare Pages 部署成功，需要在 GitHub 仓库中添加两个 Secrets。
+为了使各平台部署成功，需要在 GitHub 仓库中添加以下 Secrets。
 
 进入：**GitHub 仓库 → Settings → Secrets and variables → Actions**，然后点击 **New repository secret**。
 
@@ -189,14 +233,25 @@ https://dash.cloudflare.com/<account_id>/...
 4. 向下滚动到右侧栏最底部，找到 **Account ID**
 5. 点击复制图标，粘贴到 GitHub Secrets 的 `CLOUDFLARE_ACCOUNT_ID` 中
 
+### 3. `ZEABUR_TOKEN`
+
+Zeabur API Token，用于授权 GitHub Action 向 Zeabur 上传文件。
+
+**获取步骤：**
+1. 登录 [Zeabur 控制台](https://dash.zeabur.com)
+2. 点击左下角头像 → **个人设置 (Account Settings)** → **API Tokens**
+3. 点击 **Create Token**，填写名称（如 `github-action-deploy`）
+4. 复制生成的 Token，粘贴到 GitHub Secrets 的 `ZEABUR_TOKEN` 中
+
 ### 配置完成后
 
-两个 Secrets 添加完成后，效果如下：
+三个 Secrets 添加完成后，效果如下：
 
 | Secret Name | 示例值 |
 | :--- | :--- |
 | `CLOUDFLARE_API_TOKEN` | `abc123def456...`（40位字符） |
 | `CLOUDFLARE_ACCOUNT_ID` | `a1b2c3d4e5f6...`（32位十六进制） |
+| `ZEABUR_TOKEN` | `z_xxxxxxxxxxxxx...`（Zeabur Token 格式） |
 
 ---
 
@@ -218,20 +273,22 @@ https://dash.cloudflare.com/<account_id>/...
 
 ### 预览 URL
 
-部署成功后，两个平台分别分配一个预览 URL：
+部署成功后，各平台分别分配一个访问 URL：
 
-| 平台 | 预览 URL |
+| 平台 | 访问 URL |
 | :--- | :--- |
-| GitHub Pages | `https://vincentzyu233.github.io/VincentZyu233/` |
+| GitHub Pages | `https://vincentzyu233.github.io/uniapp-koishi-market/#/` |
 | Cloudflare Pages | `https://uniapp-koishi-market.pages.dev` |
+| Zeabur | `https://uniapp-koishi-market.zeabur.app`（或 Zeabur 分配的默认域名） |
+| GitLab Pages | `https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/` |
 
-如需绑定自定义域名，在 Cloudflare Pages 项目设置 → **Custom domains** 中添加即可。
+> Zeabur 支持绑定自定义域名：在服务 **Settings → Domains** 中添加即可。
 
 ---
 
 ## 🛠️ 部署逻辑
 
-该工作流包含两个并行的任务 (Jobs)：
+该工作流包含多个并行的任务 (Jobs)：
 
 ### 1. GitHub Pages
 - **构建方式**：本地 HBuilderX 编译
@@ -245,4 +302,17 @@ https://dash.cloudflare.com/<account_id>/...
 - **部署方式**：`cloudflare/pages-action`
 - **访问地址**：`https://uniapp-koishi-market.pages.dev`
 
-> 两个任务使用完全相同的构建产物，只是部署目标不同。
+### 3. Zeabur
+- **构建方式**：本地 HBuilderX 编译
+- **部署目录**：`unpackage/dist/build/web/`
+- **部署方式**：Zeabur CLI (`npx zeabur@latest deploy`)
+- **访问地址**：`https://uniapp-koishi-market.zeabur.app`（或 Zeabur 自定义域名）
+
+> 三个任务使用完全相同的构建产物，只是部署目标不同。
+
+### 4. GitLab Pages（独立 CI）
+
+- **触发器**：推送到 GitLab `main` 分支 + commit 含 `pub page`
+- **配置**：`.gitlab-ci.yml`（`pages` job）
+- **部署方式**：将 `unpackage/dist/build/web/` 移至 `public/` 目录作为 artifact
+- **访问地址**：`https://VincentZyu233.gitlab.io/uniapp-koishi-market/#/`
