@@ -2,7 +2,7 @@
 	<view class="sidebar" :class="{ collapsed: collapsed }">
 		<!-- 折叠按钮 -->
 		<view class="collapse-btn" @click="toggleCollapse">
-			<text class="iconfont">{{ collapsed ? '►' : '◄' }}</text>
+			<text>{{ collapsed ? '➡️' : '⬅️' }}</text>
 		</view>
 		
 		<scroll-view class="sidebar-content" scroll-y v-if="!collapsed">
