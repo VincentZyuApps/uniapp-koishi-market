@@ -18,15 +18,16 @@
 | [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-181717?style=for-the-badge&logo=github)](https://vincentzyuapps.github.io/uniapp-koishi-market/#/) | 浏览器打开： <https://vincentzyuapps.github.io/uniapp-koishi-market/#/> |
 | [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-online-F38020?style=for-the-badge&logo=cloudflare)](https://uniapp-koishi-market.pages.dev) | 浏览器打开：<https://uniapp-koishi-market.pages.dev> |
 | [![GitLab Pages](https://img.shields.io/badge/GitLab%20Pages-online-FC6D26?style=for-the-badge&logo=gitlab)](https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/) | 浏览器打开：<https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/> |
-| [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | 搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16> |
+| [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | QQ搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16><br>或者qq扫码体验:<br><img src="doc/image/qrcode/qrcode-qq-miniprogram.png" width="150" alt="qrcode-qq-miniprogram"> |
+| ![微信小程序](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-07C160?style=for-the-badge&logo=wechat&logoColor=white) | 微信搜索 **koishi的npm插件1**，或者微信扫码体验：<br><img src="doc/image/qrcode/qrcode-wechat-miniprogram.png" width="150" alt="qrcode-wechat-miniprogram"> |
 
 ## 📸 预览
 
 | 平台 | 截图 |
 | :---: | :---: |
-| Web 端 | ![preview-index](doc/preview-index.png) |
-| 插件详情 | ![preview-plugin-detail](doc/preview-plugin-detail.png) |
-| QQ 小程序 | ![qq-miniapp](doc/koishi的npm插件-qq小程序.png) |
+| 首页 | ![preview-index](doc/image/preview-index.png) |
+| 插件详情页 | ![preview-plugin-detail](doc/image/preview-plugin-detail.png) |
+| QQ 小程序 | ![qq-miniapp](doc/image/preview-分享到qq群里的效果.png) |
 
 ## 🛠️ 技术栈
 
@@ -52,7 +53,7 @@ git add -f unpackage/dist/build/web/
 git status --short
 git status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
-git commit -m "pub page: 更新页面"   # 如果想要更新ghpage和cfpage的话
+git commit -m "pub page: 更新页面" # 如果想要更新github page、cloudflare page和gitlab page的话
 git push github main
 git push gitee main
 git push gitlab main

@@ -1,21 +1,13 @@
 <script>
 	export default {
 		onLaunch: function() {
-			// QQ小程序的分享设置
-			// 在每个页面的onLoad函数添加代码：
-			// #ifdef MP-QQ
-			// qq.showShareMenu({
-			// 	showShareItems: ['qq', 'qzone', 'wechatFriends', 'wechatMoment']
-			// });
-			// console.log("set qq.showShareMenu in App.vue");
-			// #endif
-			console.log('App Launch，20260523')
+			console.log('App Launch. 欢迎来到 uniapp koishi market!. version: 0.1.4-rc.4')
 		},
 		onShow: function() {
-			console.log('App Show')
+			console.log('App Show. 欢迎回到 uniapp koishi market!. version: 0.1.4-rc.4')
 		},
 		onHide: function() {
-			console.log('App Hide')
+			console.log('App Hide. 欢迎离开 uniapp koishi market!. version: 0.1.4-rc.4')
 		}
 	}
 </script>

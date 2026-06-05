@@ -661,6 +661,12 @@ onLoad(()=>{
 		withShareTicket: true,
 	});
 	// #endif
+	// #ifdef MP-WEIXIN
+	wx.showShareMenu({
+		withShareTicket: true,
+		menus: ['shareAppMessage', 'shareTimeline']
+	});
+	// #endif
 })
 
 // QQ小程序分享给好友

@@ -328,6 +328,12 @@ onLoad(()=>{
 		withShareTicket: true,
 	});
 	// #endif
+	// #ifdef MP-WEIXIN
+	wx.showShareMenu({
+		withShareTicket: true,
+		menus: ['shareAppMessage', 'shareTimeline']
+	});
+	// #endif
 })
 </script>
 
