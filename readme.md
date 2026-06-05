@@ -46,6 +46,7 @@
 
 ## 📟 Git 命令行操作
 ```shell
+python py-util/bump.py -v x.y.z-beta.w -c yyyymmdd
 # HBuilderX gui界面左上角： 发行 -> 发行到WebH5
 python py-util/generate_cf_redirects.py
 git add -A
@@ -53,7 +54,7 @@ git add -f unpackage/dist/build/web/
 git status --short
 git status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
-git commit -m "pub page: 更新页面" # 如果想要更新github page、cloudflare page和gitlab page的话
+git commit -m "pub page: some commit messages..." # 如果想要更新github page、cloudflare page和gitlab page的话
 git push github main
 git push gitee main
 git push gitlab main

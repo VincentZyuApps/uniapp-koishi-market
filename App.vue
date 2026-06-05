@@ -1,13 +1,13 @@
 <script>
 	export default {
 		onLaunch: function() {
-			console.log('App Launch. 欢迎来到 uniapp koishi market!. version: 0.1.4-rc.4')
+			console.log('App Launch. 欢迎来到 uniapp koishi market!. version: 0.1.5-beta.1')
 		},
 		onShow: function() {
-			console.log('App Show. 欢迎回到 uniapp koishi market!. version: 0.1.4-rc.4')
+			console.log('App Show. 欢迎回到 uniapp koishi market!. version: 0.1.5-beta.1')
 		},
 		onHide: function() {
-			console.log('App Hide. 欢迎离开 uniapp koishi market!. version: 0.1.4-rc.4')
+			console.log('App Hide. 欢迎离开 uniapp koishi market!. version: 0.1.5-beta.1')
 		}
 	}
 </script>
