@@ -530,4 +530,202 @@ const handleClick = () => {
 	font-size: 24rpx;
 	font-weight: bold;
 }
+
+@media (max-width: 900px) {
+	.plugin-card {
+		height: auto;
+		min-height: 360rpx;
+		padding: 24rpx 22rpx;
+		gap: 18rpx;
+	}
+
+	.card-header {
+		gap: 22rpx;
+	}
+
+	.category-icon {
+		width: 92rpx;
+		height: 92rpx;
+		font-size: 46rpx;
+	}
+
+	.plugin-name {
+		font-size: 31rpx;
+		line-height: 1.4;
+	}
+
+	.badge-icon {
+		width: 32rpx;
+		height: 32rpx;
+		font-size: 32rpx;
+	}
+
+	.stars {
+		gap: 5rpx;
+	}
+
+	.star {
+		font-size: 24rpx;
+	}
+
+	.rating-value {
+		font-size: 22rpx;
+	}
+
+	.card-description {
+		font-size: 24rpx;
+		line-height: 1.45;
+		-webkit-line-clamp: 3;
+	}
+
+	.card-footer {
+		gap: 10rpx;
+		height: 40rpx;
+		font-size: 22rpx;
+		margin-bottom: 0;
+	}
+
+	.footer-item {
+		gap: 5rpx;
+	}
+
+	.footer-icon {
+		width: 24rpx;
+		font-size: 20rpx;
+		margin-right: 0;
+	}
+
+	.footer-text {
+		font-size: 22rpx;
+	}
+
+	.author-avatar {
+		width: 40rpx;
+		height: 40rpx;
+	}
+
+	.avatar-text {
+		font-size: 20rpx;
+	}
+}
+
+@media (max-width: 600px) {
+	.plugin-card {
+		min-height: 340rpx;
+		padding: 22rpx 20rpx;
+		gap: 16rpx;
+		border-radius: 10rpx;
+	}
+
+	.card-header {
+		gap: 20rpx;
+	}
+
+	.category-icon {
+		width: 84rpx;
+		height: 84rpx;
+		border-radius: 12rpx;
+		font-size: 42rpx;
+	}
+
+	.plugin-name {
+		font-size: 30rpx;
+		line-height: 1.35;
+	}
+
+	.badge-icon {
+		width: 30rpx;
+		height: 30rpx;
+		font-size: 30rpx;
+	}
+
+	.rating-row {
+		gap: 6rpx;
+		height: 40rpx;
+	}
+
+	.stars {
+		gap: 4rpx;
+	}
+
+	.star {
+		font-size: 24rpx;
+	}
+
+	.rating-value {
+		font-size: 22rpx;
+	}
+
+	.card-description {
+		font-size: 25rpx;
+		line-height: 1.45;
+		-webkit-line-clamp: 3;
+	}
+
+	.card-footer {
+		gap: 10rpx;
+		height: 40rpx;
+		font-size: 22rpx;
+		margin-bottom: 0;
+	}
+
+	.footer-item {
+		gap: 4rpx;
+	}
+
+	.footer-icon {
+		width: 24rpx;
+		font-size: 20rpx;
+		margin-right: 0;
+	}
+
+	.footer-text {
+		font-size: 22rpx;
+	}
+
+	.author-avatar {
+		width: 40rpx;
+		height: 40rpx;
+	}
+
+	.avatar-text {
+		font-size: 20rpx;
+	}
+}
+
+@media (max-width: 375px) {
+	.plugin-card {
+		min-height: 312rpx;
+		padding: 18rpx 16rpx;
+		gap: 14rpx;
+	}
+
+	.category-icon {
+		width: 76rpx;
+		height: 76rpx;
+		font-size: 38rpx;
+	}
+
+	.plugin-name {
+		font-size: 28rpx;
+	}
+
+	.card-description {
+		font-size: 23rpx;
+		-webkit-line-clamp: 2;
+	}
+
+	.card-footer {
+		gap: 8rpx;
+	}
+
+	.footer-text {
+		font-size: 20rpx;
+	}
+
+	.author-avatar {
+		width: 36rpx;
+		height: 36rpx;
+	}
+}
 </style>

@@ -138,6 +138,29 @@ const handleCategoryClick = (key) => {
 	width: 80rpx;
 }
 
+@media (max-width: 900px) {
+	.sidebar {
+		width: 320rpx;
+	}
+
+	.sidebar.collapsed {
+		width: 64rpx;
+	}
+
+	.collapse-btn {
+		right: 8rpx;
+		top: 14rpx;
+		width: 48rpx;
+		height: 48rpx;
+		font-size: 20rpx;
+	}
+
+	.sidebar-content {
+		padding: 24rpx;
+		padding-top: 84rpx;
+	}
+}
+
 /* 移动端样式 - 侧边栏占满整个页面 */
 @media (max-width: 768rpx) {
 	.sidebar {
@@ -157,16 +180,16 @@ const handleCategoryClick = (key) => {
 	}
 	
 	.sidebar.collapsed {
-		width: 100rpx !important;
+		width: 72rpx !important;
 		transform: translateX(-100%);
 	}
 	
 	.collapse-btn {
-		right: 20rpx;
-		top: 20rpx;
-		width: 80rpx;
-		height: 80rpx;
-		font-size: 32rpx;
+		right: 14rpx;
+		top: 14rpx;
+		width: 60rpx;
+		height: 60rpx;
+		font-size: 24rpx;
 		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
 	}
 	
@@ -367,8 +390,8 @@ const handleCategoryClick = (key) => {
 		top: 50%;
 		transform: translateY(-50%);
 		z-index: 10001;
-		width: 60rpx;
-		height: 60rpx;
+		width: 48rpx;
+		height: 48rpx;
 		border-radius: 50%;
 		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
 		transition: all 0.3s ease, left 0.3s ease, right 0.3s ease;

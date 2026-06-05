@@ -574,19 +574,36 @@ const refreshPlugins = () => {
 const calculatePageSize = () => {
 	// 获取系统信息
 	const systemInfo = uni.getSystemInfoSync()
+	const windowWidth = systemInfo.windowWidth
 	
 	// 卡片宽度：336px + gap: 24rpx (约12px) = 348px
 	// 侧边栏宽度：展开时约 280px，收起时约 80px
 	// 内容区 padding：60rpx (约30px) × 2 = 60px
-	const cardWidth = 336 + 12 // 卡片宽度 + gap的一半
-	const sidebarWidth = sidebarCollapsed.value ? 80 : 280
-	const contentPadding = 50
+	let cardWidth = 336 + 12 // 卡片宽度 + gap的一半
+	let sidebarWidth = sidebarCollapsed.value ? 80 : 280
+	let contentPadding = 50
+
+	// 平板及以下使用更紧凑的卡片，并将侧边栏视为覆盖层，不占内容区列数
+	if (windowWidth <= 900) {
+		cardWidth = 280
+		sidebarWidth = 0
+		contentPadding = 32
+	}
+
+	if (windowWidth <= 600) {
+		cardWidth = 240
+		contentPadding = 24
+	}
 	
 	// 可用宽度 = 窗口宽度 - 侧边栏 - padding
-	const availableWidth = systemInfo.windowWidth - sidebarWidth - contentPadding
+	const availableWidth = windowWidth - sidebarWidth - contentPadding
 	
 	// 计算实际能容纳的列数
-	const columnsPerRow = Math.floor(availableWidth / cardWidth)
+	let columnsPerRow = Math.floor(availableWidth / cardWidth)
+
+	if (windowWidth > 600 && windowWidth <= 900) {
+		columnsPerRow = Math.max(2, columnsPerRow)
+	}
 	
 	// 限制列数范围 1-9
 	const actualColumns = Math.max(1, Math.min(9, columnsPerRow))
@@ -598,7 +615,7 @@ const calculatePageSize = () => {
 	const newPageSize = fixedRows * actualColumns
 	
 	console.log('=== 计算每页显示数量 ===')
-	console.log('窗口宽度:', systemInfo.windowWidth, 'px')
+	console.log('窗口宽度:', windowWidth, 'px')
 	console.log('侧边栏宽度:', sidebarWidth, 'px')
 	console.log('可用宽度:', availableWidth, 'px')
 	console.log('卡片宽度:', cardWidth, 'px')
@@ -1405,6 +1422,73 @@ function onShareTimeline() {
 	font-weight: 500;
 }
 
+@media (max-width: 900px) {
+	.market-info {
+		padding: 12rpx 24rpx;
+		gap: 10rpx;
+	}
+
+	.info-tag {
+		padding: 8rpx 14rpx;
+		font-size: 22rpx;
+	}
+
+	.info-icon {
+		font-size: 24rpx;
+	}
+
+	::v-deep .search-header {
+		padding: 10rpx 24rpx 8rpx;
+	}
+
+	.result-header {
+		padding: 8rpx 16rpx;
+	}
+
+	.page-nav-btn {
+		padding: 8rpx 14rpx;
+		font-size: 22rpx;
+	}
+
+	.page-nav-icon {
+		font-size: 24rpx;
+	}
+
+	.settings-btn,
+	.refresh-btn {
+		padding: 8rpx 14rpx;
+		font-size: 22rpx;
+	}
+
+	.settings-icon,
+	.refresh-icon {
+		font-size: 24rpx;
+	}
+
+	.plugin-scroll {
+		padding: 88rpx 18rpx 18rpx 18rpx;
+	}
+
+	.plugin-grid {
+		grid-template-columns: repeat(v-bind(gridColumns), minmax(0, 280px));
+		gap: 16rpx;
+	}
+
+	.pagination {
+		padding: 28rpx 18rpx;
+	}
+
+	.page-btn {
+		height: 60rpx;
+		min-width: 72rpx;
+		font-size: 22rpx;
+	}
+
+	.page-info {
+		font-size: 22rpx;
+	}
+}
+
 /* 响应式布局 - 只在真正的小屏设备上应用 */
 @media (max-width: 600px) {
 	.top-actions {
@@ -1475,7 +1559,7 @@ function onShareTimeline() {
 	}
 	
 	.result-header {
-		padding: 10rpx;
+		padding: 8rpx 10rpx;
 		justify-content: center;
 	}
 	
@@ -1484,19 +1568,19 @@ function onShareTimeline() {
 		width: 100%;
 		justify-content: space-between;
 		order: 1;
-		gap: 16rpx;
+		gap: 10rpx;
 	}
 	
 	.page-nav-btn {
 		flex: 1;
 		justify-content: center;
-		padding: 18rpx 24rpx;
-		font-size: 28rpx;
+		padding: 12rpx 14rpx;
+		font-size: 24rpx;
 		min-width: 0;
 	}
 	
 	.page-nav-icon {
-		font-size: 32rpx;
+		font-size: 26rpx;
 	}
 	
 	/* 手机端功能按钮在下方 */
@@ -1504,7 +1588,7 @@ function onShareTimeline() {
 		width: 100%;
 		order: 2;
 		flex-wrap: nowrap;
-		gap: 12rpx;
+		gap: 10rpx;
 		justify-content: space-between;
 	}
 	
@@ -1513,13 +1597,13 @@ function onShareTimeline() {
 		flex: 1;
 		min-width: 0;
 		justify-content: center;
-		padding: 16rpx 12rpx;
-		font-size: 24rpx;
+		padding: 12rpx 10rpx;
+		font-size: 22rpx;
 	}
 	
 	.settings-icon,
 	.refresh-icon {
-		font-size: 28rpx;
+		font-size: 24rpx;
 	}
 	
 	.plugin-grid {
@@ -1529,11 +1613,11 @@ function onShareTimeline() {
 	}
 	
 	.plugin-scroll {
-		padding: 20rpx;
+		padding: 16rpx;
 	}
 	
 	.pagination {
-		padding: 30rpx 20rpx;
+		padding: 24rpx 16rpx;
 		gap: 12rpx;
 		flex-wrap: wrap;
 	}
@@ -1544,9 +1628,9 @@ function onShareTimeline() {
 	}
 	
 	.page-btn {
-		height: 70rpx;
-		min-width: 70rpx;
-		font-size: 26rpx;
+		height: 60rpx;
+		min-width: 64rpx;
+		font-size: 22rpx;
 	}
 	
 	.page-hint {
@@ -1557,7 +1641,7 @@ function onShareTimeline() {
 	.page-info {
 		width: 100%;
 		text-align: center;
-		font-size: 26rpx;
+		font-size: 22rpx;
 	}
 }
 
@@ -1570,8 +1654,8 @@ function onShareTimeline() {
 	
 	.settings-btn,
 	.refresh-btn {
-		padding: 14rpx 16rpx;
-		font-size: 22rpx;
+		padding: 10rpx 12rpx;
+		font-size: 20rpx;
 	}
 	
 	.settings-text,
