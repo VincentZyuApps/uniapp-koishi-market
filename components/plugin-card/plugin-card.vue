@@ -32,51 +32,47 @@
 		
 		<!-- 描述 -->
 		<view class="card-description">
-			<rich-text-parser 
-				:text="plugin.description || ''"
-				:parse-images="true"
-				:parse-links="true"
-				:show-full-url="false"
-			/>
+			<text class="description-text">{{ previewDescription }}</text>
 		</view>
 		
 		<!-- 底部：版本、大小、下载量、作者 -->
 		<view class="card-footer">
-			<view class="footer-item">
-				<text class="footer-icon">🏷️</text>
-				<text class="footer-text">{{ plugin.version }}</text>
+			<view class="footer-top">
+				<view v-if="plugin.installSize" class="footer-item">
+					<text class="footer-icon">📦</text>
+					<text class="footer-text">{{ formatSize(plugin.installSize) }}</text>
+				</view>
+				
+				<view v-if="plugin.downloads" class="footer-item">
+					<text class="footer-icon">📥</text>
+					<text class="footer-text">{{ plugin.downloads }}</text>
+				</view>
 			</view>
 			
-			<view v-if="plugin.installSize" class="footer-item">
-				<text class="footer-icon">📦</text>
-				<text class="footer-text">{{ formatSize(plugin.installSize) }}</text>
+			<view class="footer-bottom">
+				<view class="footer-item footer-version">
+					<text class="footer-icon">🏷️</text>
+					<text class="footer-text">{{ plugin.version }}</text>
+				</view>
+				
+				<view class="author-avatar" v-if="authorEmail" :class="{ 'avatar-loading': avatarLoading }">
+					<image 
+						class="avatar-img" 
+						:class="{ 'avatar-loaded': !avatarLoading }"
+						:src="getAvatarUrl(authorEmail)"
+						mode="aspectFill"
+						@load="onAvatarLoad"
+						@error="handleAvatarError"
+					/>
+				</view>
+				<view class="author-avatar" v-else>
+					<text class="avatar-text">{{ getAvatarText(plugin.author) }}</text>
+				</view>
 			</view>
-			
-			<view v-if="plugin.downloads" class="footer-item">
-				<text class="footer-icon">📥</text>
-				<text class="footer-text">{{ plugin.downloads }}</text>
-			</view>
-			
-		<view class="spacer"></view>
-		
-		<view class="author-avatar" v-if="authorEmail" :class="{ 'avatar-loading': avatarLoading }">
-			<image 
-				class="avatar-img" 
-				:class="{ 'avatar-loaded': !avatarLoading }"
-				:src="getAvatarUrl(authorEmail)"
-				mode="aspectFill"
-				@load="onAvatarLoad"
-				@error="handleAvatarError"
-			/>
 		</view>
-		<view class="author-avatar" v-else>
-			<text class="avatar-text">{{ getAvatarText(plugin.author) }}</text>
-		</view>
-	</view>
 </view>
 </template><script setup>
 import { computed, ref, watch } from 'vue'
-import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue'
 import { simpleMd5 } from '@/utils/md5.js'
 
 const props = defineProps({
@@ -150,6 +146,24 @@ const badge = computed(() => {
 	return null
 })
 
+const previewDescription = computed(() => {
+	const rawDescription = typeof props.plugin.description === 'object'
+		? (props.plugin.description?.['zh-CN'] || props.plugin.description?.zh || props.plugin.description?.en || '')
+		: (props.plugin.description || '')
+
+	return String(rawDescription)
+		.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '$1')
+		.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+		.replace(/`([^`]+)`/g, '$1')
+		.replace(/\*\*([^*]+)\*\*/g, '$1')
+		.replace(/__([^_]+)__/g, '$1')
+		.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '$1')
+		.replace(/(?<!_)_([^_\n]+)_(?!_)/g, '$1')
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim()
+})
+
 // 获取分类图标
 const getCategoryIcon = (category) => {
 	const icons = {
@@ -213,14 +227,14 @@ const handleClick = () => {
 <style scoped>
 .plugin-card {
 	width: 100%;
-	height: 468rpx;
+	height: 392rpx;
 	background-color: var(--bg-secondary, #fff);
 	border-radius: 12rpx;
-	padding: 30rpx 27rpx;
+	padding: 24rpx 22rpx 18rpx 24rpx;
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
-	gap: 24rpx;
+	gap: 18rpx;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	box-shadow: 0 0 0 2rpx transparent inset;
 	cursor: pointer;
@@ -421,36 +435,79 @@ const handleClick = () => {
 	line-height: 1.5;
 	color: var(--text-secondary, #656d76);
 	overflow: hidden;
-	text-overflow: ellipsis;
-	display: -webkit-box;
-	-webkit-line-clamp: 4;
-	-webkit-box-orient: vertical;
+	position: relative;
 	word-break: break-word;
 	margin: 0;
 	min-height: 0;
+	max-height: 3.3em;
+}
+
+.description-text {
+	display: block;
+	white-space: normal;
+	word-break: break-word;
+}
+
+.card-description::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1.5em;
+	background: linear-gradient(
+		to bottom,
+		rgba(0, 0, 0, 0),
+		var(--bg-secondary, #fff)
+	);
+	pointer-events: none;
 }
 
 /* 底部 */
 .card-footer {
 	display: flex;
-	align-items: center;
-	gap: 16rpx;
-	height: 48rpx;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: 8rpx;
 	flex-shrink: 0;
 	font-size: 28rpx;
 	color: var(--text-secondary, #656d76);
 	overflow: hidden;
-	margin-bottom: -8rpx;
 	transition: all 0.3s ease;
+}
+
+.footer-top,
+.footer-bottom {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.footer-top {
+	gap: 16rpx;
+	min-height: 36rpx;
+}
+
+.footer-bottom {
+	gap: 12rpx;
 }
 
 .footer-item {
 	display: flex;
 	align-items: center;
 	gap: 8rpx;
-	flex-shrink: 0;
+	min-width: 0;
 	overflow: hidden;
 	transition: all 0.3s ease;
+}
+
+.footer-version {
+	flex: 1;
+}
+
+.footer-version .footer-text {
+	flex: 1;
+	min-width: 0;
 }
 
 .plugin-card:hover .footer-item {
@@ -477,10 +534,6 @@ const handleClick = () => {
 	white-space: nowrap;
 }
 
-.spacer {
-	flex: 1 1 auto;
-}
-
 .author-avatar {
 	width: 48rpx;
 	height: 48rpx;
@@ -497,7 +550,7 @@ const handleClick = () => {
 }
 
 .plugin-card:hover .author-avatar {
-	transform: scale(1.15) rotate(10deg);
+	transform: translate(-5rpx, -5rpx) scale(1.18) rotate(10deg);
 	box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
 }
 
@@ -534,9 +587,9 @@ const handleClick = () => {
 @media (max-width: 900px) {
 	.plugin-card {
 		height: auto;
-		min-height: 360rpx;
-		padding: 24rpx 22rpx;
-		gap: 18rpx;
+		min-height: 300rpx;
+		padding: 20rpx 18rpx 14rpx 20rpx;
+		gap: 14rpx;
 	}
 
 	.card-header {
@@ -575,7 +628,7 @@ const handleClick = () => {
 	.card-description {
 		font-size: 24rpx;
 		line-height: 1.45;
-		-webkit-line-clamp: 3;
+		max-height: 3.05em;
 	}
 
 	.card-footer {
@@ -611,9 +664,9 @@ const handleClick = () => {
 
 @media (max-width: 600px) {
 	.plugin-card {
-		min-height: 340rpx;
-		padding: 22rpx 20rpx;
-		gap: 16rpx;
+		min-height: 276rpx;
+		padding: 18rpx 16rpx 12rpx 18rpx;
+		gap: 12rpx;
 		border-radius: 10rpx;
 	}
 
@@ -659,14 +712,21 @@ const handleClick = () => {
 	.card-description {
 		font-size: 25rpx;
 		line-height: 1.45;
-		-webkit-line-clamp: 3;
+		max-height: 3.05em;
 	}
 
 	.card-footer {
 		gap: 10rpx;
-		height: 40rpx;
 		font-size: 22rpx;
-		margin-bottom: 0;
+	}
+
+	.footer-top {
+		gap: 10rpx;
+		min-height: 32rpx;
+	}
+
+	.footer-bottom {
+		gap: 10rpx;
 	}
 
 	.footer-item {
@@ -695,9 +755,9 @@ const handleClick = () => {
 
 @media (max-width: 375px) {
 	.plugin-card {
-		min-height: 312rpx;
-		padding: 18rpx 16rpx;
-		gap: 14rpx;
+		min-height: 252rpx;
+		padding: 16rpx 14rpx 10rpx 16rpx;
+		gap: 10rpx;
 	}
 
 	.category-icon {
@@ -712,10 +772,15 @@ const handleClick = () => {
 
 	.card-description {
 		font-size: 23rpx;
-		-webkit-line-clamp: 2;
+		max-height: 3.05em;
 	}
 
 	.card-footer {
+		gap: 8rpx;
+	}
+
+	.footer-top,
+	.footer-bottom {
 		gap: 8rpx;
 	}
 
