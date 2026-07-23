@@ -1,9 +1,9 @@
 {
     "name" : "uniapp-koishi-market",
     "appid" : "__UNI__850E479",
-    "description" : "uniapp做的koishi插件市场前端捏",
-    "versionName" : "0.1.6-beta.2",
-    "versionCode" : 20260606,
+    "description" : "🧩 基于 UniApp 与 Vue 3 开发的 Koishi 插件市场前端，支持插件搜索、分类筛选、详情浏览和多数据源切换，已适配 Web、QQ 与微信小程序 ✨",
+    "versionName" : "0.1.7-beta.5",
+    "versionCode" : 20260724,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {

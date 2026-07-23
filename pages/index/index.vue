@@ -95,9 +95,9 @@
 							<text class="settings-icon">⚙️</text>
 							<text class="settings-text">设置</text>
 						</view>
-						<view class="refresh-btn" @click="refreshPlugins" :class="{ loading: isLoading }">
-							<text class="refresh-icon">🔄</text>
-							<text class="refresh-text">{{ isLoading ? '加载中...' : '刷新' }}</text>
+						<view class="refresh-btn" @click="handleRefreshClick" :class="{ loading: isLoading }">
+							<text class="refresh-icon">{{ isLoading ? '✕' : '🔄' }}</text>
+							<text class="refresh-text">{{ isLoading ? '取消加载' : '刷新' }}</text>
 						</view>
 					</view>
 				</view>
@@ -105,6 +105,16 @@
 				<view v-if="isLoading && plugins.length === 0" class="loading-state">
 					<view class="loading-spinner"></view>
 					<text class="loading-text">正在加载插件数据...</text>
+					<view class="loading-actions">
+						<view class="loading-action-btn loading-cancel-btn" @click="cancelPluginLoad()">
+							<text class="loading-action-icon">✕</text>
+							<text>取消加载</text>
+						</view>
+						<view class="loading-action-btn loading-settings-btn" @click="goToSettings">
+							<text class="loading-action-icon">⚙️</text>
+							<text>前往设置</text>
+						</view>
+					</view>
 				</view>
 				
 			<!-- 插件卡片列表 -->
@@ -225,6 +235,8 @@ const themeEmoji = computed(() => {
 // 加载状态
 const isLoading = ref(false)
 const loadError = ref(null)
+let activeMarketRequest = null
+let loadRequestId = 0
 
 // 当前使用的源 URL
 const currentSourceUrl = computed(() => getCurrentEndpoint())
@@ -426,6 +438,7 @@ const openPlugin = (plugin) => {
 }
 
 const goToSettings = () => {
+	cancelPluginLoad(false)
 	uni.navigateTo({
 		url: '/pages/settings/settings'
 	})
@@ -483,17 +496,22 @@ const handleKeyDown = (e) => {
 
 // 加载插件数据
 const loadPlugins = async () => {
+	if (isLoading.value) return
+
+	const requestId = ++loadRequestId
+	isLoading.value = true
+	loadError.value = null
+
 	try {
-		isLoading.value = true
-		loadError.value = null
-		
 		console.log('开始加载 Koishi 插件市场数据...')
 		
-		// 调用请求函数获取数据
-		const data = await fetchMarketData({
+		activeMarketRequest = fetchMarketData({
 			isConsoleOutput: true,
-			isShowToast: true
+			isShowToast: false
 		})
+		const data = await activeMarketRequest
+
+		if (requestId !== loadRequestId) return
 		
 		console.log('数据加载成功:', data)
 		
@@ -520,6 +538,8 @@ const loadPlugins = async () => {
 		console.log(`成功加载 ${plugins.value.length} 个插件`)
 		
 	} catch (error) {
+		if (requestId !== loadRequestId || error?.name === 'AbortError') return
+
 		console.error('加载插件数据失败:', error)
 		loadError.value = error.message || '加载失败'
 		
@@ -534,7 +554,29 @@ const loadPlugins = async () => {
 			}
 		})
 	} finally {
-		isLoading.value = false
+		if (requestId === loadRequestId) {
+			activeMarketRequest = null
+			isLoading.value = false
+		}
+	}
+}
+
+function cancelPluginLoad(showFeedback = true) {
+	if (!isLoading.value || !activeMarketRequest) return
+
+	const request = activeMarketRequest
+	activeMarketRequest = null
+	loadRequestId++
+	isLoading.value = false
+	loadError.value = null
+	request.abort?.()
+
+	if (showFeedback) {
+		uni.showToast({
+			title: '已取消加载',
+			icon: 'none',
+			duration: 1200
+		})
 	}
 }
 
@@ -566,7 +608,12 @@ const updateCounts = (data) => {
 }
 
 // 刷新数据
-const refreshPlugins = () => {
+const handleRefreshClick = () => {
+	if (isLoading.value) {
+		cancelPluginLoad()
+		return
+	}
+
 	loadPlugins()
 }
 
@@ -664,6 +711,7 @@ onMounted(() => {
 
 // 组件卸载时移除事件监听
 onUnmounted(() => {
+	cancelPluginLoad(false)
 	window.removeEventListener('resize', calculatePageSize)
 	window.removeEventListener('keydown', handleKeyDown)
 	_cleanupSystemTheme?.()
@@ -1223,7 +1271,13 @@ function onShareTimeline() {
 }
 
 .refresh-btn.loading {
-	opacity: 0.6;
+	background-color: rgba(248, 81, 73, 0.72);
+	opacity: 1;
+}
+
+.refresh-btn.loading:hover {
+	background-color: rgba(248, 81, 73, 0.9);
+	box-shadow: 0 8rpx 20rpx rgba(248, 81, 73, 0.3);
 }
 
 .refresh-icon {
@@ -1237,7 +1291,7 @@ function onShareTimeline() {
 }
 
 .refresh-btn.loading .refresh-icon {
-	animation: rotate 1s linear infinite;
+	animation: none;
 }
 
 @keyframes rotate {
@@ -1289,6 +1343,57 @@ function onShareTimeline() {
 	font-size: 28rpx;
 	color: var(--text-tertiary);
 	animation: pulse 1.5s ease infinite;
+}
+
+.loading-actions {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16rpx;
+	margin-top: 32rpx;
+	width: 100%;
+	max-width: 560rpx;
+}
+
+.loading-action-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	min-width: 0;
+	min-height: 72rpx;
+	padding: 12rpx 20rpx;
+	border: 2rpx solid var(--border-color);
+	border-radius: 16rpx;
+	font-size: 24rpx;
+	font-weight: 500;
+	cursor: pointer;
+	box-sizing: border-box;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.loading-action-icon {
+	margin-right: 8rpx;
+}
+
+.loading-cancel-btn {
+	color: #fff;
+	background-color: rgba(248, 81, 73, 0.78);
+	border-color: rgba(248, 81, 73, 0.9);
+}
+
+.loading-cancel-btn:hover {
+	background-color: rgba(248, 81, 73, 0.95);
+}
+
+.loading-settings-btn {
+	color: var(--text-primary);
+	background-color: var(--bg-secondary);
+}
+
+.loading-settings-btn:hover {
+	border-color: var(--primary-color);
+	color: var(--primary-color);
 }
 
 @keyframes loadingPulse {

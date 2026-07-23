@@ -52,6 +52,7 @@ python scripts/generate_cf_redirects.py
 git add -A
 git add -f unpackage/dist/build/web/
 git status --short
+git diff HEAD --stat
 git status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
 git commit -m "pub page: some commit messages..." # 如果想要更新github page、cloudflare page和gitlab page的话

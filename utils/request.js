@@ -9,6 +9,18 @@ export function getCurrentEndpoint() {
 	return savedEndpoint || DEFAULT_MARKET_SEARCH_ENDPOINT
 }
 
+function isAbortError(error) {
+	const message = error?.errMsg || error?.message || ''
+	return /abort/i.test(message)
+}
+
+function createAbortError(originalError) {
+	const error = new Error('请求已取消')
+	error.name = 'AbortError'
+	error.originalError = originalError
+	return error
+}
+
 /**
  * 获取 Koishi 插件市场数据
  * @param {Object} config - 配置选项
@@ -16,7 +28,7 @@ export function getCurrentEndpoint() {
  * @param {boolean} config.isConsoleOutput - 是否输出日志，默认 true
  * @param {boolean} config.isShowToast - 是否显示加载提示，默认 false
  * @param {string} config.loadingText - 加载提示文本
- * @returns {Promise<Object>} 返回插件市场数据
+ * @returns {Promise<Object> & { abort: () => boolean }} 返回插件市场数据，并支持主动取消
  */
 export function fetchMarketData(config = {}) {
 	const {
@@ -32,15 +44,18 @@ export function fetchMarketData(config = {}) {
 		console.log('-------[fetchMarketData]-------');
 	}
 	
-	return new Promise((resolve, reject) => {
+	let requestTask = null
+	let settled = false
+
+	const request = new Promise((resolve, reject) => {
 		if (isShowToast) {
 			uni.showLoading({
 				title: loadingText,
-				mask: true
+				mask: false
 			});
 		}
 		
-		uni.request({
+		requestTask = uni.request({
 			url: endpoint,
 			method: 'GET',
 			timeout: 30000, // 30秒超时
@@ -49,6 +64,10 @@ export function fetchMarketData(config = {}) {
 			},
 			
 			success: (res) => {
+				if (isShowToast) {
+					uni.hideLoading()
+				}
+
 				if (isConsoleOutput) {
 					console.log('-------[success]-------');
 					console.log('插件市场数据请求成功');
@@ -58,46 +77,56 @@ export function fetchMarketData(config = {}) {
 					console.log('-------[success]-------');
 				}
 				
-				if (res.statusCode === 200) {
-					// 解析并格式化数据
-					const marketData = parseMarketData(res.data);
-					
+				if (res.statusCode !== 200) {
+					settled = true
+					reject(new Error(`HTTP ${res.statusCode}: 请求失败`))
+					return
+				}
+
+				try {
+					const marketData = parseMarketData(res.data)
+					settled = true
+
 					if (isShowToast) {
-						uni.hideLoading();
 						uni.showToast({
 							title: '加载完成',
 							icon: 'success',
 							duration: 1500
-						});
+						})
 					}
-					
-					resolve(marketData);
-				} else {
-					throw new Error(`HTTP ${res.statusCode}: 请求失败`);
+
+					resolve(marketData)
+				} catch (error) {
+					settled = true
+					reject(error)
 				}
 			},
 			
 			fail: (err) => {
-				if (isConsoleOutput) {
+				const aborted = isAbortError(err)
+				if (isShowToast) {
+					uni.hideLoading()
+				}
+
+				if (isConsoleOutput && !aborted) {
 					console.log('-------[fail]-------');
 					console.log('插件市场数据请求失败:', err);
 					console.log('-------[fail]-------');
 				}
-				
-				if (isShowToast) {
-					uni.hideLoading();
-				}
-				
-				uni.showModal({
-					title: '加载失败',
-					content: '无法获取插件市场数据，请检查网络连接',
-					showCancel: false
-				});
-				
-				reject(err);
+
+				settled = true
+				reject(aborted ? createAbortError(err) : err)
 			}
 		});
 	});
+
+	request.abort = () => {
+		if (settled || !requestTask?.abort) return false
+		requestTask.abort()
+		return true
+	}
+
+	return request
 }
 
 /**
