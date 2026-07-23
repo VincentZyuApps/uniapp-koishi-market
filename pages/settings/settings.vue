@@ -110,7 +110,7 @@ const statusBarOffset = ref(0)
 const presetSources = ref([
 	{
 		name: 'VincentZyu FastAPI代理（推荐）',
-		url: 'https://sh-aliyun2.vincentzyu233.cn/koishi-market-proxy/market',
+		url: 'https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market',
 		region: '全球',
 		description: '自建 FastAPI 代理源，解决跨域问题'
 	},
@@ -155,12 +155,6 @@ const presetSources = ref([
 		url: 'https://registry.koishi.chat/index.json',
 		region: '全球',
 		description: 'Koishi 官方源'
-	},
-	{
-		name: '神秘社区源-miao',
-		url: 'http://miao-qinghuitou.vincentzyu233.cn:5140/storeluna/index.json',
-		region: '社区',
-		description: '神秘社区维护的特殊源'
 	},
 	{
 		name: '自定义',

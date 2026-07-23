@@ -1,7 +1,7 @@
 import base64
 import os
 
-# 使用相对路径（脚本在 py-util/ 下，项目根目录是上级）
+# 使用相对路径（脚本在 scripts/ 下，项目根目录是上级）
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 

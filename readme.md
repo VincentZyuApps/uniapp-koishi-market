@@ -33,11 +33,11 @@
 
 | 层级 | 技术 | 说明 |
 | --- | --- | --- |
-| 前端框架 | [uni-app](https://github.com/dcloudio/uni-app) + [Vue](https://github.com/vuejs/vue) | 跨平台 UI 构建 |
-| 后端数据 | [StoreLuna](https://github.com/koishi-shangxue-plugins/koishi-shangxue-apps/tree/main/plugins/storeluna) | Koishi 插件市场数据源 |
-| API 服务 | [FastAPI](https://github.com/fastapi/fastapi) | CORS 中间件，提供接口服务 |
-| 内网穿透 | [frp](https://github.com/fatedier/frp) | 转发后端服务 |
-| 反向代理 | [Nginx](https://github.com/nginx/nginx) | 反代 & 静态资源托管 |
+| 前端框架 | [![uni-app](https://img.shields.io/badge/uni--app-4.x-2B9939?style=flat-square)](https://github.com/dcloudio/uni-app) + [![Vue](https://img.shields.io/badge/Vue-3.x-42b883?style=flat-square&logo=vuedotjs&logoColor=white)](https://github.com/vuejs/vue) | 跨平台 UI 构建 |
+| 后端数据 | [![StoreLuna](https://img.shields.io/badge/StoreLuna-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://github.com/koishi-shangxue-plugins/koishi-shangxue-apps/tree/main/plugins/storeluna) | Koishi 插件市场数据源 |
+| API 服务 | [![FastAPI](https://img.shields.io/badge/FastAPI-latest-009688?style=flat-square&logo=fastapi&logoColor=white)](https://github.com/fastapi/fastapi) | CORS 中间件，提供接口服务 |
+| 内网穿透 | [![frp](https://img.shields.io/badge/frp-0.61-D2492A?style=flat-square&logo=serverless&logoColor=white)](https://github.com/fatedier/frp) | 转发后端服务 |
+| 反向代理 | [![Nginx](https://img.shields.io/badge/Nginx-stable-009639?style=flat-square&logo=nginx&logoColor=white)](https://github.com/nginx/nginx) | 反代 & 静态资源托管 |
 
 ## 🚀 GitHub Action 部署
 
@@ -46,9 +46,9 @@
 
 ## 📟 Git 命令行操作
 ```shell
-python py-util/bump.py -v x.y.z-beta.w -c yyyymmdd
+python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
 # HBuilderX gui界面左上角： 发行 -> 发行到WebH5
-python py-util/generate_cf_redirects.py
+python scripts/generate_cf_redirects.py
 git add -A
 git add -f unpackage/dist/build/web/
 git status --short

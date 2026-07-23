@@ -60,7 +60,7 @@ git commit -m "pub page: v0.1.4 更新说明"
 在项目根目录执行：
 
 ```bash
-python py-util/generate_cf_redirects.py
+python scripts/generate_cf_redirects.py
 ```
 
 脚本会在 `unpackage/dist/build/web/_redirects` 中写入：

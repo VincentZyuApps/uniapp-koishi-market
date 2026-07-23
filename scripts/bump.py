@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bump version across project files. Usage: python py-util/bump.py -v <version> [-c <code>]"""
+"""Bump version across project files. Usage: python scripts/bump.py -v <version> [-c <code>]"""
 
 import argparse
 import json
@@ -119,7 +119,7 @@ def main():
     if args.help or (not args.version and not args.code):
         banner()
         print(
-            f"  {S.BOLD}Usage:{S.RESET} python py-util/bump.py {S.CYAN}-v <version> [-c <code>]{S.RESET}"
+            f"  {S.BOLD}Usage:{S.RESET} python scripts/bump.py {S.CYAN}-v <version> [-c <code>]{S.RESET}"
         )
         print()
         info("  -v, --version   新版本号（如 0.1.5-rc.1）")

@@ -9,3 +9,6 @@
 !/unpackage/dist/build/web/**
 
 /node_modules/
+
+tmp/
+temp/

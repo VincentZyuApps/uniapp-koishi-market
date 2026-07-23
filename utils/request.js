@@ -1,4 +1,4 @@
-export const DEFAULT_MARKET_SEARCH_ENDPOINT = 'https://sh-aliyun2.vincentzyu233.cn/koishi-market-proxy/market'
+export const DEFAULT_MARKET_SEARCH_ENDPOINT = 'https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market'
 
 /**
  * 获取当前设置的 endpoint
@@ -231,7 +231,7 @@ function isNewborn(createdAt) {
 	return (now - created) < thirtyDays;
 }
 
-// export const BASE_URL = 'https://sh-aliyun2.vincentzyu233.cn/'
+// export const BASE_URL = 'https://bluerosion.vincentzyu233.cn/'
 
 // export function qwq_request(config = {}) {
 //     let { 
