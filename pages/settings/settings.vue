@@ -35,25 +35,32 @@
 						<text class="picker-arrow">▼</text>
 					</view>
 				</picker>
-			</view>				<!-- 自定义URL -->
-			<view class="setting-item">
+			</view>
+			<!-- 自定义 URL 仅在选择自定义预设时显示 -->
+			<view v-if="isCustomPreset" class="setting-item">
 				<text class="item-label">自定义源地址</text>
 				<textarea 
 					class="custom-input" 
 					v-model="customEndpoint" 
 					placeholder="输入自定义 API 端点"
 					@blur="onCustomEndpointChange"
-					:disabled="selectedPresetIndex !== presetSources.length - 1"
 					auto-height
 				/>
-				<text v-if="selectedPresetIndex !== presetSources.length - 1" class="input-hint">请先选择"自定义"选项</text>
+				<button class="copy-btn" :disabled="!customEndpoint.trim()" @click="copyEndpoint(customEndpoint, '自定义源地址')">
+					<text>复制</text>
+				</button>
 			</view>
 			
-				<!-- 当前使用的URL -->
-				<view class="setting-item info-item">
-					<text class="item-label">当前源地址</text>
-					<text class="current-url">{{ currentEndpoint }}</text>
+			<!-- 当前使用的 URL -->
+			<view class="setting-item info-item">
+				<text class="item-label">当前源地址</text>
+				<view class="url-display">
+					<text class="current-url" selectable>{{ currentEndpoint }}</text>
+					<button class="copy-btn" @click="copyEndpoint(currentEndpoint, '当前源地址')">
+						<text>复制</text>
+					</button>
 				</view>
+			</view>
 				
 				<!-- 源信息说明 -->
 				<view class="source-info">
@@ -173,11 +180,15 @@ const isTesting = ref(false)
 // 测试结果
 const testResult = ref(null)
 
+const defaultPresetIndex = 0
+const customPresetIndex = computed(() => presetSources.value.length - 1)
+const isCustomPreset = computed(() => selectedPresetIndex.value === customPresetIndex.value)
+
 // 当前端点（计算属性）
 const currentEndpoint = computed(() => {
-	if (selectedPresetIndex.value === presetSources.value.length - 1) {
+	if (isCustomPreset.value) {
 		// 选择了"自定义"
-		return customEndpoint.value || DEFAULT_MARKET_SEARCH_ENDPOINT
+		return customEndpoint.value.trim() || DEFAULT_MARKET_SEARCH_ENDPOINT
 	}
 	return presetSources.value[selectedPresetIndex.value].url
 })
@@ -201,11 +212,16 @@ onMounted(() => {
 	const savedEndpoint = uni.getStorageSync('market_endpoint')
 	const savedPresetIndex = uni.getStorageSync('market_preset_index')
 	
-	if (savedPresetIndex !== null && savedPresetIndex !== undefined) {
-		selectedPresetIndex.value = savedPresetIndex
+	const savedIndex = Number(savedPresetIndex)
+	if (Number.isInteger(savedIndex) && savedIndex >= 0 && savedIndex < presetSources.value.length) {
+		selectedPresetIndex.value = savedIndex
 	}
-	
-	if (savedEndpoint) {
+
+	const savedCustomEndpoint = uni.getStorageSync('market_custom_endpoint')
+	if (savedCustomEndpoint) {
+		customEndpoint.value = savedCustomEndpoint
+	} else if (isCustomPreset.value && savedEndpoint) {
+		// 兼容旧版本：自定义地址曾与当前地址共用同一个存储键。
 		customEndpoint.value = savedEndpoint
 	}
 })
@@ -218,13 +234,15 @@ const toggleTheme = () => {
 
 // 预设源变化
 const onPresetChange = (e) => {
-	selectedPresetIndex.value = e.detail.value
+	selectedPresetIndex.value = Number(e.detail.value)
 	uni.setStorageSync('market_preset_index', selectedPresetIndex.value)
 	
-	// 如果不是自定义，保存预设URL
-	if (selectedPresetIndex.value !== presetSources.value.length - 1) {
+	// 预设源立即生效；空自定义源则明确回退到默认源。
+	if (!isCustomPreset.value) {
 		const selectedUrl = presetSources.value[selectedPresetIndex.value].url
 		uni.setStorageSync('market_endpoint', selectedUrl)
+	} else {
+		uni.setStorageSync('market_endpoint', currentEndpoint.value)
 	}
 	
 	testResult.value = null
@@ -237,17 +255,35 @@ const onPresetChange = (e) => {
 
 // 自定义端点变化
 const onCustomEndpointChange = () => {
-	if (customEndpoint.value.trim()) {
-		selectedPresetIndex.value = presetSources.value.length - 1 // 切换到"自定义"
-		uni.setStorageSync('market_preset_index', selectedPresetIndex.value)
-		uni.setStorageSync('market_endpoint', customEndpoint.value)
-		testResult.value = null
-		
-		uni.showToast({
-			title: '已保存自定义源',
-			icon: 'success'
-		})
-	}
+	const endpoint = customEndpoint.value.trim()
+	if (!endpoint) return
+
+	customEndpoint.value = endpoint
+	selectedPresetIndex.value = customPresetIndex.value
+	uni.setStorageSync('market_preset_index', selectedPresetIndex.value)
+	uni.setStorageSync('market_custom_endpoint', endpoint)
+	uni.setStorageSync('market_endpoint', endpoint)
+	testResult.value = null
+
+	uni.showToast({
+		title: '已保存自定义源',
+		icon: 'success'
+	})
+}
+
+const copyEndpoint = (endpoint, label) => {
+	const value = endpoint.trim()
+	if (!value) return
+
+	uni.setClipboardData({
+		data: value,
+		success: () => {
+			uni.showToast({
+				title: `已复制${label}`,
+				icon: 'success'
+			})
+		}
+	})
 }
 
 // 测试连接
@@ -294,10 +330,11 @@ const resetToDefault = () => {
 		content: '确定要恢复到默认数据源吗？',
 		success: (res) => {
 			if (res.confirm) {
-				selectedPresetIndex.value = 0
+				selectedPresetIndex.value = defaultPresetIndex
 				customEndpoint.value = ''
-				uni.setStorageSync('market_preset_index', 0)
-				uni.setStorageSync('market_endpoint', presetSources.value[0].url)
+				uni.removeStorageSync('market_custom_endpoint')
+				uni.setStorageSync('market_preset_index', defaultPresetIndex)
+				uni.setStorageSync('market_endpoint', presetSources.value[defaultPresetIndex].url)
 				testResult.value = null
 				
 				uni.showToast({
@@ -542,19 +579,6 @@ onLoad(()=>{
 	transition: all 0.3s;
 }
 
-.custom-input[disabled] {
-	opacity: 0.5;
-	background-color: var(--bg-secondary);
-	cursor: not-allowed;
-}
-
-.input-hint {
-	display: block;
-	margin-top: 12rpx;
-	font-size: 24rpx;
-	color: var(--text-tertiary);
-}
-
 .info-item {
 	background-color: var(--bg-primary);
 	padding: 24rpx 32rpx;
@@ -563,12 +587,46 @@ onLoad(()=>{
 }
 
 .current-url {
-	display: block;
+	flex: 1;
+	min-width: 0;
 	font-size: 26rpx;
 	color: var(--primary-color);
 	word-break: break-all;
-	margin-top: 8rpx;
 	font-family: monospace;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
+.url-display {
+	display: flex;
+	align-items: flex-start;
+	gap: 16rpx;
+	margin-top: 8rpx;
+}
+
+.copy-btn {
+	flex-shrink: 0;
+	min-width: 120rpx;
+	margin: 16rpx 0 0;
+	padding: 12rpx 20rpx;
+	background-color: var(--bg-secondary);
+	border: 2rpx solid var(--border-color);
+	border-radius: 8rpx;
+	color: var(--text-primary);
+	font-size: 24rpx;
+	line-height: 1.4;
+}
+
+.copy-btn::after {
+	border: none;
+}
+
+.copy-btn:disabled {
+	opacity: 0.5;
+}
+
+.custom-input + .copy-btn {
+	margin-top: 16rpx;
 }
 
 .source-info {

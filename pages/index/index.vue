@@ -116,6 +116,19 @@
 						</view>
 					</view>
 				</view>
+				<view v-else-if="loadError && plugins.length === 0" class="load-error-state">
+					<text class="load-error-icon">⚠️</text>
+					<text class="load-error-title">加载插件数据失败</text>
+					<text class="load-error-message">{{ loadError }}</text>
+					<view class="load-error-actions">
+						<view class="loading-action-btn loading-retry-btn" @click="retryLoad">
+							<text>重试</text>
+						</view>
+						<view class="loading-action-btn loading-default-source-btn" @click="useDefaultSourceAndRetry">
+							<text>更换默认源重试</text>
+						</view>
+					</view>
+				</view>
 				
 			<!-- 插件卡片列表 -->
 			<scroll-view 
@@ -123,8 +136,19 @@
 				class="plugin-scroll" 
 				scroll-y 
 				:scroll-top="scrollTop"
-				v-else
+				v-show="!isLoading || plugins.length > 0"
 			>
+				<view v-if="loadError" class="load-error-banner">
+					<text class="load-error-message">加载失败：{{ loadError }}</text>
+					<view class="load-error-actions compact">
+						<view class="loading-action-btn loading-retry-btn" @click="retryLoad">
+							<text>重试</text>
+						</view>
+						<view class="loading-action-btn loading-default-source-btn" @click="useDefaultSourceAndRetry">
+							<text>更换默认源重试</text>
+						</view>
+					</view>
+				</view>
 				<view class="plugin-grid">
 					<plugin-card
 						v-for="plugin in paginatedPlugins" 
@@ -167,7 +191,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { onLoad } from "@dcloudio/uni-app";
-import { fetchMarketData, getCurrentEndpoint } from '@/utils/request.js'
+import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData, getCurrentEndpoint } from '@/utils/request.js'
 import { setPlugin } from '@/utils/plugin-store.js'
 import PluginCard from '@/components/plugin-card/plugin-card.vue'
 import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
@@ -375,20 +399,20 @@ const toggleTheme = () => {
 	uni.setStorageSync('theme', themeMode.value)
 }
 
+const resetScrollTop = () => {
+	nextTick(() => {
+		scrollTop.value = Math.random()
+	})
+}
+
 const handleSearch = (word) => {
 	currentPage.value = 1
-	// 重置滚动位置
-	nextTick(() => {
-		scrollTop.value = Math.random() // 使用随机数触发更新
-	})
+	resetScrollTop()
 }
 
 const handleClearSearch = () => {
 	currentPage.value = 1
-	// 重置滚动位置
-	nextTick(() => {
-		scrollTop.value = Math.random() // 使用随机数触发更新
-	})
+	resetScrollTop()
 }
 
 const toggleSort = (key) => {
@@ -399,9 +423,7 @@ const toggleSort = (key) => {
 		sortOrder.value = 'desc'
 	}
 	currentPage.value = 1
-	nextTick(() => {
-		scrollTop.value = Math.random()
-	})
+	resetScrollTop()
 }
 
 const toggleBadge = (key) => {
@@ -412,9 +434,7 @@ const toggleBadge = (key) => {
 		activeBadges.value.push(key)
 	}
 	currentPage.value = 1
-	nextTick(() => {
-		scrollTop.value = Math.random()
-	})
+	resetScrollTop()
 }
 
 const toggleCategory = (key) => {
@@ -424,9 +444,7 @@ const toggleCategory = (key) => {
 		activeCategory.value = key
 	}
 	currentPage.value = 1
-	nextTick(() => {
-		scrollTop.value = Math.random()
-	})
+	resetScrollTop()
 }
 
 const openPlugin = (plugin) => {
@@ -465,18 +483,14 @@ const openGithub = () => {
 const prevPage = () => {
 	if (currentPage.value > 1) {
 		currentPage.value--
-		nextTick(() => {
-			scrollTop.value = Math.random()
-		})
+		resetScrollTop()
 	}
 }
 
 const nextPage = () => {
 	if (currentPage.value < totalPages.value) {
 		currentPage.value++
-		nextTick(() => {
-			scrollTop.value = Math.random()
-		})
+		resetScrollTop()
 	}
 }
 
@@ -543,16 +557,6 @@ const loadPlugins = async () => {
 		console.error('加载插件数据失败:', error)
 		loadError.value = error.message || '加载失败'
 		
-		uni.showModal({
-			title: '加载失败',
-			content: '无法加载插件数据，请稍后重试',
-			confirmText: '重试',
-			success: (res) => {
-				if (res.confirm) {
-					loadPlugins()
-				}
-			}
-		})
 	} finally {
 		if (requestId === loadRequestId) {
 			activeMarketRequest = null
@@ -578,6 +582,18 @@ function cancelPluginLoad(showFeedback = true) {
 			duration: 1200
 		})
 	}
+}
+
+function retryLoad() {
+	loadPlugins()
+}
+
+function useDefaultSourceAndRetry() {
+	cancelPluginLoad(false)
+	uni.setStorageSync('market_preset_index', 0)
+	uni.setStorageSync('market_endpoint', DEFAULT_MARKET_SEARCH_ENDPOINT)
+	loadError.value = null
+	loadPlugins()
 }
 
 const updateCounts = (data) => {
@@ -1355,6 +1371,68 @@ function onShareTimeline() {
 	max-width: 560rpx;
 }
 
+.load-error-state {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 100rpx 20rpx;
+	animation: fadeIn 0.3s ease;
+}
+
+.load-error-icon {
+	font-size: 64rpx;
+	margin-bottom: 20rpx;
+}
+
+.load-error-title {
+	font-size: 32rpx;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.load-error-message {
+	margin-top: 12rpx;
+	font-size: 24rpx;
+	color: var(--text-secondary);
+	text-align: center;
+	word-break: break-all;
+}
+
+.load-error-actions {
+	display: flex;
+	gap: 16rpx;
+	width: 100%;
+	max-width: 560rpx;
+	margin-top: 32rpx;
+}
+
+.load-error-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20rpx;
+	margin-bottom: 24rpx;
+	padding: 20rpx 24rpx;
+	background-color: rgba(248, 81, 73, 0.1);
+	border: 2rpx solid rgba(248, 81, 73, 0.45);
+	border-radius: 8rpx;
+}
+
+.load-error-banner .load-error-message {
+	margin: 0;
+	flex: 1;
+	min-width: 0;
+	text-align: left;
+}
+
+.load-error-actions.compact {
+	width: auto;
+	margin-top: 0;
+	flex-shrink: 0;
+}
+
 .loading-action-btn {
 	display: flex;
 	align-items: center;
@@ -1392,6 +1470,22 @@ function onShareTimeline() {
 }
 
 .loading-settings-btn:hover {
+	border-color: var(--primary-color);
+	color: var(--primary-color);
+}
+
+.loading-retry-btn {
+	color: #fff;
+	background-color: var(--primary-color);
+	border-color: var(--primary-color);
+}
+
+.loading-default-source-btn {
+	color: var(--text-primary);
+	background-color: var(--bg-secondary);
+}
+
+.loading-default-source-btn:hover {
 	border-color: var(--primary-color);
 	color: var(--primary-color);
 }
@@ -1596,6 +1690,15 @@ function onShareTimeline() {
 
 /* 响应式布局 - 只在真正的小屏设备上应用 */
 @media (max-width: 600px) {
+	.load-error-banner {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.load-error-actions.compact {
+		width: 100%;
+	}
+
 	.top-actions {
 		top: 15rpx;
 		right: 15rpx;

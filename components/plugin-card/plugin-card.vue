@@ -342,18 +342,26 @@ const handleClick = () => {
 	z-index: 1;
 }
 
+.badge-icon > text {
+	position: relative;
+	z-index: 1;
+}
+
 .badge-icon.verified {
 	color: var(--success-color, #1a7f37);
 }
 
-.badge-icon.verified::before {
+.badge-icon.verified::before,
+.badge-icon.insecure::before {
 	content: '';
 	position: absolute;
-	width: 50%;
-	height: 50%;
-	background-color: white;
+	inset: 0;
 	border-radius: 50%;
-	z-index: -1;
+	z-index: 0;
+}
+
+.badge-icon.verified::before {
+	background-color: rgba(26, 127, 55, 0.14);
 }
 
 .badge-icon.preview {
@@ -365,13 +373,15 @@ const handleClick = () => {
 }
 
 .badge-icon.insecure::before {
-	content: '';
-	position: absolute;
-	width: 50%;
-	height: 50%;
-	background-color: white;
-	border-radius: 50%;
-	z-index: -1;
+	background-color: rgba(209, 36, 47, 0.14);
+}
+
+:global(.dark-mode) .badge-icon.verified::before {
+	background-color: rgba(46, 160, 67, 0.22);
+}
+
+:global(.dark-mode) .badge-icon.insecure::before {
+	background-color: rgba(248, 81, 73, 0.22);
 }
 
 .badge-icon.portable {

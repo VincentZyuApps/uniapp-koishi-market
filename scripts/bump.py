@@ -4,7 +4,7 @@
 # 1. 🚀 常规发布（最常用，versionCode 自动取上海当天日期）：
 #    python scripts/bump.py -v 1.2.3-rc.1
 # 2. 👀 发布预演（执行全部检查，但不写文件）：
-#    python scripts/bump.py -v 1.2.3-rc.1 --dry-run
+#    python scripts/bump.py -v 1.2.3-rc.1 -d
 # 3. 🗓️ 补发指定日期的版本：
 #    python scripts/bump.py -v 1.2.3-rc.1 -c 20260724
 # 4. 🛠️ 只修正 versionCode，不修改版本号：
@@ -309,9 +309,12 @@ def parse_args():
         help="显式允许目标版本低于当前最高版本",
     )
     parser.add_argument(
+        "-d",
+        "--dryrun",
         "--dry-run",
+        dest="dry_run",
         action="store_true",
-        help="执行读取、校验和变更计算，但不写入文件",
+        help="执行读取、校验和变更计算，但不写入文件（-d、--dryrun、--dry-run 等价）",
     )
     args = parser.parse_args()
 
