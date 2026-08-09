@@ -10,20 +10,20 @@
 
 部署需要同时满足两个条件：
 1. 推送到 `main` 分支
-2. Commit Message 中包含关键词 `pub page`
+2. Commit Message 中包含关键词 `pub-page`
 
 | 关键词 | 说明 | 触发动作 |
 | :--- | :--- | :--- |
-| `pub page` | 更新页面 | ✅ 部署到 GitHub Pages<br>✅ 部署到 Cloudflare Pages<br>✅ 部署到 GitLab Pages（`.gitlab-ci.yml`） |
+| `pub-page` | 更新页面 | ✅ 部署到 GitHub Pages<br>✅ 部署到 Cloudflare Pages<br>✅ 部署到 GitLab Pages（`.gitlab-ci.yml`） |
 
 也可以从 GitHub Actions 页面通过 `workflow_dispatch` 手动触发，此时不检查提交信息。
 
 **示例 Commit：**
 ```bash
-git commit -m "feat: 发布 v0.1.x Web H5 (pub page)"
+git commit -m "feat: 发布 v0.1.x Web H5 (pub-page)"
 ```
 
-如果一次推送包含多个提交，GitHub Actions 检查的是本次推送的 **HEAD 提交信息**，因此最后一个提交必须包含精确小写关键词 `pub page`。GitLab CI 同样要求推送到 `main` 且提交信息包含该关键词。
+如果一次推送包含多个提交，GitHub Actions 检查的是本次推送的 **HEAD 提交信息**，因此最后一个提交必须包含精确小写关键词 `pub-page`。GitLab CI 同样要求推送到 `main` 且提交信息包含该关键词。
 
 ---
 
@@ -116,8 +116,8 @@ git diff --cached --check
 git status --short -- unpackage/dist/build/web/
 git ls-files -- unpackage/dist/build/web/
 
-# 5. 提交；精确小写关键词 pub page 用于触发部署
-git commit -m "feat: 发布 v0.1.x Web H5 (pub page)"
+# 5. 提交；精确小写关键词 pub-page 用于触发部署
+git commit -m "feat: 发布 v0.1.x Web H5 (pub-page)"
 git log -1 --format=fuller
 
 # 6. 推送到各远端；GitHub 与 GitLab 会分别触发 Pages 部署
@@ -146,7 +146,7 @@ git push codeberg main
 
 ### 方式一：GitHub Actions 自动部署（推荐）
 
-提交时 commit message 包含 `pub page`，推送后自动触发部署任务：
+提交时 commit message 包含 `pub-page`，推送后自动触发部署任务：
 
 | 任务 | 目标平台 | 时长 |
 | :--- | :--- | :--- |
@@ -155,7 +155,7 @@ git push codeberg main
 
 多个任务**并行执行**，互不影响。可以在 GitHub 仓库的 **Actions** 标签页查看进度。
 
-> GitLab Pages 由 `.gitlab-ci.yml` 独立触发，推送到 GitLab 的 `main` 分支且 commit 含 `pub page` 时自动部署。
+> GitLab Pages 由 `.gitlab-ci.yml` 独立触发，推送到 GitLab 的 `main` 分支且 commit 含 `pub-page` 时自动部署。
 
 ### 方式二：手动上传到 Cloudflare Pages（备用）
 
@@ -311,7 +311,7 @@ https://dash.cloudflare.com/<account_id>/...
 
 ### 3. GitLab Pages（独立 CI）
 
-- **触发器**：推送到 GitLab `main` 分支 + commit 含 `pub page`
+- **触发器**：推送到 GitLab `main` 分支 + commit 含 `pub-page`
 - **配置**：`.gitlab-ci.yml`（`pages` job）
 - **部署方式**：将 `unpackage/dist/build/web/` 移至 `public/` 目录作为 artifact
 - **访问地址**：`https://VincentZyu233.gitlab.io/uniapp-koishi-market/#/`
@@ -322,7 +322,7 @@ https://dash.cloudflare.com/<account_id>/...
 
 ### Actions 显示 skipped
 
-确认推送目标是 GitHub `main`，并用 `git log -1 --format=fuller` 检查 HEAD 提交信息是否包含精确小写 `pub page`。
+确认推送目标是 GitHub `main`，并用 `git log -1 --format=fuller` 检查 HEAD 提交信息是否包含精确小写 `pub-page`。
 
 ### GitHub Pages 没有更新或打开了另一个账号的旧站点
 

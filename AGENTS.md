@@ -35,7 +35,7 @@
 ## Deployment
 
 - GitHub Actions 只部署仓库中已提交的 `unpackage/dist/build/web/`，不会安装依赖或重新构建喵。
-- 自动部署仅在推送到 `main` 且 HEAD 提交信息包含精确小写关键词 `pub page` 时触发喵。
+- 自动部署仅在推送到 `main` 且 HEAD 提交信息包含精确小写关键词 `pub-page` 时触发喵。
 - 发布流程和平台配置以 `.github/workflows/deploy.yml` 与 `.github/workflows/deploy.md` 为准喵。
 - 未获得明确授权时，不推送 GitHub、Gitee、GitLab 或 Codeberg 中的任何远端喵。
 

@@ -41,7 +41,7 @@
 
 ## 🚀 GitHub Action 部署
 
-> **注意**：只有 commit message 中包含 `pub page` 时，才会触发 GitHub Pages & Cloudflare Pages 部署流程。  
+> **注意**：只有 commit message 中包含 `pub-page` 时，才会触发 GitHub Pages & Cloudflare Pages 部署流程。
 > 手动 `workflow_dispatch` 触发不受此限制。
 
 ## 📟 Git 命令行操作
@@ -55,7 +55,7 @@ git --no-pager status --short
 git --no-pager diff HEAD --stat  
 git --no-pager status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
-git commit -m "pub page: some commit messages..." # 如果想要更新github page、cloudflare page和gitlab page的话
+git commit -m "pub-page: some commit messages..." # 如果想要更新github page、cloudflare page和gitlab page的话
 git push github main
 git push gitee main
 git push gitlab main
