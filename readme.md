@@ -26,6 +26,8 @@
 | 平台 | 截图 |
 | :---: | :---: |
 | 首页 | ![preview-index](doc/image/preview-index.png) |
+| 设置页 | ![preview-settings](doc/image/preview-settings.png) |
+| Agent 找插件 | ![preview-agent-plugin-search](doc/image/preview-agent-plugin-search.png) |
 | 插件详情页 | ![preview-plugin-detail](doc/image/preview-plugin-detail.png) |
 | QQ 小程序 | ![qq-miniapp](doc/image/preview-分享到qq群里的效果.png) |
 
