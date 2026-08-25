@@ -15,12 +15,12 @@
 					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
 					mode="aspectFit"
 				/>
-					<text class="header-action-label">前往 GitHub 仓库</text>
+					<text class="header-action-label">GitHub</text>
 				</view>
 				<!-- #endif -->
 				<view class="theme-toggle" @click="toggleTheme">
 					<text class="theme-icon">{{ themeEmoji }}</text>
-					<text class="header-action-label">当前：{{ themeLabel }}</text>
+					<text class="header-action-label">{{ themeLabel }}</text>
 				</view>
 			</view>
 		</view>
@@ -709,8 +709,8 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	gap: 10rpx;
-	min-height: 64rpx;
-	padding: 0 18rpx;
+	min-height: 60rpx;
+	padding: 3rpx 14rpx;
 	border: 2rpx solid var(--border-color);
 	background: var(--bg-secondary);
 	cursor: pointer;
@@ -900,8 +900,8 @@ onUnmounted(() => {
 }
 
 .github-link {
-	min-height: 64rpx;
-	padding: 0 18rpx;
+	min-height: 60rpx;
+	padding: 3rpx 14rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;

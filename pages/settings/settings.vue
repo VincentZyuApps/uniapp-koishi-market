@@ -9,7 +9,7 @@
 				</view>
 				<view class="theme-toggle" @click="toggleTheme">
 					<text class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</text>
-					<text class="theme-label">当前：{{ themeLabel }}</text>
+					<text class="theme-label">{{ themeLabel }}</text>
 				</view>
 			</view>
 

@@ -1,5 +1,5 @@
 <script>
-	const APP_VERSION = '0.2.3-beta.3'
+	const APP_VERSION = '0.2.3-beta.4'
 
 	export default {
 		onLaunch: function() {

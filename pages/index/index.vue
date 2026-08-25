@@ -9,12 +9,12 @@
 					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
 					mode="aspectFit"
 				/>
-				<text class="top-action-label">前往 GitHub 仓库</text>
+				<text class="top-action-label">GitHub</text>
 			</view>
 			<!-- #endif -->
 			<view class="top-theme-btn" @click="toggleTheme">
 				<text class="top-theme-icon">{{ themeEmoji }}</text>
-				<text class="top-action-label">当前：{{ themeLabel }}</text>
+				<text class="top-action-label">{{ themeLabel }}</text>
 			</view>
 		</view>
 		
@@ -822,8 +822,8 @@ function onShareTimeline() {
 }
 
 .github-link {
-	min-height: 64rpx;
-	padding: 0 20rpx;
+	min-height: 60rpx;
+	padding: 3rpx 14rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -881,8 +881,8 @@ function onShareTimeline() {
 
 /* 顶部主题按钮 */
 .top-theme-btn {
-	min-height: 64rpx;
-	padding: 0 20rpx;
+	min-height: 60rpx;
+	padding: 3rpx 14rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1739,8 +1739,8 @@ function onShareTimeline() {
 	}
 	
 	.github-link {
-		min-height: 56rpx;
-		padding: 0 14rpx;
+		min-height: 52rpx;
+		padding: 2rpx 10rpx;
 	}
 	
 	.github-icon {
@@ -1749,8 +1749,8 @@ function onShareTimeline() {
 	}
 	
 	.top-theme-btn {
-		min-height: 56rpx;
-		padding: 0 14rpx;
+		min-height: 52rpx;
+		padding: 2rpx 10rpx;
 	}
 	
 	.top-theme-icon {
