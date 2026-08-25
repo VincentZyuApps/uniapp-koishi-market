@@ -1,3 +1,4 @@
 # 将项目说明与 Agent 指南明确归类为 Markdown，并纳入 GitHub、GitLab 的语言统计。
-*.md linguist-language=Markdown linguist-detectable=true linguist-documentation=false linguist-generated=false linguist-vendored=false
-*.MD linguist-language=Markdown linguist-detectable=true linguist-documentation=false linguist-generated=false linguist-vendored=false
+# 使用 Git attributes 的布尔否定语法，避免不同 Linguist 实现将 "false" 作为普通字符串处理。
+*.md linguist-language=Markdown linguist-detectable=true -linguist-documentation -linguist-generated -linguist-vendored
+*.MD linguist-language=Markdown linguist-detectable=true -linguist-documentation -linguist-generated -linguist-vendored
