@@ -22,7 +22,8 @@ jobs:
   deploy-gh-pages:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, 'pub-page')
+      contains(github.event.head_commit.message, '[pub-page]') ||
+      contains(github.event.head_commit.message, '[pub page]')
     runs-on: ubuntu-latest
 
     steps:
@@ -49,7 +50,8 @@ jobs:
   deploy-cf-pages:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, 'pub-page')
+      contains(github.event.head_commit.message, '[pub-page]') ||
+      contains(github.event.head_commit.message, '[pub page]')
     runs-on: ubuntu-latest
 
     steps:

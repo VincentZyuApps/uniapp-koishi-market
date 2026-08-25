@@ -15,6 +15,13 @@
 			}
 		},
 		{
+			"path": "pages/agent-plugin-search/agent-plugin-search",
+			"style": {
+				"navigationBarTitleText": "Agent 找插件",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/plugin-detail/plugin-detail",
 			"style": {
 				"navigationBarTitleText": "插件详情",

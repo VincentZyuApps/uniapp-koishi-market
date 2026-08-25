@@ -30,7 +30,7 @@
 		</view>
 		
 		<!-- 插件详情内容 -->
-		<scroll-view v-else class="detail-content" scroll-y>
+		<styled-scroll-view v-else class="detail-content">
 			<view class="content-wrapper">
 				<!-- 插件头部信息 -->
 				<view class="plugin-header">
@@ -270,7 +270,7 @@
 					</view>
 				</view>
 			</view>
-		</scroll-view>
+		</styled-scroll-view>
 	</view>
 </template>
 
@@ -280,6 +280,7 @@ import { onLoad } from '@dcloudio/uni-app';
 import { getPlugin } from '@/utils/plugin-store.js';
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
 import { simpleMd5 } from '@/utils/md5.js';
+import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue';
 // #ifdef MP-WEIXIN || MP-QQ
 import { getStatusBarHeight } from '@/utils/system.js'
 // #endif
@@ -640,6 +641,9 @@ onUnmounted(() => {
 	--success-color: #3fb950;
 	--warning-color: #d29922;
 	--danger-color: #f85149;
+	--scrollbar-track: rgba(124, 107, 206, 0.18);
+	--scrollbar-thumb: #a99cff;
+	--scrollbar-shadow: rgba(124, 107, 206, 0.42);
 }
 
 .plugin-detail-page:not(.dark-mode) {
@@ -654,6 +658,9 @@ onUnmounted(() => {
 	--success-color: #1a7f37;
 	--warning-color: #bf8700;
 	--danger-color: #d1242f;
+	--scrollbar-track: rgba(85, 70, 163, 0.14);
+	--scrollbar-thumb: #6d5bd0;
+	--scrollbar-shadow: rgba(85, 70, 163, 0.3);
 }
 
 /* 顶部导航栏 */

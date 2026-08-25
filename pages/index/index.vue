@@ -91,6 +91,10 @@
 					
 					<!-- 功能按钮组 -->
 					<view class="function-actions">
+						<view class="settings-btn" @click="goToAgentPluginSearch">
+							<text class="settings-icon">🤖</text>
+							<text class="settings-text">Agent 找插件</text>
+						</view>
 						<view class="settings-btn" @click="goToSettings">
 							<text class="settings-icon">⚙️</text>
 							<text class="settings-text">设置</text>
@@ -131,10 +135,9 @@
 				</view>
 				
 			<!-- 插件卡片列表 -->
-			<scroll-view 
+			<styled-scroll-view
 				id="plugin-scroll-view"
 				class="plugin-scroll" 
-				scroll-y 
 				:scroll-top="scrollTop"
 				v-show="!isLoading || plugins.length > 0"
 			>
@@ -182,7 +185,7 @@
 							<view class="page-hint">→ ↓ PgDn</view>
 						</view>
 					</view>
-				</scroll-view>
+			</styled-scroll-view>
 			</view>
 		</view>
 	</view>
@@ -196,6 +199,7 @@ import { setPlugin } from '@/utils/plugin-store.js'
 import PluginCard from '@/components/plugin-card/plugin-card.vue'
 import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
 import SearchHeader from '@/components/search-header/search-header.vue'
+import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 // #ifdef MP-WEIXIN || MP-QQ
 import { getStatusBarHeight } from '@/utils/system.js'
 // #endif
@@ -459,6 +463,13 @@ const goToSettings = () => {
 	cancelPluginLoad(false)
 	uni.navigateTo({
 		url: '/pages/settings/settings'
+	})
+}
+
+const goToAgentPluginSearch = () => {
+	cancelPluginLoad(false)
+	uni.navigateTo({
+		url: '/pages/agent-plugin-search/agent-plugin-search'
 	})
 }
 
@@ -1035,6 +1046,9 @@ function onShareTimeline() {
 	--k-text-active: #7c6bce;
 	--k-fill-normal: #6e7681;
 	--card-shadow: 0 0 0 4rpx inset transparent;
+	--scrollbar-track: rgba(124, 107, 206, 0.18);
+	--scrollbar-thumb: #a99cff;
+	--scrollbar-shadow: rgba(124, 107, 206, 0.42);
 }
 
 /* 黑暗模式下的玻璃效果 */
@@ -1289,6 +1303,12 @@ function onShareTimeline() {
 .refresh-btn.loading {
 	background-color: rgba(248, 81, 73, 0.72);
 	opacity: 1;
+}
+
+.market-page:not(.dark-mode) {
+	--scrollbar-track: rgba(85, 70, 163, 0.14);
+	--scrollbar-thumb: #6d5bd0;
+	--scrollbar-shadow: rgba(85, 70, 163, 0.3);
 }
 
 .refresh-btn.loading:hover {

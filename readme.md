@@ -39,6 +39,16 @@
 | 内网穿透 | [![frp](https://img.shields.io/badge/frp-0.61-D2492A?style=flat-square&logo=serverless&logoColor=white)](https://github.com/fatedier/frp) | 转发后端服务 |
 | 反向代理 | [![Nginx](https://img.shields.io/badge/Nginx-stable-009639?style=flat-square&logo=nginx&logoColor=white)](https://github.com/nginx/nginx) | 反代 & 静态资源托管 |
 
+## 🤖 让 AI Agent 帮忙找插件
+
+在首页点击 **Agent 找插件**，选择 Agent 指南镜像、填写市场数据源和需求后复制提示词喵。将提示词发送给 Claude Code、Codex、Cursor、Trae 等 AI 助手，它会先阅读指南，再按指定市场源检索并推荐插件喵。
+
+指南文档提供以下公开镜像，页面内也支持自定义 URL 喵：
+
+- GitHub：<https://raw.githubusercontent.com/VincentZyu233/uniapp-koishi-market/main/doc/agent/plugin-discovery.md>
+- GitLab：<https://gitlab.com/VincentZyu233/uniapp-koishi-market/-/raw/main/doc/agent/plugin-discovery.md>
+- Codeberg：<https://codeberg.org/VincentZyu/uniapp-koishi-market/raw/branch/main/doc/agent/plugin-discovery.md>
+
 ## 🚀 GitHub Action 部署
 
 > **注意**：只有 commit message 中包含 `pub-page` 时，才会触发 GitHub Pages & Cloudflare Pages 部署流程。

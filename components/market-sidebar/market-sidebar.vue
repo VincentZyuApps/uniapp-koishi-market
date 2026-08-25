@@ -5,7 +5,7 @@
 			<text>{{ collapsed ? '➡️' : '⬅️' }}</text>
 		</view>
 		
-		<scroll-view class="sidebar-content" scroll-y v-if="!collapsed">
+		<styled-scroll-view class="sidebar-content" v-if="!collapsed">
 			<!-- 排序方式 -->
 			<view class="filter-group">
 				<view class="filter-title">排序方式</view>
@@ -61,11 +61,13 @@
 					<text class="filter-count">{{ category.count || 0 }}</text>
 				</view>
 			</view>
-		</scroll-view>
+		</styled-scroll-view>
 	</view>
 </template>
 
 <script setup>
+import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
+
 const props = defineProps({
 	collapsed: {
 		type: Boolean,

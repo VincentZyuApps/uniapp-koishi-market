@@ -9,7 +9,7 @@
 		
 		<view class="settings-content">
 			<!-- 插件市场源设置 -->
-			<view class="setting-section">
+			<view class="setting-section" :class="{ 'select-open': isPresetSelectOpen }">
 				<view class="section-title">
 					<text class="title-icon">🌐</text>
 					<text class="title-text">插件市场数据源</text>
@@ -18,23 +18,7 @@
 			<!-- 预设源选择 -->
 			<view class="setting-item">
 				<text class="item-label">选择预设源</text>
-				<picker 
-					mode="selector" 
-					:value="selectedPresetIndex" 
-					:range="presetSources" 
-					range-key="name"
-					@change="onPresetChange"
-					class="preset-picker"
-				>
-					<view class="picker-view-enhanced">
-						<view class="picker-main">
-							<text class="picker-name">{{ presetSources[selectedPresetIndex].name }}</text>
-							<text class="picker-description">{{ presetSources[selectedPresetIndex].description }}</text>
-							<text class="picker-url">{{ presetSources[selectedPresetIndex].url || '请在下方输入' }}</text>
-						</view>
-						<text class="picker-arrow">▼</text>
-					</view>
-				</picker>
+				<form-select v-model="selectedPresetIndex" :options="presetSelectOptions" @change="onPresetChange" @open-change="onPresetSelectOpenChange" />
 			</view>
 			<!-- 自定义 URL 仅在选择自定义预设时显示 -->
 			<view v-if="isCustomPreset" class="setting-item">
@@ -85,10 +69,23 @@
 				</button>
 			</view>
 			
-			<!-- 测试结果 -->
-			<view v-if="testResult" class="test-result" :class="testResult.success ? 'success' : 'error'">
-				<text class="result-icon">{{ testResult.success ? '✅' : '❌' }}</text>
-				<text class="result-text">{{ testResult.message }}</text>
+			<!-- 测试过程与结果 -->
+			<view v-if="isTesting || testResult" class="test-result" :class="{ success: testResult?.success, error: testResult && !testResult.success, testing: isTesting }">
+				<view class="test-progress-list">
+					<view v-for="step in testProgress" :key="step.key" class="test-progress-row" :class="step.status">
+						<view class="progress-indicator">
+							<text v-if="step.status === 'done'">✓</text>
+							<text v-else-if="step.status === 'error'">!</text>
+							<text v-else-if="step.status === 'active'" class="progress-spinner">•</text>
+							<text v-else>○</text>
+						</view>
+						<text class="progress-text">{{ step.label }}</text>
+					</view>
+				</view>
+				<view v-if="testResult" class="result-summary">
+					<text class="result-icon">{{ testResult.success ? '✅' : '❌' }}</text>
+					<text class="result-text">{{ testResult.message }}</text>
+				</view>
 			</view>
 			
 			<!-- 返回按钮 -->
@@ -102,7 +99,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import FormSelect from '@/components/form-select/form-select.vue'
 import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
 // #ifdef MP-WEIXIN || MP-QQ
@@ -179,9 +177,16 @@ const customEndpoint = ref('')
 const isTesting = ref(false)
 // 测试结果
 const testResult = ref(null)
+const testProgress = ref([])
+const isPresetSelectOpen = ref(false)
 
 const defaultPresetIndex = 0
 const customPresetIndex = computed(() => presetSources.value.length - 1)
+const presetSelectOptions = computed(() => presetSources.value.map((source, index) => ({
+	value: index,
+	label: source.name,
+	description: source.url || source.description
+})))
 const isCustomPreset = computed(() => selectedPresetIndex.value === customPresetIndex.value)
 
 // 当前端点（计算属性）
@@ -233,8 +238,8 @@ const toggleTheme = () => {
 }
 
 // 预设源变化
-const onPresetChange = (e) => {
-	selectedPresetIndex.value = Number(e.detail.value)
+const onPresetChange = (value) => {
+	selectedPresetIndex.value = Number(value)
 	uni.setStorageSync('market_preset_index', selectedPresetIndex.value)
 	
 	// 预设源立即生效；空自定义源则明确回退到默认源。
@@ -245,7 +250,7 @@ const onPresetChange = (e) => {
 		uni.setStorageSync('market_endpoint', currentEndpoint.value)
 	}
 	
-	testResult.value = null
+	clearTestResult()
 	
 	uni.showToast({
 		title: '已切换数据源',
@@ -263,12 +268,16 @@ const onCustomEndpointChange = () => {
 	uni.setStorageSync('market_preset_index', selectedPresetIndex.value)
 	uni.setStorageSync('market_custom_endpoint', endpoint)
 	uni.setStorageSync('market_endpoint', endpoint)
-	testResult.value = null
+	clearTestResult()
 
 	uni.showToast({
 		title: '已保存自定义源',
 		icon: 'success'
 	})
+}
+
+const onPresetSelectOpenChange = (isOpen) => {
+	isPresetSelectOpen.value = isOpen
 }
 
 const copyEndpoint = (endpoint, label) => {
@@ -286,6 +295,24 @@ const copyEndpoint = (endpoint, label) => {
 	})
 }
 
+const createTestProgress = () => [
+	{ key: 'endpoint', label: '已确认市场源地址', status: 'done' },
+	{ key: 'request', label: '正在请求插件市场数据', status: 'active' },
+	{ key: 'response', label: '正在等待市场响应', status: 'pending' },
+	{ key: 'summary', label: '正在整理响应统计', status: 'pending' }
+]
+
+const updateTestProgress = (key, status, label) => {
+	testProgress.value = testProgress.value.map((step) => step.key === key
+		? { ...step, status, label: label || step.label }
+		: step)
+}
+
+const clearTestResult = () => {
+	testResult.value = null
+	testProgress.value = []
+}
+
 // 测试连接
 const testConnection = async () => {
 	if (!currentEndpoint.value) {
@@ -298,22 +325,31 @@ const testConnection = async () => {
 	
 	isTesting.value = true
 	testResult.value = null
+	testProgress.value = createTestProgress()
 	
 	try {
 		const startTime = Date.now()
+		await nextTick()
 		const data = await fetchMarketData({
 			endpoint: currentEndpoint.value,
 			isConsoleOutput: false,
 			isShowToast: false
 		})
+		updateTestProgress('request', 'done', '已完成插件市场请求')
+		updateTestProgress('response', 'done', '已收到市场响应')
+		updateTestProgress('summary', 'active')
+		await nextTick()
 		const endTime = Date.now()
 		const duration = endTime - startTime
+		updateTestProgress('summary', 'done', '已整理响应统计')
 		
 		testResult.value = {
 			success: true,
 			message: `连接成功！获取到 ${data.total} 个插件，耗时 ${duration}ms`
 		}
 	} catch (error) {
+		const activeStep = testProgress.value.find((step) => step.status === 'active')
+		if (activeStep) updateTestProgress(activeStep.key, 'error', `${activeStep.label.replace('正在', '')}失败`)
 		testResult.value = {
 			success: false,
 			message: `连接失败：${error.message || '网络错误'}`
@@ -335,7 +371,7 @@ const resetToDefault = () => {
 				uni.removeStorageSync('market_custom_endpoint')
 				uni.setStorageSync('market_preset_index', defaultPresetIndex)
 				uni.setStorageSync('market_endpoint', presetSources.value[defaultPresetIndex].url)
-				testResult.value = null
+				clearTestResult()
 				
 				uni.showToast({
 					title: '已恢复默认设置',
@@ -387,6 +423,14 @@ onLoad(()=>{
 	--primary-color: #5546a3;
 	--success-color: #1a7f37;
 	--danger-color: #d1242f;
+	--surface: #ffffff;
+	--surface-subtle: #f8f8f9;
+	--border: #d0d7de;
+	--accent: #5546a3;
+	--accent-soft: #edeafa;
+	--accent-ring: rgba(85, 70, 163, 0.18);
+	--scrollbar-track: rgba(85, 70, 163, 0.14);
+	--scrollbar-thumb: #6d5bd0;
 }
 
 .settings-page.dark-mode {
@@ -399,6 +443,14 @@ onLoad(()=>{
 	--primary-color: #7c6bce;
 	--success-color: #2ea043;
 	--danger-color: #f85149;
+	--surface: #161b22;
+	--surface-subtle: #0d1117;
+	--border: #30363d;
+	--accent: #7c6bce;
+	--accent-soft: #282342;
+	--accent-ring: rgba(124, 107, 206, 0.24);
+	--scrollbar-track: rgba(124, 107, 206, 0.18);
+	--scrollbar-thumb: #a99cff;
 }
 
 .settings-header {
@@ -437,6 +489,8 @@ onLoad(()=>{
 }
 
 .setting-section {
+	position: relative;
+	z-index: 0;
 	background-color: var(--bg-secondary);
 	border-radius: 16rpx;
 	padding: 40rpx;
@@ -493,78 +547,6 @@ onLoad(()=>{
 	font-weight: 500;
 }
 
-.preset-picker {
-	width: 100%;
-}
-
-.picker-view-enhanced {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 24rpx 32rpx;
-	background-color: var(--bg-primary);
-	border: 2rpx solid var(--border-color);
-	border-radius: 12rpx;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	gap: 16rpx;
-	cursor: pointer;
-}
-
-.picker-view-enhanced:hover {
-	border-color: var(--primary-color);
-	box-shadow: 0 4rpx 16rpx rgba(85, 70, 163, 0.15);
-	transform: translateY(-2rpx);
-}
-
-.picker-view-enhanced:active {
-	transform: translateY(0);
-}
-
-.picker-arrow {
-	font-size: 24rpx;
-	color: var(--text-tertiary);
-	flex-shrink: 0;
-	transition: transform 0.3s ease;
-}
-
-.picker-view-enhanced:hover .picker-arrow {
-	transform: translateY(4rpx);
-}
-
-.picker-main {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: 8rpx;
-	min-width: 0;
-}
-
-.picker-name {
-	font-size: 32rpx;
-	color: var(--text-primary);
-	font-weight: 600;
-}
-
-.picker-description {
-	font-size: 24rpx;
-	color: var(--text-secondary);
-	line-height: 1.5;
-}
-
-.picker-url {
-	font-size: 22rpx;
-	color: var(--text-tertiary);
-	font-family: monospace;
-	word-break: break-all;
-	line-height: 1.4;
-}
-
-.picker-arrow {
-	font-size: 24rpx;
-	color: var(--text-tertiary);
-	flex-shrink: 0;
-}
-
 .custom-input {
 	width: 100%;
 	min-height: 120rpx;
@@ -574,6 +556,7 @@ onLoad(()=>{
 	border-radius: 12rpx;
 	font-size: 28rpx;
 	color: var(--text-primary);
+	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	box-sizing: border-box;
 	line-height: 1.6;
 	transition: all 0.3s;
@@ -592,9 +575,13 @@ onLoad(()=>{
 	font-size: 26rpx;
 	color: var(--primary-color);
 	word-break: break-all;
-	font-family: monospace;
+	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	user-select: text;
 	-webkit-user-select: text;
+}
+
+.setting-section.select-open {
+	z-index: 40;
 }
 
 .url-display {
@@ -735,9 +722,6 @@ onLoad(()=>{
 	padding: 24rpx 32rpx;
 	border-radius: 12rpx;
 	margin-bottom: 32rpx;
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
 	animation: resultSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -762,6 +746,83 @@ onLoad(()=>{
 	border: 2rpx solid var(--danger-color);
 }
 
+.test-result.testing {
+	background-color: var(--bg-secondary);
+	border: 2rpx solid var(--primary-color);
+}
+
+.test-progress-list {
+	display: grid;
+	gap: 14rpx;
+}
+
+.test-progress-row {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	min-height: 36rpx;
+	color: var(--text-tertiary);
+	transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.test-progress-row.active {
+	color: var(--primary-color);
+	font-weight: 600;
+	transform: translateX(4rpx);
+}
+
+.test-progress-row.done {
+	color: var(--success-color);
+}
+
+.test-progress-row.error {
+	color: var(--danger-color);
+}
+
+.progress-indicator {
+	width: 32rpx;
+	height: 32rpx;
+	flex: 0 0 32rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	border: 2rpx solid currentColor;
+	border-radius: 50%;
+	font-size: 20rpx;
+	line-height: 1;
+}
+
+.test-progress-row.done .progress-indicator {
+	background-color: var(--success-color);
+	color: #ffffff;
+}
+
+.test-progress-row.error .progress-indicator {
+	background-color: var(--danger-color);
+	color: #ffffff;
+}
+
+.progress-spinner {
+	font-size: 32rpx;
+	line-height: 0;
+	animation: progressPulse 0.9s ease-in-out infinite;
+}
+
+.progress-text {
+	font-size: 25rpx;
+	line-height: 1.45;
+}
+
+.result-summary {
+	display: flex;
+	align-items: center;
+	gap: 16rpx;
+	margin-top: 22rpx;
+	padding-top: 20rpx;
+	border-top: 2rpx solid var(--border-color);
+}
+
 .result-icon {
 	font-size: 36rpx;
 	animation: iconPop 0.5s ease;
@@ -777,6 +838,11 @@ onLoad(()=>{
 	font-size: 28rpx;
 	color: var(--text-primary);
 	flex: 1;
+}
+
+@keyframes progressPulse {
+	0%, 100% { opacity: 0.35; transform: scale(0.75); }
+	50% { opacity: 1; transform: scale(1.2); }
 }
 
 .back-section {
