@@ -1,5 +1,5 @@
 <template>
-	<view class="plugin-detail-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="plugin-detail-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
 		<!-- 顶部导航栏 -->
 		<view class="detail-header">
 			<view class="back-btn" @click="goBack">
@@ -12,13 +12,15 @@
 				<view class="github-link" @click="openGithub">
 					<image 
 						class="github-icon" 
-						:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
-						mode="aspectFit"
-					/>
+					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
+					mode="aspectFit"
+				/>
+					<text class="header-action-label">前往 GitHub 仓库</text>
 				</view>
 				<!-- #endif -->
 				<view class="theme-toggle" @click="toggleTheme">
 					<text class="theme-icon">{{ themeEmoji }}</text>
+					<text class="header-action-label">当前：{{ themeLabel }}</text>
 				</view>
 			</view>
 		</view>
@@ -281,6 +283,7 @@ import { getPlugin } from '@/utils/plugin-store.js';
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
 import { simpleMd5 } from '@/utils/md5.js';
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue';
+import { useMotionPreferences } from '@/utils/motion.js';
 // #ifdef MP-WEIXIN || MP-QQ
 import { getStatusBarHeight } from '@/utils/system.js'
 // #endif
@@ -328,10 +331,16 @@ const themeEmoji = computed(() => {
 	const map = { system: '🖥️', light: '☀️', dark: '🌙' }
 	return map[themeMode.value]
 })
+
+const themeLabel = computed(() => {
+	const map = { system: '跟随系统', light: '浅色模式', dark: '深色模式' }
+	return map[themeMode.value]
+})
 const isLoading = ref(true);
 const plugin = ref({});
 const avatarError = ref(false);
 const statusBarOffset = ref(0);
+const { motionClass } = useMotionPreferences();
 
 // 从上一页接收插件数据
 onLoad((options) => {
@@ -629,40 +638,6 @@ onUnmounted(() => {
 	flex-direction: column;
 }
 
-.dark-mode {
-	--bg-primary: #0d1117;
-	--bg-secondary: #161b22;
-	--bg-tertiary: #21262d;
-	--text-primary: #e6edf3;
-	--text-secondary: #8b949e;
-	--text-tertiary: #6e7681;
-	--border-color: #30363d;
-	--primary-color: #7c6bce;
-	--success-color: #3fb950;
-	--warning-color: #d29922;
-	--danger-color: #f85149;
-	--scrollbar-track: rgba(124, 107, 206, 0.18);
-	--scrollbar-thumb: #a99cff;
-	--scrollbar-shadow: rgba(124, 107, 206, 0.42);
-}
-
-.plugin-detail-page:not(.dark-mode) {
-	--bg-primary: #ffffff;
-	--bg-secondary: #f8f8f9;
-	--bg-tertiary: #f0f0f0;
-	--text-primary: #1f2328;
-	--text-secondary: #656d76;
-	--text-tertiary: #8c959f;
-	--border-color: #d8dee4;
-	--primary-color: #5546a3;
-	--success-color: #1a7f37;
-	--warning-color: #bf8700;
-	--danger-color: #d1242f;
-	--scrollbar-track: rgba(85, 70, 163, 0.14);
-	--scrollbar-thumb: #6d5bd0;
-	--scrollbar-shadow: rgba(85, 70, 163, 0.3);
-}
-
 /* 顶部导航栏 */
 .detail-header {
 	display: flex;
@@ -731,24 +706,49 @@ onUnmounted(() => {
 }
 
 .theme-toggle {
-	padding: 12rpx;
+	display: flex;
+	align-items: center;
+	gap: 10rpx;
+	min-height: 64rpx;
+	padding: 0 18rpx;
+	border: 2rpx solid var(--border-color);
+	background: var(--bg-secondary);
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	border-radius: 50%;
+	border-radius: 32rpx;
 }
 
 .theme-toggle:hover {
-	background: rgba(124, 107, 206, 0.1);
-	transform: rotate(180deg) scale(1.1);
+	border-color: var(--primary-color);
+	background: var(--accent-soft);
+	transform: translateY(-3rpx);
 }
 
 .theme-toggle:active {
-	transform: rotate(180deg) scale(0.9);
+	transform: scale(0.97);
 }
 
 .theme-icon {
 	font-size: 36rpx;
 	display: block;
+	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover .theme-icon {
+	transform: rotate(180deg) scale(1.1);
+}
+
+.theme-toggle:active .theme-icon {
+	transform: rotate(180deg) scale(0.92);
+}
+
+.header-action-label {
+	position: relative;
+	z-index: 1;
+	font-size: 22rpx;
+	line-height: 1;
+	white-space: nowrap;
+	color: var(--text-primary);
 }
 
 /* 加载状态 */
@@ -900,16 +900,17 @@ onUnmounted(() => {
 }
 
 .github-link {
-	width: 64rpx;
-	height: 64rpx;
+	min-height: 64rpx;
+	padding: 0 18rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	gap: 10rpx;
 	background: rgba(255, 255, 255, 0.08);
 	backdrop-filter: blur(10rpx) saturate(180%);
 	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
 	border: 2rpx solid rgba(255, 255, 255, 0.1);
-	border-radius: 50%;
+	border-radius: 32rpx;
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
@@ -930,14 +931,14 @@ onUnmounted(() => {
 }
 
 .github-link:hover {
-	transform: scale(1.15) rotate(360deg);
+	transform: translateY(-3rpx);
 	background: rgba(255, 255, 255, 0.2);
 	border-color: rgba(255, 255, 255, 0.3);
 	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
 }
 
 .github-link:active {
-	transform: scale(1.05) rotate(360deg);
+	transform: scale(0.97);
 }
 
 .github-icon {
@@ -947,12 +948,13 @@ onUnmounted(() => {
 }
 
 .github-link:hover .github-icon {
-	animation: pulse 1s ease infinite;
+	animation: detail-github-icon-spin 0.6s ease;
 }
 
-@keyframes pulse {
-	0%, 100% { transform: scale(1); }
-	50% { transform: scale(1.1); }
+@keyframes detail-github-icon-spin {
+	from { transform: rotate(0) scale(1); }
+	60% { transform: rotate(300deg) scale(1.12); }
+	to { transform: rotate(360deg) scale(1); }
 }
 
 .clickable {

@@ -1,5 +1,5 @@
 <template>
-	<view class="settings-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="settings-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
 		<view class="settings-shell">
 			<view class="settings-header">
 				<button class="market-back-button" @click="returnToMarket">← 返回插件市场</button>
@@ -8,7 +8,8 @@
 					<text class="header-subtitle">管理插件市场数据源与连接状态</text>
 				</view>
 				<view class="theme-toggle" @click="toggleTheme">
-					<text>{{ isDarkMode ? '🌙' : '☀️' }}</text>
+					<text class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</text>
+					<text class="theme-label">当前：{{ themeLabel }}</text>
 				</view>
 			</view>
 
@@ -63,6 +64,32 @@
 					</view>
 				</view>
 			</view>
+
+			<!-- 动画效果设置 -->
+			<view class="setting-section animation-section" :class="{ 'select-open': isMotionSelectOpen }">
+				<view class="section-title">
+					<text class="title-icon">✨</text>
+					<text class="title-text">动画效果</text>
+				</view>
+				<view class="setting-item">
+					<text class="item-label">动画档位</text>
+					<form-select v-model="motionMode" :options="motionOptions" @change="setMotionMode" @open-change="onMotionSelectOpenChange" />
+				</view>
+				<view class="motion-status">
+					<text class="motion-status-label">当前生效：</text>
+					<text class="motion-status-value">{{ resolvedMotionOption.label }}</text>
+					<text class="motion-status-description">{{ resolvedMotionOption.description }}</text>
+				</view>
+				<view class="motion-toggle-row">
+					<view class="motion-toggle-copy">
+						<text class="motion-toggle-title">尊重系统减少动态效果</text>
+						<text class="motion-toggle-description">开启后，系统要求减少动态时会强制使用超低档</text>
+					</view>
+					<form-toggle :model-value="respectSystemMotion" on-label="已尊重" off-label="不尊重" @update:model-value="setRespectSystemMotion" />
+				</view>
+				<text v-if="respectSystemMotion && systemReducedMotion" class="motion-system-notice">系统已声明减少动态，当前已自动降为超低档</text>
+				<text v-else class="motion-hint">自动档会保守选择低或中档，且不会自动启用高或超高档</text>
+			</view>
 			
 			<!-- 测试连接按钮 -->
 			<view class="action-section">
@@ -107,6 +134,8 @@
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue'
 import FormSelect from '@/components/form-select/form-select.vue'
+import FormToggle from '@/components/form-toggle/form-toggle.vue'
+import { MOTION_OPTIONS, useMotionPreferences } from '@/utils/motion.js'
 import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
 // #ifdef MP-WEIXIN || MP-QQ
@@ -116,6 +145,18 @@ import { getStatusBarHeight } from '@/utils/system.js'
 // 主题模式
 const isDarkMode = ref(true)
 const statusBarOffset = ref(0)
+const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
+const {
+	motionMode,
+	respectSystemMotion,
+	systemReducedMotion,
+	resolvedMotionOption,
+	motionClass,
+	setMotionMode,
+	setRespectSystemMotion
+} = useMotionPreferences()
+const motionOptions = MOTION_OPTIONS
+const isMotionSelectOpen = ref(false)
 
 // 预设源列表
 const presetSources = ref([
@@ -286,6 +327,10 @@ const onPresetSelectOpenChange = (isOpen) => {
 	isPresetSelectOpen.value = isOpen
 }
 
+const onMotionSelectOpenChange = (isOpen) => {
+	isMotionSelectOpen.value = isOpen
+}
+
 const copyEndpoint = (endpoint, label) => {
 	const value = endpoint.trim()
 	if (!value) return
@@ -419,44 +464,6 @@ onLoad(()=>{
 	padding: 40rpx 48rpx 0;
 	box-sizing: border-box;
 	
-	/* 浅色主题变量 */
-	--bg-primary: #ffffff;
-	--bg-secondary: #f8f8f9;
-	--text-primary: #1f2328;
-	--text-secondary: #656d76;
-	--text-tertiary: #8c959f;
-	--border-color: #d0d7de;
-	--primary-color: #5546a3;
-	--success-color: #1a7f37;
-	--danger-color: #d1242f;
-	--surface: #ffffff;
-	--surface-subtle: #f8f8f9;
-	--border: #d0d7de;
-	--accent: #5546a3;
-	--accent-soft: #edeafa;
-	--accent-ring: rgba(85, 70, 163, 0.18);
-	--scrollbar-track: rgba(85, 70, 163, 0.14);
-	--scrollbar-thumb: #6d5bd0;
-}
-
-.settings-page.dark-mode {
-	--bg-primary: #0d1117;
-	--bg-secondary: #161b22;
-	--text-primary: #e6edf3;
-	--text-secondary: #8b949e;
-	--text-tertiary: #6e7681;
-	--border-color: #30363d;
-	--primary-color: #7c6bce;
-	--success-color: #2ea043;
-	--danger-color: #f85149;
-	--surface: #161b22;
-	--surface-subtle: #0d1117;
-	--border: #30363d;
-	--accent: #7c6bce;
-	--accent-soft: #282342;
-	--accent-ring: rgba(124, 107, 206, 0.24);
-	--scrollbar-track: rgba(124, 107, 206, 0.18);
-	--scrollbar-thumb: #a99cff;
 }
 
 .settings-header {
@@ -524,20 +531,46 @@ onLoad(()=>{
 }
 
 .theme-toggle {
-	padding: 16rpx;
-	font-size: 48rpx;
+	display: flex;
+	align-items: center;
+	gap: 10rpx;
+	min-height: 64rpx;
+	padding: 0 18rpx;
+	border: 2rpx solid var(--border-color);
+	background: var(--bg-secondary);
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	border-radius: 50%;
+	border-radius: 32rpx;
 }
 
 .theme-toggle:hover {
-	transform: rotate(180deg) scale(1.1);
-	background: rgba(124, 107, 206, 0.1);
+	transform: translateY(-3rpx);
+	border-color: var(--primary-color);
+	background: var(--accent-soft);
 }
 
 .theme-toggle:active {
-	transform: rotate(180deg) scale(0.9);
+	transform: scale(0.97);
+}
+
+.theme-icon {
+	font-size: 40rpx;
+	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover .theme-icon {
+	transform: rotate(180deg) scale(1.1);
+}
+
+.theme-toggle:active .theme-icon {
+	transform: rotate(180deg) scale(0.92);
+}
+
+.theme-label {
+	font-size: 22rpx;
+	line-height: 1;
+	white-space: nowrap;
+	color: var(--text-primary);
 }
 
 .settings-content {
@@ -636,6 +669,81 @@ onLoad(()=>{
 
 .setting-section.select-open {
 	z-index: 40;
+}
+
+.animation-section {
+	animation-delay: 0.08s;
+}
+
+.motion-status {
+	padding: 20rpx 24rpx;
+	border: 2rpx solid var(--border-color);
+	border-radius: 8rpx;
+	background: var(--surface-subtle);
+}
+
+.motion-status-label,
+.motion-status-value,
+.motion-status-description {
+	display: block;
+}
+
+.motion-status-label {
+	font-size: 24rpx;
+	color: var(--text-secondary);
+}
+
+.motion-status-value {
+	margin-top: 6rpx;
+	font-size: 30rpx;
+	font-weight: 700;
+	color: var(--primary-color);
+}
+
+.motion-status-description,
+.motion-hint,
+.motion-system-notice {
+	margin-top: 8rpx;
+	font-size: 22rpx;
+	line-height: 1.5;
+	color: var(--text-secondary);
+}
+
+.motion-toggle-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24rpx;
+	margin-top: 24rpx;
+	padding-top: 24rpx;
+	border-top: 2rpx solid var(--border-color);
+}
+
+.motion-toggle-copy {
+	min-width: 0;
+	flex: 1;
+}
+
+.motion-toggle-title,
+.motion-toggle-description {
+	display: block;
+}
+
+.motion-toggle-title {
+	font-size: 26rpx;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.motion-toggle-description {
+	margin-top: 6rpx;
+	font-size: 21rpx;
+	line-height: 1.45;
+	color: var(--text-secondary);
+}
+
+.motion-system-notice {
+	color: var(--warning-color);
 }
 
 .url-display {
@@ -952,12 +1060,26 @@ onLoad(()=>{
 	}
 
 	.theme-toggle {
-		padding: 12rpx;
-		font-size: 40rpx;
+		min-height: 56rpx;
+		padding: 0 14rpx;
+	}
+
+	.theme-icon {
+		font-size: 32rpx;
+	}
+
+	.theme-label {
+		font-size: 19rpx;
 	}
 
 	.setting-section {
 		padding: 24rpx;
+	}
+
+	.motion-toggle-row {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 16rpx;
 	}
 }
 </style>

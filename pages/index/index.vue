@@ -1,5 +1,5 @@
 <template>
-	<view class="market-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="market-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
 		<!-- 顶部右侧按钮组 -->
 		<view class="top-actions">
 			<!-- #ifdef WEB -->
@@ -9,10 +9,12 @@
 					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
 					mode="aspectFit"
 				/>
+				<text class="top-action-label">前往 GitHub 仓库</text>
 			</view>
 			<!-- #endif -->
 			<view class="top-theme-btn" @click="toggleTheme">
 				<text class="top-theme-icon">{{ themeEmoji }}</text>
+				<text class="top-action-label">当前：{{ themeLabel }}</text>
 			</view>
 		</view>
 		
@@ -30,12 +32,12 @@
 			<view class="info-tag">
 				<text class="info-icon">🌐</text>
 				<text class="info-label">当前源:</text>
-				<text class="info-value">{{ currentSourceUrl }}</text>
+				<text class="info-value copyable" @click.stop="copyMarketValue(currentSourceUrl, '当前源地址')">{{ currentSourceUrl }}</text>
 			</view>
 			<view class="info-tag">
 				<text class="info-icon">📦</text>
 				<text class="info-label">插件总数:</text>
-				<text class="info-value">{{ marketInfo.total }}</text>
+				<text class="info-value copyable" @click.stop="copyMarketValue(String(marketInfo.total), '插件总数')">{{ marketInfo.total }}</text>
 			</view>
 			<view class="info-tag" v-if="searchWords.length > 0" :class="{ 'search-result': true }">
 				<text class="info-icon">🔍</text>
@@ -91,16 +93,16 @@
 					
 					<!-- 功能按钮组 -->
 					<view class="function-actions">
-						<view class="settings-btn" @click="goToAgentPluginSearch">
-							<text class="settings-icon">🤖</text>
+						<view class="settings-btn" @click="goToAgentPluginSearch" @mouseenter="startIconMotion" @mouseleave="settleIconMotion">
+							<text class="settings-icon" data-hover-spin-icon>🤖</text>
 							<text class="settings-text">Agent 找插件</text>
 						</view>
-						<view class="settings-btn" @click="goToSettings">
-							<text class="settings-icon">⚙️</text>
+						<view class="settings-btn" @click="goToSettings" @mouseenter="startIconMotion" @mouseleave="settleIconMotion">
+							<text class="settings-icon" data-hover-spin-icon>⚙️</text>
 							<text class="settings-text">设置</text>
 						</view>
-						<view class="refresh-btn" @click="handleRefreshClick" :class="{ loading: isLoading }">
-							<text class="refresh-icon">{{ isLoading ? '✕' : '🔄' }}</text>
+						<view class="refresh-btn" @click="handleRefreshClick" @mouseenter="startRefreshIconMotion" @mouseleave="settleIconMotion" :class="{ loading: isLoading }">
+							<text class="refresh-icon" data-hover-spin-icon>{{ isLoading ? '✕' : '🔄' }}</text>
 							<text class="refresh-text">{{ isLoading ? '取消加载' : '刷新' }}</text>
 						</view>
 					</view>
@@ -192,7 +194,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData, getCurrentEndpoint } from '@/utils/request.js'
 import { setPlugin } from '@/utils/plugin-store.js'
@@ -200,12 +202,16 @@ import PluginCard from '@/components/plugin-card/plugin-card.vue'
 import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
 import SearchHeader from '@/components/search-header/search-header.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
+import { useMotionPreferences } from '@/utils/motion.js'
+import { createHoverIconMotion } from '@/utils/hover-icon-motion.js'
 // #ifdef MP-WEIXIN || MP-QQ
 import { getStatusBarHeight } from '@/utils/system.js'
 // #endif
 
 // 小程序状态栏适配
 const statusBarOffset = ref(0)
+const { motionClass, resolvedMotionMode } = useMotionPreferences()
+const { start: startIconMotion, settle: settleIconMotion, clear: clearHoverIconMotion } = createHoverIconMotion(resolvedMotionMode)
 
 // 搜索相关
 const searchWords = ref([])
@@ -260,11 +266,24 @@ const themeEmoji = computed(() => {
 	return map[themeMode.value]
 })
 
+const themeLabel = computed(() => {
+	const map = { system: '跟随系统', light: '浅色模式', dark: '深色模式' }
+	return map[themeMode.value]
+})
+
 // 加载状态
 const isLoading = ref(false)
 const loadError = ref(null)
 let activeMarketRequest = null
 let loadRequestId = 0
+
+const startRefreshIconMotion = (event) => {
+	if (!isLoading.value) startIconMotion(event)
+}
+
+watch(isLoading, (loading) => {
+	if (loading) clearHoverIconMotion()
+})
 
 // 当前使用的源 URL
 const currentSourceUrl = computed(() => getCurrentEndpoint())
@@ -576,6 +595,15 @@ const loadPlugins = async () => {
 	}
 }
 
+const copyMarketValue = (value, label) => {
+	if (!value) return
+	uni.setClipboardData({
+		data: String(value),
+		success: () => uni.showToast({ title: `已复制${label}`, icon: 'success' }),
+		fail: () => uni.showToast({ title: `复制${label}失败`, icon: 'none' })
+	})
+}
+
 function cancelPluginLoad(showFeedback = true) {
 	if (!isLoading.value || !activeMarketRequest) return
 
@@ -739,6 +767,7 @@ onMounted(() => {
 // 组件卸载时移除事件监听
 onUnmounted(() => {
 	cancelPluginLoad(false)
+	clearHoverIconMotion()
 	window.removeEventListener('resize', calculatePageSize)
 	window.removeEventListener('keydown', handleKeyDown)
 	_cleanupSystemTheme?.()
@@ -793,16 +822,17 @@ function onShareTimeline() {
 }
 
 .github-link {
-	width: 64rpx;
-	height: 64rpx;
+	min-height: 64rpx;
+	padding: 0 20rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	gap: 10rpx;
 	background: rgba(255, 255, 255, 0.08);
 	backdrop-filter: blur(10rpx) saturate(180%);
 	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
 	border: 2rpx solid rgba(255, 255, 255, 0.1);
-	border-radius: 50%;
+	border-radius: 32rpx;
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
@@ -823,14 +853,14 @@ function onShareTimeline() {
 }
 
 .github-link:hover {
-	transform: scale(1.15) rotate(360deg);
+	transform: translateY(-3rpx);
 	background: rgba(255, 255, 255, 0.2);
 	border-color: rgba(255, 255, 255, 0.3);
 	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
 }
 
 .github-link:active {
-	transform: scale(1.05) rotate(360deg);
+	transform: scale(0.97);
 }
 
 .github-icon {
@@ -840,26 +870,28 @@ function onShareTimeline() {
 }
 
 .github-link:hover .github-icon {
-	animation: pulse 1s ease infinite;
+	animation: market-github-icon-spin 0.6s ease;
 }
 
-@keyframes pulse {
-	0%, 100% { transform: scale(1); }
-	50% { transform: scale(1.1); }
+@keyframes market-github-icon-spin {
+	from { transform: rotate(0) scale(1); }
+	60% { transform: rotate(300deg) scale(1.12); }
+	to { transform: rotate(360deg) scale(1); }
 }
 
 /* 顶部主题按钮 */
 .top-theme-btn {
-	width: 64rpx;
-	height: 64rpx;
+	min-height: 64rpx;
+	padding: 0 20rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	gap: 10rpx;
 	background: rgba(255, 255, 255, 0.08);
 	backdrop-filter: blur(10rpx) saturate(180%);
 	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
 	border: 2rpx solid rgba(255, 255, 255, 0.1);
-	border-radius: 50%;
+	border-radius: 32rpx;
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
@@ -880,7 +912,7 @@ function onShareTimeline() {
 }
 
 .top-theme-btn:hover {
-	transform: scale(1.15) rotate(180deg);
+	transform: translateY(-3rpx);
 	background: rgba(255, 255, 255, 0.2);
 	border-color: rgba(255, 255, 255, 0.3);
 	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
@@ -895,29 +927,29 @@ function onShareTimeline() {
 	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.top-theme-btn:hover .top-theme-icon {
+	transform: rotate(180deg) scale(1.1);
+}
+
+.top-theme-btn:active .top-theme-icon {
+	transform: rotate(180deg) scale(0.92);
+}
+
+.top-action-label {
+	position: relative;
+	z-index: 1;
+	font-size: 22rpx;
+	line-height: 1;
+	white-space: nowrap;
+	color: var(--text-primary);
+}
+
 /* CSS变量 - 浅色模式 */
 .market-page {
 	width: 100vw;
 	height: 100vh;
 	display: flex;
 	flex-direction: column;
-	
-	/* 浅色主题变量 - Koishi 原版配色 */
-	--bg-primary: #ffffff;
-	--bg-secondary: #f8f8f9;
-	--text-primary: #1f2328;
-	--text-secondary: #656d76;
-	--text-tertiary: #8c959f;
-	--border-color: #d0d7de;
-	--primary-color: #5546a3;
-	--success-color: #1a7f37;
-	--warning-color: #bf8700;
-	--danger-color: #d1242f;
-	--k-text-normal: #656d76;
-	--k-text-dark: #1f2328;
-	--k-text-active: #5546a3;
-	--k-fill-normal: #8c959f;
-	--card-shadow: 0 0 0 4rpx inset transparent;
 	
 	background-color: var(--bg-primary);
 	color: var(--text-primary);
@@ -980,6 +1012,26 @@ function onShareTimeline() {
 	font-weight: 600;
 }
 
+.info-value.copyable {
+	cursor: pointer;
+	text-decoration: underline;
+	text-decoration-color: transparent;
+	text-underline-offset: 5rpx;
+	transition: color 0.18s ease, text-decoration-color 0.18s ease, transform 0.18s ease;
+}
+
+@media (hover: hover) {
+	.info-value.copyable:hover {
+		color: var(--accent);
+		text-decoration-color: currentColor;
+		transform: translateY(-1rpx);
+	}
+}
+
+.info-value.copyable:active {
+	transform: scale(0.96);
+}
+
 .info-tag:first-child .info-value {
 	font-size: 20rpx;
 	max-width: min(400rpx, calc(100vw - 600rpx));
@@ -1027,28 +1079,6 @@ function onShareTimeline() {
 		opacity: 1;
 		transform: translateX(0);
 	}
-}
-
-/* 黑暗模式变量 - Koishi 原版配色 */
-.market-page.dark-mode {
-	--bg-primary: #0d1117;
-	--bg-secondary: #161b22;
-	--text-primary: #e6edf3;
-	--text-secondary: #8b949e;
-	--text-tertiary: #6e7681;
-	--border-color: #30363d;
-	--primary-color: #7c6bce;
-	--success-color: #2ea043;
-	--warning-color: #e3b341;
-	--danger-color: #f85149;
-	--k-text-normal: #8b949e;
-	--k-text-dark: #e6edf3;
-	--k-text-active: #7c6bce;
-	--k-fill-normal: #6e7681;
-	--card-shadow: 0 0 0 4rpx inset transparent;
-	--scrollbar-track: rgba(124, 107, 206, 0.18);
-	--scrollbar-thumb: #a99cff;
-	--scrollbar-shadow: rgba(124, 107, 206, 0.42);
 }
 
 /* 黑暗模式下的玻璃效果 */
@@ -1265,11 +1295,7 @@ function onShareTimeline() {
 .settings-icon {
 	margin-right: 8rpx;
 	font-size: 28rpx;
-	transition: transform 0.3s ease;
-}
-
-.settings-btn:hover .settings-icon {
-	animation: spin 1s linear infinite;
+	will-change: transform;
 }
 
 .settings-text {
@@ -1319,24 +1345,11 @@ function onShareTimeline() {
 .refresh-icon {
 	margin-right: 8rpx;
 	display: inline-block;
-	transition: transform 0.3s ease;
-}
-
-.refresh-btn:hover .refresh-icon {
-	animation: rotate 1s linear infinite;
+	will-change: transform;
 }
 
 .refresh-btn.loading .refresh-icon {
-	animation: none;
-}
-
-@keyframes rotate {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
+	transform: none !important;
 }
 
 .refresh-text {
@@ -1726,8 +1739,8 @@ function onShareTimeline() {
 	}
 	
 	.github-link {
-		width: 56rpx;
-		height: 56rpx;
+		min-height: 56rpx;
+		padding: 0 14rpx;
 	}
 	
 	.github-icon {
@@ -1736,12 +1749,16 @@ function onShareTimeline() {
 	}
 	
 	.top-theme-btn {
-		width: 56rpx;
-		height: 56rpx;
+		min-height: 56rpx;
+		padding: 0 14rpx;
 	}
 	
 	.top-theme-icon {
 		font-size: 28rpx;
+	}
+
+	.top-action-label {
+		font-size: 19rpx;
 	}
 	
 	.top-section {

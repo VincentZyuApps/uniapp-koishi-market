@@ -1,0 +1,131 @@
+/* Koishi 插件市场的跨页面主题令牌。页面根节点继承这些变量，子组件无需感知主题实现。 */
+$theme-transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+$light-accent: #5546a3;
+$dark-accent: #7c6bce;
+
+@mixin theme-tokens($dark: false) {
+	@if $dark {
+		--bg-primary: #0d1117;
+		--bg-secondary: #161b22;
+		--bg-tertiary: #21262d;
+		--surface: #161b22;
+		--surface-subtle: #0d1117;
+		--text-primary: #e6edf3;
+		--text-secondary: #8b949e;
+		--text-tertiary: #6e7681;
+		--border-color: #30363d;
+		--border: #30363d;
+		--primary-color: #{$dark-accent};
+		--accent: #{$dark-accent};
+		--accent-soft: #282342;
+		--accent-ring: rgba(124, 107, 206, 0.24);
+		--success-color: #2ea043;
+		--warning-color: #e3b341;
+		--danger-color: #f85149;
+		--k-text-normal: #8b949e;
+		--k-text-dark: #e6edf3;
+		--k-text-active: #{$dark-accent};
+		--k-fill-normal: #6e7681;
+		--card-shadow: 0 0 0 4rpx inset transparent;
+		--scrollbar-track: rgba(124, 107, 206, 0.18);
+		--scrollbar-thumb: #a99cff;
+		--scrollbar-shadow: rgba(124, 107, 206, 0.42);
+	} @else {
+		--bg-primary: #ffffff;
+		--bg-secondary: #f8f8f9;
+		--bg-tertiary: #f0f0f0;
+		--surface: #ffffff;
+		--surface-subtle: #f8f8f9;
+		--text-primary: #1f2328;
+		--text-secondary: #656d76;
+		--text-tertiary: #8c959f;
+		--border-color: #d0d7de;
+		--border: #d0d7de;
+		--primary-color: #{$light-accent};
+		--accent: #{$light-accent};
+		--accent-soft: #edeafa;
+		--accent-ring: rgba(85, 70, 163, 0.18);
+		--success-color: #1a7f37;
+		--warning-color: #bf8700;
+		--danger-color: #d1242f;
+		--k-text-normal: #656d76;
+		--k-text-dark: #1f2328;
+		--k-text-active: #{$light-accent};
+		--k-fill-normal: #8c959f;
+		--card-shadow: 0 0 0 4rpx inset transparent;
+		--scrollbar-track: rgba(85, 70, 163, 0.14);
+		--scrollbar-thumb: #6d5bd0;
+		--scrollbar-shadow: rgba(85, 70, 163, 0.3);
+	}
+}
+
+.market-page,
+.settings-page,
+.plugin-detail-page,
+.agent-page {
+	@include theme-tokens;
+	transition: $theme-transition;
+}
+
+.market-page.dark-mode,
+.settings-page.dark-mode,
+.plugin-detail-page.dark-mode,
+.agent-page.dark-mode {
+	@include theme-tokens(true);
+}
+
+// 动画档位由页面根节点继承，组件内的 scoped 样式也会被这些规则覆盖。
+.motion-ultra-low,
+.motion-ultra-low *,
+.motion-ultra-low *::before,
+.motion-ultra-low *::after {
+	animation: none !important;
+	transition-duration: 0.01ms !important;
+	transition-delay: 0ms !important;
+}
+
+.motion-low *,
+.motion-low *::before,
+.motion-low *::after {
+	transition-duration: 0.14s !important;
+	transition-delay: 0ms !important;
+}
+
+.motion-low .tool-section,
+.motion-low .setting-section,
+.motion-low .test-result,
+.motion-low .search-result,
+.motion-low .option-menu {
+	animation: none !important;
+}
+
+.motion-medium *,
+.motion-medium *::before,
+.motion-medium *::after {
+	transition-duration: 0.2s !important;
+	transition-delay: 0ms !important;
+}
+
+.motion-medium .tool-section:nth-child(n + 4),
+.motion-medium .setting-section:nth-child(n + 3) {
+	animation: none !important;
+}
+
+.motion-ultra-high *,
+.motion-ultra-high *::before,
+.motion-ultra-high *::after {
+	transition-duration: 0.42s !important;
+}
+
+.motion-ultra-high .tool-section,
+.motion-ultra-high .setting-section,
+.motion-ultra-high .test-result,
+.motion-ultra-high .search-result {
+	animation-duration: 0.62s !important;
+}
+
+.motion-ultra-high .plugin-card:hover,
+.motion-ultra-high .setting-section:hover,
+.motion-ultra-high .tool-section:hover {
+	transform: translateY(-6rpx);
+}

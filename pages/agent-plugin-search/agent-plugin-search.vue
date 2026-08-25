@@ -1,5 +1,5 @@
 <template>
-	<view class="agent-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="agent-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
 		<view class="agent-header">
 			<button class="home-button" @click="returnToMarket">
 				<text class="home-icon">←</text>
@@ -14,7 +14,8 @@
 				<text class="header-subtitle">生成提示词，交给你的 AI 助手检索 Koishi 插件</text>
 			</view>
 			<view class="theme-toggle" @click="toggleTheme">
-				<text>{{ isDarkMode ? '🌙' : '☀️' }}</text>
+				<text class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</text>
+				<text class="theme-label">当前：{{ themeLabel }}</text>
 			</view>
 		</view>
 
@@ -79,6 +80,10 @@
 				<button class="copy-button" :disabled="!canCopy" @click="copyPrompt">
 					<text>📋 复制提示词</text>
 				</button>
+				<view class="agent-boundary-note">
+					<text class="agent-boundary-title">💡 使用方式</text>
+					<text class="agent-boundary-copy">本页仅生成可复制提示词，不提供 AI/LLM 后端，也不提供 API Key 或 BYOK 配置；请复制后在你自己的本地 Agent 中运行。</text>
+				</view>
 			</view>
 
 			<view class="back-section">
@@ -94,6 +99,7 @@ import FormCheckboxGroup from '@/components/form-checkbox-group/form-checkbox-gr
 import FormSelect from '@/components/form-select/form-select.vue'
 import FormToggle from '@/components/form-toggle/form-toggle.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
+import { useMotionPreferences } from '@/utils/motion.js'
 // #ifdef MP-WEIXIN || MP-QQ
 import { getStatusBarHeight } from '@/utils/system.js'
 // #endif
@@ -143,6 +149,8 @@ const outputOptions = [
 ]
 
 const isDarkMode = ref(true)
+const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
+const { motionClass } = useMotionPreferences()
 const statusBarOffset = ref(0)
 const docPresetIndex = ref(0)
 const customDocUrl = ref('')
@@ -320,35 +328,13 @@ onMounted(() => {
 	height: 100vh;
 	box-sizing: border-box;
 	padding: 40rpx 48rpx 0;
-	background: #f6f8fa;
-	color: #1f2328;
-	--surface: #ffffff;
-	--surface-subtle: #f6f8fa;
-	--text-primary: #1f2328;
-	--text-secondary: #656d76;
-	--border: #d0d7de;
-	--accent: #5546a3;
-	--accent-soft: #edeafa;
-	--accent-ring: rgba(85, 70, 163, 0.18);
-	--scrollbar-track: rgba(85, 70, 163, 0.14);
-	--scrollbar-thumb: #6d5bd0;
-	--scrollbar-shadow: rgba(85, 70, 163, 0.32);
+	background: var(--bg-secondary);
+	color: var(--text-primary);
 }
 
 .agent-page.dark-mode {
-	background: #0d1117;
-	color: #e6edf3;
-	--surface: #161b22;
-	--surface-subtle: #0d1117;
-	--text-primary: #e6edf3;
-	--text-secondary: #8b949e;
-	--border: #30363d;
-	--accent: #8d7ce8;
-	--accent-soft: #282342;
-	--accent-ring: rgba(141, 124, 232, 0.24);
-	--scrollbar-track: rgba(141, 124, 232, 0.18);
-	--scrollbar-thumb: #a99cff;
-	--scrollbar-shadow: rgba(141, 124, 232, 0.42);
+	background: var(--bg-primary);
+	color: var(--text-primary);
 }
 
 .agent-header {
@@ -447,14 +433,14 @@ onMounted(() => {
 }
 
 .theme-toggle {
-	width: 64rpx;
-	height: 64rpx;
+	min-height: 64rpx;
+	padding: 0 18rpx;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	gap: 10rpx;
 	border: 2rpx solid var(--border);
-	border-radius: 50%;
-	font-size: 34rpx;
+	border-radius: 32rpx;
 	background: var(--surface);
 	transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.25s ease, box-shadow 0.2s ease;
 }
@@ -463,12 +449,32 @@ onMounted(() => {
 	.theme-toggle:hover {
 		border-color: var(--accent);
 		box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.14);
-		transform: rotate(16deg) translateY(-2rpx);
+		transform: translateY(-2rpx);
 	}
 }
 
 .theme-toggle:active {
-	transform: scale(0.9) rotate(16deg);
+	transform: scale(0.97);
+}
+
+.theme-icon {
+	font-size: 34rpx;
+	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover .theme-icon {
+	transform: rotate(180deg) scale(1.1);
+}
+
+.theme-toggle:active .theme-icon {
+	transform: rotate(180deg) scale(0.92);
+}
+
+.theme-label {
+	font-size: 22rpx;
+	line-height: 1;
+	white-space: nowrap;
+	color: var(--text-primary);
 }
 
 .agent-content {
@@ -639,6 +645,30 @@ onMounted(() => {
 
 .copy-button:disabled {
 	opacity: 0.45;
+}
+
+.agent-boundary-note {
+	margin-top: 20rpx;
+	padding-top: 18rpx;
+	border-top: 2rpx solid var(--border);
+}
+
+.agent-boundary-title,
+.agent-boundary-copy {
+	display: block;
+}
+
+.agent-boundary-title {
+	font-size: 22rpx;
+	font-weight: 650;
+	color: var(--text-primary);
+}
+
+.agent-boundary-copy {
+	margin-top: 6rpx;
+	font-size: 20rpx;
+	line-height: 1.55;
+	color: var(--text-secondary);
 }
 
 .copy-button::after,

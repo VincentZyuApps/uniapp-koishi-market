@@ -1,5 +1,5 @@
 <script>
-	const APP_VERSION = '0.2.2-beta.2'
+	const APP_VERSION = '0.2.3-beta.3'
 
 	export default {
 		onLaunch: function() {
@@ -14,7 +14,9 @@
 	}
 </script>
 
-<style>
+<style lang="scss">
+	@import './styles/theme.scss';
+
 	/*  #ifdef WEB  */
 	@font-face {
 		font-family: 'LXGWWenKaiMono';

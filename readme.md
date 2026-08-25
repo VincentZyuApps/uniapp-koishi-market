@@ -43,18 +43,35 @@
 
 ## 🤖 让 [AI Agent](https://zh.wikipedia.org/wiki/人工智能代理) 帮忙找插件
 
-在首页点击 **Agent 找插件**，选择 Agent 指南镜像、填写市场数据源和需求后复制提示词喵。将提示词发送给 Claude Code、Codex、Cursor、Trae 等 AI 助手，它会先阅读指南，再按指定市场源检索并推荐插件喵。
+在首页点击 **Agent 找插件**，选择 Agent 指南镜像、填写市场数据源和需求后复制提示词喵。将提示词发送给 Claude Code、Codex、Cursor、OpenCode、DeepSeek-Harness 等 AI 助手，它会先阅读指南，再按指定市场源检索并推荐插件喵。
 
-指南文档提供以下公开镜像，页面内也支持自定义 URL 喵：
+> [!IMPORTANT]
+> **Agent 找插件是提示词生成工具，不是在线 AI 对话或托管模型服务。**
+>
+> 页面只负责将所选指南、市场数据源、代理建议与需求整理为可复制提示词；不会调用或提供任何 AI/LLM 后端。
+>
+> - 不提供 BYOK（Bring Your Own Key）设置，不要求、不接收，也不会存储或转发模型 API Key。
+> - 模型可用性、账号授权、密钥管理、请求费用和 Agent 的网络访问，由所选本地工具或服务商负责。
 
-- GitHub：<https://raw.githubusercontent.com/VincentZyu233/uniapp-koishi-market/main/doc/agent/plugin-discovery.md>
-- GitLab：<https://gitlab.com/VincentZyu233/uniapp-koishi-market/-/raw/main/doc/agent/plugin-discovery.md>
-- Codeberg：<https://codeberg.org/VincentZyu/uniapp-koishi-market/raw/branch/main/doc/agent/plugin-discovery.md>
+> 指南文档提供以下公开镜像，页面内也支持自定义 URL：
+>
+> - GitHub：<https://raw.githubusercontent.com/VincentZyu233/uniapp-koishi-market/main/doc/agent/plugin-discovery.md>
+> - GitLab：<https://gitlab.com/VincentZyu233/uniapp-koishi-market/-/raw/main/doc/agent/plugin-discovery.md>
+> - Codeberg：<https://codeberg.org/VincentZyu/uniapp-koishi-market/raw/branch/main/doc/agent/plugin-discovery.md>
+
+> [!TIP]
+> 请复制提示词后，在自己已配置的本地 Agent 或 AI 客户端中运行，例如 Claude Code、Codex、Cursor、OpenCode、DeepSeek-Harness 等。
+>
+> 这种设计让模型与密钥始终留在自己的运行环境中。
 
 ## 🚀 GitHub Action 部署
 
-> **注意**：只有 commit message 中包含 `pub-page` 时，才会触发 GitHub Pages & Cloudflare Pages 部署流程。
-> 手动 `workflow_dispatch` 触发不受此限制。
+> [!IMPORTANT]
+> 自动部署要求推送到 `main`，且本次推送的 HEAD commit message 包含精确小写标记 `[pub-page]` 或 `[pub page]`。
+>
+> - 推送到 [GitHub](https://github.com/VincentZyuApps/uniapp-koishi-market/actions)：部署 GitHub Pages 与 Cloudflare Pages。
+> - 从 GitHub Actions 通过 `workflow_dispatch` 手动触发时不检查提交信息，但只部署 GitHub Pages 与 Cloudflare Pages，不会触发 GitLab Pages。
+> - 推送到 [GitLab](https://gitlab.com/VincentZyu233/uniapp-koishi-market/-/pipelines)：由独立 GitLab CI 部署 GitLab Pages，使用相同的两个标记。
 
 ## 📟 Git 命令行操作
 ```shell
@@ -67,7 +84,8 @@ git --no-pager status --short
 git --no-pager diff HEAD --stat  
 git --no-pager status unpackage/dist/build/web/
 git ls-files unpackage/dist/build/web/
-git commit -m "pub-page: some commit messages..." # 如果想要更新github page、cloudflare page和gitlab page的话
+# 若要触发 CI 更新 GitHub Pages、Cloudflare Pages 与 GitLab Pages，提交信息必须包含 [pub-page] 或 [pub page]
+git commit -m "feat: 发布 Web H5 [pub-page]"
 git push github main
 git push gitee main
 git push gitlab main
