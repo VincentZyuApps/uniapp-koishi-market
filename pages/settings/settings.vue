@@ -1,13 +1,18 @@
 <template>
 	<view class="settings-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
-		<view class="settings-header">
-			<text class="header-title">⚙️ 设置</text>
-			<view class="theme-toggle" @click="toggleTheme">
-				<text>{{ isDarkMode ? '🌙' : '☀️' }}</text>
+		<view class="settings-shell">
+			<view class="settings-header">
+				<button class="market-back-button" @click="returnToMarket">← 返回插件市场</button>
+				<view class="header-copy">
+					<text class="header-title">⚙️ 设置</text>
+					<text class="header-subtitle">管理插件市场数据源与连接状态</text>
+				</view>
+				<view class="theme-toggle" @click="toggleTheme">
+					<text>{{ isDarkMode ? '🌙' : '☀️' }}</text>
+				</view>
 			</view>
-		</view>
-		
-		<view class="settings-content">
+
+			<view class="settings-content">
 			<!-- 插件市场源设置 -->
 			<view class="setting-section" :class="{ 'select-open': isPresetSelectOpen }">
 				<view class="section-title">
@@ -90,9 +95,10 @@
 			
 			<!-- 返回按钮 -->
 			<view class="back-section">
-				<button class="back-btn" @click="goBack">
+				<button class="back-btn" @click="returnToMarket">
 					<text>← 返回插件市场</text>
 				</button>
+			</view>
 			</view>
 		</view>
 	</view>
@@ -382,9 +388,9 @@ const resetToDefault = () => {
 	})
 }
 
-// 返回
-const goBack = () => {
-	uni.navigateBack()
+// 无论入口来自哪里，都回到插件市场首页。
+const returnToMarket = () => {
+	uni.reLaunch({ url: '/pages/index/index' })
 }
 
 onLoad(()=>{
@@ -410,7 +416,7 @@ onLoad(()=>{
 	min-height: 100vh;
 	background-color: var(--bg-primary, #ffffff);
 	color: var(--text-primary, #1f2328);
-	padding: 40rpx 60rpx;
+	padding: 40rpx 48rpx 0;
 	box-sizing: border-box;
 	
 	/* 浅色主题变量 */
@@ -455,15 +461,66 @@ onLoad(()=>{
 
 .settings-header {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 60rpx;
+	gap: 24rpx;
+	padding: 12rpx 4rpx 32rpx;
+}
+
+.settings-shell {
+	width: 100%;
+	max-width: 999px;
+	margin: 0 auto;
+}
+
+.market-back-button {
+	flex: 0 0 auto;
+	margin: 0;
+	padding: 16rpx 20rpx;
+	border: 2rpx solid var(--border-color);
+	border-radius: 8rpx;
+	background-color: var(--bg-secondary);
+	color: var(--text-primary);
+	font-size: 25rpx;
+	line-height: 1.4;
+	transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.market-back-button::after {
+	border: none;
+}
+
+@media (hover: hover) {
+	.market-back-button:hover {
+		border-color: var(--primary-color);
+		background-color: var(--accent-soft);
+		color: var(--primary-color);
+		box-shadow: 0 6rpx 16rpx rgba(85, 70, 163, 0.24);
+		transform: translateX(-3rpx);
+	}
+}
+
+.market-back-button:active {
+	transform: scale(0.95);
 }
 
 .header-title {
+	display: block;
 	font-size: 48rpx;
 	font-weight: 600;
 	color: var(--text-primary);
+}
+
+.header-copy {
+	min-width: 0;
+	flex: 1;
+}
+
+.header-subtitle {
+	display: block;
+	margin-top: 8rpx;
+	font-size: 24rpx;
+	line-height: 1.5;
+	color: var(--text-secondary);
 }
 
 .theme-toggle {
@@ -484,17 +541,16 @@ onLoad(()=>{
 }
 
 .settings-content {
-	max-width: 1200rpx;
-	margin: 0 auto;
+	padding-bottom: 48rpx;
 }
 
 .setting-section {
 	position: relative;
 	z-index: 0;
-	background-color: var(--bg-secondary);
-	border-radius: 16rpx;
-	padding: 40rpx;
-	margin-bottom: 40rpx;
+	background-color: var(--surface);
+	border-radius: 8rpx;
+	padding: 28rpx;
+	margin-bottom: 24rpx;
 	border: 2rpx solid var(--border-color);
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	animation: slideUp 0.5s ease;
@@ -520,8 +576,8 @@ onLoad(()=>{
 	display: flex;
 	align-items: center;
 	gap: 16rpx;
-	margin-bottom: 40rpx;
-	padding-bottom: 24rpx;
+	margin-bottom: 28rpx;
+	padding-bottom: 20rpx;
 	border-bottom: 2rpx solid var(--border-color);
 }
 
@@ -536,7 +592,7 @@ onLoad(()=>{
 }
 
 .setting-item {
-	margin-bottom: 32rpx;
+	margin-bottom: 24rpx;
 }
 
 .item-label {
@@ -563,10 +619,8 @@ onLoad(()=>{
 }
 
 .info-item {
-	background-color: var(--bg-primary);
-	padding: 24rpx 32rpx;
-	border-radius: 12rpx;
-	border: 2rpx solid var(--border-color);
+	padding: 0;
+	border: none;
 }
 
 .current-url {
@@ -617,11 +671,9 @@ onLoad(()=>{
 }
 
 .source-info {
-	margin-top: 24rpx;
-	padding: 24rpx;
-	background-color: var(--bg-primary);
-	border-radius: 12rpx;
-	border: 2rpx solid var(--border-color);
+	margin-top: 8rpx;
+	padding-top: 20rpx;
+	border-top: 2rpx solid var(--border-color);
 }
 
 .info-row {
@@ -647,13 +699,13 @@ onLoad(()=>{
 .action-section {
 	display: flex;
 	gap: 24rpx;
-	margin-bottom: 32rpx;
+	margin-bottom: 24rpx;
 }
 
 .test-btn,
 .reset-btn {
 	flex: 1;
-	padding: 28rpx 48rpx;
+	padding: 20rpx 48rpx;
 	border-radius: 12rpx;
 	font-size: 32rpx;
 	border: none;
@@ -712,6 +764,8 @@ onLoad(()=>{
 	transform: translateY(-4rpx);
 	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
 	border-color: var(--primary-color);
+	background-color: var(--accent-soft);
+	color: var(--primary-color);
 }
 
 .reset-btn:active {
@@ -846,12 +900,12 @@ onLoad(()=>{
 }
 
 .back-section {
-	margin-top: 60rpx;
+	margin-top: 24rpx;
 }
 
 .back-btn {
 	width: 100%;
-	padding: 28rpx;
+	padding: 20rpx 28rpx;
 	background-color: var(--bg-secondary);
 	color: var(--text-primary);
 	border: 2rpx solid var(--border-color);
@@ -862,8 +916,8 @@ onLoad(()=>{
 }
 
 .back-btn:hover {
-	background-color: var(--primary-color);
-	color: white;
+	background-color: var(--accent-soft);
+	color: var(--primary-color);
 	border-color: var(--primary-color);
 	transform: translateY(-4rpx);
 	box-shadow: 0 8rpx 24rpx rgba(85, 70, 163, 0.25);
@@ -871,5 +925,39 @@ onLoad(()=>{
 
 .back-btn:active {
 	transform: translateY(0);
+}
+
+@media (max-width: 560px) {
+	.settings-page {
+		padding-right: 24rpx;
+		padding-left: 24rpx;
+	}
+
+	.settings-header {
+		gap: 14rpx;
+	}
+
+	.market-back-button {
+		padding: 14rpx 16rpx;
+		font-size: 22rpx;
+	}
+
+	.header-title {
+		font-size: 38rpx;
+	}
+
+	.header-subtitle {
+		margin-top: 4rpx;
+		font-size: 20rpx;
+	}
+
+	.theme-toggle {
+		padding: 12rpx;
+		font-size: 40rpx;
+	}
+
+	.setting-section {
+		padding: 24rpx;
+	}
 }
 </style>

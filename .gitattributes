@@ -1,0 +1,3 @@
+# 将项目说明与 Agent 指南纳入 GitHub、GitLab 的语言统计。
+*.md linguist-detectable=true linguist-documentation=false
+*.MD linguist-detectable=true linguist-documentation=false

@@ -1,12 +1,16 @@
 <template>
 	<view class="agent-page" :class="{ 'dark-mode': isDarkMode }" :style="{ paddingTop: statusBarOffset + 'px' }">
 		<view class="agent-header">
-			<view class="home-button" @click="goHome">
+			<button class="home-button" @click="returnToMarket">
 				<text class="home-icon">←</text>
-				<text class="home-label">返回主页</text>
-			</view>
+				<text class="home-label">返回插件市场</text>
+			</button>
 			<view class="header-copy">
-				<text class="header-title">🤖 Agent 找插件</text>
+				<view class="header-title">
+					<text>🤖 </text>
+					<text class="agent-wiki-link" @click="openAgentWiki">Agent</text>
+					<text> 找插件</text>
+				</view>
 				<text class="header-subtitle">生成提示词，交给你的 AI 助手检索 Koishi 插件</text>
 			</view>
 			<view class="theme-toggle" @click="toggleTheme">
@@ -78,7 +82,7 @@
 			</view>
 
 			<view class="back-section">
-				<button class="back-button" @click="goBack">← 返回插件市场</button>
+				<button class="back-button" @click="returnToMarket">← 返回插件市场</button>
 			</view>
 		</styled-scroll-view>
 	</view>
@@ -260,12 +264,21 @@ function toggleTheme() {
 	uni.setStorageSync('theme', isDarkMode.value ? 'dark' : 'light')
 }
 
-function goBack() {
-	uni.navigateBack()
+function returnToMarket() {
+	uni.reLaunch({ url: '/pages/index/index' })
 }
 
-function goHome() {
-	uni.reLaunch({ url: '/pages/index/index' })
+function openAgentWiki() {
+	const url = 'https://en.wikipedia.org/wiki/AI_agent'
+	// #ifdef WEB
+	window.open(url, '_blank', 'noopener,noreferrer')
+	// #endif
+	// #ifndef WEB
+	uni.setClipboardData({
+		data: url,
+		success: () => uni.showToast({ title: '链接已复制，请在浏览器打开', icon: 'none' })
+	})
+	// #endif
 }
 
 onMounted(() => {
@@ -353,6 +366,7 @@ onMounted(() => {
 
 .home-button {
 	flex: 0 0 auto;
+	margin: 0;
 	display: flex;
 	align-items: center;
 	gap: 8rpx;
@@ -364,6 +378,10 @@ onMounted(() => {
 	background: var(--surface);
 	color: var(--text-primary);
 	transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home-button::after {
+	border: none;
 }
 
 @media (hover: hover) {
@@ -399,6 +417,26 @@ onMounted(() => {
 	font-size: 44rpx;
 	font-weight: 700;
 	color: var(--text-primary);
+}
+
+.agent-wiki-link {
+	color: inherit;
+	text-decoration: underline;
+	text-decoration-color: var(--accent);
+	text-decoration-thickness: 3rpx;
+	text-underline-offset: 6rpx;
+	transition: color 0.18s ease, text-decoration-color 0.18s ease;
+}
+
+@media (hover: hover) {
+	.agent-wiki-link:hover {
+		color: var(--accent);
+		text-decoration-color: currentColor;
+	}
+}
+
+.agent-wiki-link:active {
+	color: var(--accent);
 }
 
 .header-subtitle {
@@ -675,16 +713,6 @@ onMounted(() => {
 }
 
 @media (max-width: 560px) {
-	.home-label {
-		display: none;
-	}
-
-	.home-button {
-		width: 64rpx;
-		justify-content: center;
-		padding: 0;
-	}
-
 	.header-title {
 		font-size: 38rpx;
 	}

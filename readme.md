@@ -39,7 +39,7 @@
 | 内网穿透 | [![frp](https://img.shields.io/badge/frp-0.61-D2492A?style=flat-square&logo=serverless&logoColor=white)](https://github.com/fatedier/frp) | 转发后端服务 |
 | 反向代理 | [![Nginx](https://img.shields.io/badge/Nginx-stable-009639?style=flat-square&logo=nginx&logoColor=white)](https://github.com/nginx/nginx) | 反代 & 静态资源托管 |
 
-## 🤖 让 AI Agent 帮忙找插件
+## 🤖 让 [AI Agent](https://zh.wikipedia.org/wiki/人工智能代理) 帮忙找插件
 
 在首页点击 **Agent 找插件**，选择 Agent 指南镜像、填写市场数据源和需求后复制提示词喵。将提示词发送给 Claude Code、Codex、Cursor、Trae 等 AI 助手，它会先阅读指南，再按指定市场源检索并推荐插件喵。
 
