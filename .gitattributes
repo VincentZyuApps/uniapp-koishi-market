@@ -1,4 +1,13 @@
-# 将项目说明与 Agent 指南明确归类为 Markdown，并纳入 GitHub、GitLab 的语言统计。
+# 行尾规范
+* text=auto eol=lf
+
 # 使用 Git attributes 的布尔否定语法，避免不同 Linguist 实现将 "false" 作为普通字符串处理。
-*.md linguist-language=Markdown linguist-detectable=true -linguist-documentation -linguist-generated -linguist-vendored
-*.MD linguist-language=Markdown linguist-detectable=true -linguist-documentation -linguist-generated -linguist-vendored
+
+# 📚 将所有 Markdown 与 README 纳入 GitHub Linguist 语言统计
+README.md linguist-language=Markdown linguist-detectable=true linguist-documentation=false
+readme.md linguist-language=Markdown linguist-detectable=true linguist-documentation=false
+*.md linguist-language=Markdown linguist-detectable=true linguist-documentation=false
+docs/**/*.md linguist-language=Markdown linguist-detectable=true linguist-documentation=false
+
+# ⚙️ 将配置文件本身纳入 GitHub Linguist 语言统计
+.gitattributes linguist-language=gitattributes linguist-detectable=true linguist-documentation=false -linguist-vendored -linguist-generated
