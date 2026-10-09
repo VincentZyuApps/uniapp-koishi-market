@@ -1,5 +1,5 @@
 <template>
-	<view class="agent-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="agent-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
 		<view class="agent-header">
 			<button class="home-button" @click="returnToMarket">
 				<text class="home-icon">←</text>
@@ -100,9 +100,7 @@ import FormSelect from '@/components/form-select/form-select.vue'
 import FormToggle from '@/components/form-toggle/form-toggle.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 import { useMotionPreferences } from '@/utils/motion.js'
-// #ifdef MP-WEIXIN || MP-QQ
-import { getStatusBarHeight } from '@/utils/system.js'
-// #endif
+import { usePageLayout } from '@/utils/layout.js'
 
 const DEFAULT_MARKET_ENDPOINT = 'https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market'
 const DEFAULT_PROXY_URL = 'http://127.0.0.1:7890'
@@ -151,7 +149,7 @@ const outputOptions = [
 const isDarkMode = ref(true)
 const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
 const { motionClass } = useMotionPreferences()
-const statusBarOffset = ref(0)
+const { pageStyle } = usePageLayout()
 const docPresetIndex = ref(0)
 const customDocUrl = ref('')
 const marketPresetIndex = ref(0)
@@ -290,9 +288,6 @@ function openAgentWiki() {
 }
 
 onMounted(() => {
-	// #ifdef MP-WEIXIN || MP-QQ
-	statusBarOffset.value = getStatusBarHeight() + 10
-	// #endif
 
 	const savedTheme = uni.getStorageSync('theme')
 	if (savedTheme) isDarkMode.value = savedTheme === 'dark'
@@ -735,16 +730,151 @@ onMounted(() => {
 	}
 }
 
-@media (min-width: 900px) {
-	.agent-page {
-		padding-right: max(48rpx, calc((100vw - 1200rpx) / 2));
-		padding-left: max(48rpx, calc((100vw - 1200rpx) / 2));
-	}
+.agent-page {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100vh;
+	height: 100dvh;
+	overflow: hidden;
+	padding: 0 24px max(var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
 }
-
-@media (max-width: 560px) {
-	.header-title {
-		font-size: 38rpx;
-	}
+.agent-header {
+	width: 100%;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 16px 0;
+	gap: 16px;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+.header-title {
+	font-size: var(--font-page);
+	line-height: 1.4;
+}
+.header-subtitle, .theme-label, .home-label {
+	font-size: var(--font-caption);
+	line-height: 1.5;
+}
+.home-button, .theme-toggle {
+	min-height: 44px;
+	padding: 10px 12px;
+	gap: 6px;
+	box-sizing: border-box;
+	border-radius: 8px;
+	line-height: 1.5;
+}
+.theme-toggle {
+	flex-shrink: 0;
+}
+.home-icon, .theme-icon {
+	font-size: 20px;
+}
+.agent-content {
+	flex: 1;
+	min-height: 0;
+	height: 0;
+	width: 100%;
+	max-width: 960px;
+	margin: 0 auto;
+}
+.tool-section, .prompt-section {
+	padding: 20px;
+	margin-bottom: 16px;
+	border-radius: 10px;
+	min-width: 0;
+}
+.section-title {
+	font-size: var(--font-section);
+	margin-bottom: 12px;
+}
+.inline-title {
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.field-hint {
+	display: block;
+	font-size: var(--font-caption);
+	margin-top: 8px;
+	overflow-wrap: anywhere;
+}
+.text-input, .prompt-preview {
+	font-size: var(--font-body);
+	padding: 12px;
+	line-height: 1.6;
+	border-radius: 8px;
+	overflow-wrap: anywhere;
+}
+.compact-input {
+	min-height: 64px;
+	margin-top: 12px;
+}
+.requirement-input {
+	min-height: 100px;
+	margin-top: 12px;
+}
+.prompt-preview {
+	min-height: 200px;
+}
+.url-display {
+	gap: 10px;
+	padding: 10px;
+	flex-wrap: wrap;
+}
+.url-preview {
+	flex: 1 1 180px;
+	font-size: var(--font-caption);
+	overflow-wrap: anywhere;
+}
+.url-copy-button, .reset-button {
+	min-height: 44px;
+	padding: 10px 12px;
+	font-size: var(--font-caption);
+	line-height: 1.5;
+	box-sizing: border-box;
+}
+.copy-button, .back-button {
+	min-height: 44px;
+	padding: 12px;
+	font-size: var(--font-body);
+	line-height: 1.5;
+	box-sizing: border-box;
+}
+.copy-button {
+	color: var(--on-accent);
+}
+.agent-boundary-title, .agent-boundary-copy {
+	font-size: var(--font-caption);
+	overflow-wrap: anywhere;
+}
+.back-section {
+	padding: 0 0 16px;
+}
+@media (max-width: 600px) {
+.agent-page {
+	padding-left: 16px;
+	padding-right: 16px;
+}
+.agent-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 12px 8px;
+}
+.home-button {
+	grid-column: 1;
+	grid-row: 1;
+	justify-self: start;
+}
+.theme-toggle {
+	grid-column: 2;
+	grid-row: 1;
+}
+.header-copy {
+	grid-column: 1 / -1;
+	grid-row: 2;
+}
+.tool-section, .prompt-section {
+	padding: 16px;
+}
 }
 </style>

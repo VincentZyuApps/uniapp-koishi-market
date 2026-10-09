@@ -456,4 +456,26 @@ const handleLinkClick = (url) => {
 	line-height: 1;
 	vertical-align: middle;
 }
+.rich-text-container {
+	display: block;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.normal-text, .code-text, .link-text, .link-url {
+	overflow-wrap: anywhere;
+}
+.inline-image {
+	max-width: 100%;
+}
+.code-text {
+	background: var(--bg-tertiary);
+	color: var(--accent);
+	box-decoration-break: clone;
+}
+.link-text {
+	color: var(--accent);
+}
+.link-url, .ruby-rt {
+	color: var(--text-secondary);
+}
 </style>

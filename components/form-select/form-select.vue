@@ -257,4 +257,27 @@ function selectOption(option) {
 		transform: translateY(0) scale(1);
 	}
 }
+.select-trigger, .option-row {
+	min-height: 44px;
+	padding: 10px 12px;
+	box-sizing: border-box;
+	gap: 10px;
+}
+.selected-label, .option-label {
+	font-size: var(--font-body, 14px);
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+.selected-description, .option-description {
+	font-size: var(--font-caption, 13px);
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+.select-arrow, .selected-mark {
+	font-size: 18px;
+	flex-shrink: 0;
+}
+.option-menu {
+	max-height: min(320px, 50vh);
+}
 </style>

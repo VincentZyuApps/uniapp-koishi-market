@@ -89,4 +89,31 @@ function toggle() {
 .checked .toggle-label {
 	color: var(--accent, #5546a3);
 }
+.form-toggle {
+	min-height: 44px;
+	gap: 8px;
+	flex-shrink: 0;
+}
+.toggle-track {
+	position: relative;
+	padding: 0;
+	border-width: 1px;
+	width: 44px;
+	height: 24px;
+	flex: 0 0 44px;
+}
+.toggle-thumb {
+	position: absolute;
+	width: 18px;
+	height: 18px;
+	top: 2px;
+	left: 2px;
+}
+.checked .toggle-thumb {
+	transform: translateX(20px);
+}
+.toggle-label {
+	font-size: var(--font-caption, 13px);
+	line-height: 1.5;
+}
 </style>

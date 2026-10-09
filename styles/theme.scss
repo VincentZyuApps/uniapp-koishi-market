@@ -30,6 +30,8 @@ $dark-accent: #7c6bce;
 		--scrollbar-track: rgba(124, 107, 206, 0.18);
 		--scrollbar-thumb: #a99cff;
 		--scrollbar-shadow: rgba(124, 107, 206, 0.42);
+		--overlay-backdrop: rgba(0, 0, 0, 0.6);
+		--on-accent: #ffffff;
 	} @else {
 		--bg-primary: #ffffff;
 		--bg-secondary: #f8f8f9;
@@ -56,6 +58,8 @@ $dark-accent: #7c6bce;
 		--scrollbar-track: rgba(85, 70, 163, 0.14);
 		--scrollbar-thumb: #6d5bd0;
 		--scrollbar-shadow: rgba(85, 70, 163, 0.3);
+		--overlay-backdrop: rgba(15, 18, 28, 0.4);
+		--on-accent: #ffffff;
 	}
 }
 
@@ -64,7 +68,24 @@ $dark-accent: #7c6bce;
 .plugin-detail-page,
 .agent-page {
 	@include theme-tokens;
+	--font-body: 14px;
+	--font-caption: 13px;
+	--font-section: 18px;
+	--font-page: 23px;
+	--font-card: 16px;
+	font-size: var(--font-body);
+	line-height: 1.5;
 	transition: $theme-transition;
+}
+
+@media (max-width: 600px) {
+	.market-page,
+	.settings-page,
+	.plugin-detail-page,
+	.agent-page {
+		--font-body: 16px;
+		--font-page: 22px;
+	}
 }
 
 .market-page.dark-mode,

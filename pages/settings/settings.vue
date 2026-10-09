@@ -1,5 +1,5 @@
 <template>
-	<view class="settings-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="settings-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
 		<view class="settings-shell">
 			<view class="settings-header">
 				<button class="market-back-button" @click="returnToMarket">← 返回插件市场</button>
@@ -138,13 +138,11 @@ import FormToggle from '@/components/form-toggle/form-toggle.vue'
 import { MOTION_OPTIONS, useMotionPreferences } from '@/utils/motion.js'
 import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
-// #ifdef MP-WEIXIN || MP-QQ
-import { getStatusBarHeight } from '@/utils/system.js'
-// #endif
+import { usePageLayout } from '@/utils/layout.js'
 
 // 主题模式
 const isDarkMode = ref(true)
-const statusBarOffset = ref(0)
+const { pageStyle } = usePageLayout()
 const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
 const {
 	motionMode,
@@ -247,12 +245,6 @@ const currentEndpoint = computed(() => {
 
 // 加载保存的设置
 onMounted(() => {
-	// 小程序状态栏适配
-	// #ifdef MP-WEIXIN || MP-QQ
-	const statusBarHeight = getStatusBarHeight()
-	statusBarOffset.value = statusBarHeight + 10
-	console.log('状态栏高度:', statusBarHeight, 'px，偏移量:', statusBarOffset.value, 'px')
-	// #endif
 	
 	// 加载主题
 	const savedTheme = uni.getStorageSync('theme')
@@ -1035,51 +1027,179 @@ onLoad(()=>{
 	transform: translateY(0);
 }
 
-@media (max-width: 560px) {
-	.settings-page {
-		padding-right: 24rpx;
-		padding-left: 24rpx;
-	}
-
-	.settings-header {
-		gap: 14rpx;
-	}
-
-	.market-back-button {
-		padding: 14rpx 16rpx;
-		font-size: 22rpx;
-	}
-
-	.header-title {
-		font-size: 38rpx;
-	}
-
-	.header-subtitle {
-		margin-top: 4rpx;
-		font-size: 20rpx;
-	}
-
-	.theme-toggle {
-		min-height: 56rpx;
-		padding: 0 14rpx;
-	}
-
-	.theme-icon {
-		font-size: 32rpx;
-	}
-
-	.theme-label {
-		font-size: 19rpx;
-	}
-
-	.setting-section {
-		padding: 24rpx;
-	}
-
-	.motion-toggle-row {
-		align-items: flex-start;
-		flex-direction: column;
-		gap: 16rpx;
-	}
+.settings-page {
+	width: 100%;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding: 0 24px max(20px, var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+}
+.settings-shell {
+	max-width: 960px;
+	min-width: 0;
+}
+.settings-header {
+	gap: 16px;
+	padding: 16px 0;
+}
+.header-title {
+	font-size: var(--font-page);
+	line-height: 1.4;
+}
+.header-subtitle, .theme-label {
+	font-size: var(--font-caption);
+	line-height: 1.5;
+}
+.market-back-button, .theme-toggle {
+	min-height: 44px;
+	padding: 10px 12px;
+	box-sizing: border-box;
+	border-radius: 8px;
+	font-size: var(--font-caption);
+	line-height: 1.5;
+}
+.theme-toggle {
+	flex-shrink: 0;
+	gap: 6px;
+}
+.theme-icon {
+	font-size: 20px;
+}
+.setting-section {
+	padding: 20px;
+	margin-bottom: 16px;
+	border-radius: 10px;
+	min-width: 0;
+	box-sizing: border-box;
+}
+.section-title {
+	gap: 8px;
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+}
+.title-icon {
+	font-size: 20px;
+}
+.title-text {
+	font-size: var(--font-section);
+}
+.setting-item {
+	margin-bottom: 16px;
+}
+.item-label, .current-url, .info-row, .motion-toggle-title, .progress-text, .result-text {
+	font-size: var(--font-body);
+	overflow-wrap: anywhere;
+}
+.custom-input {
+	font-size: var(--font-body);
+	padding: 12px;
+	min-height: 80px;
+	border-radius: 8px;
+}
+.motion-status-label, .motion-system-notice, .motion-toggle-description, .motion-hint, .info-label {
+	font-size: var(--font-caption);
+}
+.motion-status-value {
+	font-size: var(--font-section);
+}
+.motion-status {
+	padding: 12px;
+}
+.motion-toggle-row {
+	gap: 16px;
+	margin-top: 16px;
+	padding-top: 16px;
+}
+.url-display {
+	min-width: 0;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.current-url {
+	flex: 1 1 180px;
+}
+.copy-btn {
+	min-width: 60px;
+	min-height: 44px;
+	padding: 10px 12px;
+	margin: 0;
+	font-size: var(--font-caption);
+	box-sizing: border-box;
+}
+.info-row {
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.info-label {
+	min-width: 0;
+	flex-shrink: 0;
+}
+.action-section {
+	gap: 12px;
+	margin-bottom: 16px;
+}
+.test-btn, .reset-btn, .back-btn {
+	min-height: 44px;
+	padding: 12px 16px;
+	margin: 0;
+	font-size: var(--font-body);
+	line-height: 1.5;
+	border-radius: 8px;
+	box-sizing: border-box;
+}
+.test-result {
+	padding: 16px;
+	margin-bottom: 16px;
+}
+.result-summary {
+	min-width: 0;
+	align-items: flex-start;
+}
+.result-icon {
+	font-size: 20px;
+	flex-shrink: 0;
+}
+.back-section {
+	padding: 0 0 16px;
+}
+@media (max-width: 600px) {
+.settings-page {
+	padding-left: 16px;
+	padding-right: 16px;
+}
+.settings-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 12px 8px;
+}
+.market-back-button {
+	grid-column: 1;
+	grid-row: 1;
+	justify-self: start;
+}
+.theme-toggle {
+	grid-column: 2;
+	grid-row: 1;
+}
+.header-copy {
+	grid-column: 1 / -1;
+	grid-row: 2;
+}
+.setting-section {
+	padding: 16px;
+}
+.motion-toggle-row {
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+.motion-toggle-copy {
+	flex-basis: 180px;
+}
+.action-section {
+	flex-direction: column;
+}
+.test-btn, .reset-btn {
+	width: 100%;
+	flex: none;
+}
 }
 </style>

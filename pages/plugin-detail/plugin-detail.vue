@@ -1,5 +1,5 @@
 <template>
-	<view class="plugin-detail-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
+	<view class="plugin-detail-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
 		<!-- 顶部导航栏 -->
 		<view class="detail-header">
 			<view class="back-btn" @click="goBack">
@@ -284,9 +284,7 @@ import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
 import { simpleMd5 } from '@/utils/md5.js';
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue';
 import { useMotionPreferences } from '@/utils/motion.js';
-// #ifdef MP-WEIXIN || MP-QQ
-import { getStatusBarHeight } from '@/utils/system.js'
-// #endif
+import { usePageLayout } from '@/utils/layout.js'
 
 // 主题模式（默认跟随系统）
 const themeMode = ref('system')
@@ -339,18 +337,12 @@ const themeLabel = computed(() => {
 const isLoading = ref(true);
 const plugin = ref({});
 const avatarError = ref(false);
-const statusBarOffset = ref(0);
+const { pageStyle } = usePageLayout()
 const { motionClass } = useMotionPreferences();
 
 // 从上一页接收插件数据
 onLoad((options) => {
 	try {
-		// 小程序状态栏适配
-		// #ifdef MP-WEIXIN || MP-QQ
-		const statusBarHeight = getStatusBarHeight()
-		statusBarOffset.value = statusBarHeight + 10
-		console.log('状态栏高度:', statusBarHeight, 'px，偏移量:', statusBarOffset.value, 'px')
-		// #endif
 		
 		// 从localStorage读取主题设置
 		const savedTheme = uni.getStorageSync('theme');
@@ -1424,36 +1416,200 @@ onUnmounted(() => {
 }
 
 /* 移动端优化 */
-@media (max-width: 768rpx) {
-	.content-wrapper {
-		padding: 20rpx;
-	}
-	
-	.plugin-header {
-		flex-direction: column;
-		align-items: flex-start;
-		padding: 30rpx;
-	}
-	
-	.plugin-icon {
-		width: 100rpx;
-		height: 100rpx;
-	}
-	
-	.icon-text {
-		font-size: 64rpx;
-	}
-	
-	.plugin-name {
-		font-size: 36rpx;
-	}
-	
+.plugin-detail-page {
+	height: 100vh;
+	height: 100dvh;
+	box-sizing: border-box;
+	overflow: hidden;
+	padding-bottom: max(var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+}
+.detail-header {
+	width: 100%;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 12px 24px;
+	gap: 12px;
+	box-sizing: border-box;
+}
+.header-title {
+	font-size: var(--font-page);
+	line-height: 1.4;
+}
+.back-btn, .github-link, .theme-toggle {
+	min-height: 44px;
+	padding: 10px 8px;
+	gap: 6px;
+	box-sizing: border-box;
+	border-radius: 8px;
+}
+.header-actions {
+	gap: 8px;
+	flex-shrink: 0;
+}
+.back-text, .header-action-label {
+	font-size: var(--font-caption);
+}
+.back-icon, .theme-icon {
+	font-size: 20px;
+}
+.github-icon {
+	width: 20px;
+	height: 20px;
+}
+.detail-content {
+	flex: 1;
+	height: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+.content-wrapper {
+	width: 100%;
+	max-width: 960px;
+	padding: 16px 24px;
+	box-sizing: border-box;
+}
+.plugin-header {
+	padding: 20px;
+	gap: 16px;
+	margin-bottom: 16px;
+	border-radius: 10px;
+}
+.plugin-icon {
+	width: 64px;
+	height: 64px;
+	flex-shrink: 0;
+}
+.icon-text {
+	font-size: 36px;
+}
+.plugin-name {
+	font-size: var(--font-page);
+	overflow-wrap: anywhere;
+}
+.plugin-package, .plugin-author {
+	font-size: var(--font-body);
+	min-width: 0;
+	gap: 6px;
+}
+.plugin-package > text:first-child, .plugin-author > text:last-child {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.copy-hint, .author-icon {
+	font-size: 16px;
+	flex-shrink: 0;
+}
+.section {
+	padding: 20px;
+	margin-bottom: 16px;
+	border-radius: 10px;
+	min-width: 0;
+}
+.section-title {
+	font-size: var(--font-section);
+	margin-bottom: 12px;
+}
+.description-text, .info-value, .rating-number, .publisher-name, .maintainer-name, .contributor-name, .service-label, .link-text, .update-time {
+	font-size: var(--font-body);
+	overflow-wrap: anywhere;
+}
+.info-grid {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 12px;
+}
+.info-item {
+	min-width: 0;
+	padding: 12px;
+	gap: 8px;
+}
+.info-label, .publisher-email, .maintainer-email, .contributor-email, .badge, .service-tag, .keyword-tag, .link-url {
+	font-size: var(--font-caption);
+	overflow-wrap: anywhere;
+}
+.rating-value {
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.stars {
+	font-size: 16px;
+}
+.publisher-card, .maintainer-card, .contributor, .link-item {
+	padding: 12px;
+	gap: 12px;
+	min-width: 0;
+}
+.publisher-info, .maintainer-info {
+	min-width: 0;
+}
+.publisher-avatar {
+	width: 40px;
+	height: 40px;
+}
+.maintainer-avatar {
+	width: 32px;
+	height: 32px;
+}
+.badge, .service-tag, .keyword-tag {
+	max-width: 100%;
+	min-width: 0;
+	padding: 6px 10px;
+	box-sizing: border-box;
+}
+.badge-icon, .link-icon {
+	font-size: 18px;
+	flex-shrink: 0;
+}
+.link-item {
+	flex-wrap: wrap;
+}
+.link-url {
+	flex-basis: 100%;
+	min-width: 0;
+	white-space: normal;
+}
+.loading-text {
+	font-size: var(--font-body);
+}
+@media (max-width: 900px) {
 	.info-grid {
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
-	
-	.back-text {
-		display: none;
-	}
+}
+@media (max-width: 600px) {
+.detail-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	padding: 8px 16px;
+}
+.back-btn {
+	grid-column: 1;
+	grid-row: 1;
+	justify-self: start;
+}
+.header-actions {
+	grid-column: 2;
+	grid-row: 1;
+}
+.header-title {
+	grid-column: 1 / -1;
+	grid-row: 2;
+}
+.content-wrapper {
+	padding: 12px 16px;
+}
+.plugin-header {
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 16px;
+}
+.plugin-basic-info {
+	width: 100%;
+}
+.section {
+	padding: 16px;
+}
+.info-grid {
+	grid-template-columns: minmax(0, 1fr);
+}
 }
 </style>

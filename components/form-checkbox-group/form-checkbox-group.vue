@@ -144,4 +144,28 @@ function toggleOption(key) {
 		transform: scale(1) rotate(0);
 	}
 }
+.checkbox-row {
+	min-height: 44px;
+	padding: 10px 12px;
+	gap: 10px;
+	box-sizing: border-box;
+}
+.checkbox-box {
+	width: 20px;
+	height: 20px;
+	flex: 0 0 20px;
+}
+.checkbox-mark {
+	font-size: 14px;
+}
+.checkbox-label {
+	font-size: var(--font-body, 14px);
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+.checkbox-description {
+	font-size: var(--font-caption, 13px);
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
 </style>

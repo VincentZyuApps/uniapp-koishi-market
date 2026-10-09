@@ -1,201 +1,211 @@
 <template>
-	<view class="market-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="{ paddingTop: statusBarOffset + 'px' }">
-		<!-- 顶部右侧按钮组 -->
-		<view class="top-actions">
-			<!-- #ifdef WEB -->
-			<view class="github-link" @click="openGithub">
-				<image 
-					class="github-icon" 
-					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
-					mode="aspectFit"
-				/>
-				<text class="top-action-label">GitHub</text>
-			</view>
-			<!-- #endif -->
-			<view class="top-theme-btn" @click="toggleTheme">
-				<text class="top-theme-icon">{{ themeEmoji }}</text>
-				<text class="top-action-label">{{ themeLabel }}</text>
-			</view>
-		</view>
-		
-		<!-- 顶部搜索栏和信息栏 -->
-		<view class="top-section">
-			<search-header 
-				:model-value="searchWords"
-				@update:model-value="searchWords = $event"
-				@search="handleSearch"
-				@clear="handleClearSearch"
-			/>
-			
-		<!-- 市场信息 -->
-		<view class="market-info" v-if="marketInfo && marketInfo.total">
-			<view class="info-tag">
-				<text class="info-icon">🌐</text>
-				<text class="info-label">当前源:</text>
-				<text class="info-value copyable" @click.stop="copyMarketValue(currentSourceUrl, '当前源地址')">{{ currentSourceUrl }}</text>
-			</view>
-			<view class="info-tag">
-				<text class="info-icon">📦</text>
-				<text class="info-label">插件总数:</text>
-				<text class="info-value copyable" @click.stop="copyMarketValue(String(marketInfo.total), '插件总数')">{{ marketInfo.total }}</text>
-			</view>
-			<view class="info-tag" v-if="searchWords.length > 0" :class="{ 'search-result': true }">
-				<text class="info-icon">🔍</text>
-				<text class="info-label">搜索结果:</text>
-				<text class="info-value highlight">{{ filteredPlugins.length }}</text>
-			</view>
-		</view>
-		</view>
-		
-		<!-- 主体内容区域 -->
-		<view class="content">
-			<!-- 侧边分类栏 -->
-			<market-sidebar
-				:collapsed="sidebarCollapsed"
-				:market-info="marketInfo"
-				:sort-options="sortOptions"
-				:active-sort="activeSort"
-				:sort-order="sortOrder"
-				:badges="badges"
-				:active-badges="activeBadges"
-				:categories="categories"
-				:active-category="activeCategory"
-				@toggle="toggleSidebar"
-				@sort-change="toggleSort"
-				@badge-change="toggleBadge"
-				@category-change="toggleCategory"
-			/>
-			
-		<!-- 插件列表 -->
-		<view class="plugin-list" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-			<!-- 操作按钮 -->
-			<view class="result-header">
-				<view class="header-actions">
-					<!-- 翻页按钮组 -->
-					<view class="pagination-actions">
-						<view 
-							class="page-nav-btn prev-btn" 
-							:class="{ disabled: currentPage === 1 }"
-							@click="prevPage"
-						>
-							<text class="page-nav-icon">←</text>
-							<text class="page-nav-text">上一页</text>
-						</view>
-						<view 
-							class="page-nav-btn next-btn"
-							:class="{ disabled: currentPage === totalPages }"
-							@click="nextPage"
-						>
-							<text class="page-nav-text">下一页</text>
-							<text class="page-nav-icon">→</text>
-						</view>
-					</view>
-					
-					<!-- 功能按钮组 -->
-					<view class="function-actions">
-						<view class="settings-btn" @click="goToAgentPluginSearch" @mouseenter="startIconMotion" @mouseleave="settleIconMotion">
-							<text class="settings-icon" data-hover-spin-icon>🤖</text>
-							<text class="settings-text">Agent 找插件</text>
-						</view>
-						<view class="settings-btn" @click="goToSettings" @mouseenter="startIconMotion" @mouseleave="settleIconMotion">
-							<text class="settings-icon" data-hover-spin-icon>⚙️</text>
-							<text class="settings-text">设置</text>
-						</view>
-						<view class="refresh-btn" @click="handleRefreshClick" @mouseenter="startRefreshIconMotion" @mouseleave="settleIconMotion" :class="{ loading: isLoading }">
-							<text class="refresh-icon" data-hover-spin-icon>{{ isLoading ? '✕' : '🔄' }}</text>
-							<text class="refresh-text">{{ isLoading ? '取消加载' : '刷新' }}</text>
-						</view>
-					</view>
-				</view>
-			</view>				<!-- 加载状态 -->
-				<view v-if="isLoading && plugins.length === 0" class="loading-state">
-					<view class="loading-spinner"></view>
-					<text class="loading-text">正在加载插件数据...</text>
-					<view class="loading-actions">
-						<view class="loading-action-btn loading-cancel-btn" @click="cancelPluginLoad()">
-							<text class="loading-action-icon">✕</text>
-							<text>取消加载</text>
-						</view>
-						<view class="loading-action-btn loading-settings-btn" @click="goToSettings">
-							<text class="loading-action-icon">⚙️</text>
-							<text>前往设置</text>
-						</view>
-					</view>
-				</view>
-				<view v-else-if="loadError && plugins.length === 0" class="load-error-state">
-					<text class="load-error-icon">⚠️</text>
-					<text class="load-error-title">加载插件数据失败</text>
-					<text class="load-error-message">{{ loadError }}</text>
-					<view class="load-error-actions">
-						<view class="loading-action-btn loading-retry-btn" @click="retryLoad">
-							<text>重试</text>
-						</view>
-						<view class="loading-action-btn loading-default-source-btn" @click="useDefaultSourceAndRetry">
-							<text>更换默认源重试</text>
-						</view>
-					</view>
-				</view>
-				
-			<!-- 插件卡片列表 -->
-			<styled-scroll-view
-				id="plugin-scroll-view"
-				class="plugin-scroll" 
-				:scroll-top="scrollTop"
-				v-show="!isLoading || plugins.length > 0"
-			>
-				<view v-if="loadError" class="load-error-banner">
-					<text class="load-error-message">加载失败：{{ loadError }}</text>
-					<view class="load-error-actions compact">
-						<view class="loading-action-btn loading-retry-btn" @click="retryLoad">
-							<text>重试</text>
-						</view>
-						<view class="loading-action-btn loading-default-source-btn" @click="useDefaultSourceAndRetry">
-							<text>更换默认源重试</text>
-						</view>
-					</view>
-				</view>
-				<view class="plugin-grid">
-					<plugin-card
-						v-for="plugin in paginatedPlugins" 
-						:key="plugin.id"
-						:plugin="plugin"
-						@click="openPlugin"
+	<view class="market-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
+		<view class="market-background" :inert="drawerOpen || undefined" :aria-hidden="drawerOpen || undefined">
+			<!-- 顶部搜索栏和信息栏 -->
+			<view class="top-section">
+				<view class="search-row">
+					<search-header
+						:model-value="searchWords"
+						@update:model-value="searchWords = $event"
+						@search="handleSearch"
+						@clear="handleClearSearch"
 					/>
-				</view>					<!-- 空状态 -->
-					<view v-if="filteredPlugins.length === 0" class="empty-state">
-						<text class="empty-icon">📦</text>
-						<text class="empty-text">没有找到相关插件</text>
-					</view>
-					
-					<!-- 分页 -->
-					<view v-if="totalPages > 1" class="pagination">
-						<view class="pagination-group">
-							<view 
-								class="page-btn" 
-								:class="{ disabled: currentPage === 1 }"
-								@click="prevPage"
-							>上一页</view>
-							<view class="page-hint">← ↑ PgUp</view>
+					<!-- 顶部右侧按钮组 -->
+					<view class="top-actions">
+						<!-- #ifdef WEB -->
+						<view class="github-link" @click="openGithub">
+							<image
+								class="github-icon"
+								:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
+								mode="aspectFit"
+							/>
+							<text class="top-action-label">GitHub</text>
 						</view>
-						<view class="page-info">{{ currentPage }} / {{ totalPages }}</view>
-						<view class="pagination-group">
-							<view 
-								class="page-btn"
-								:class="{ disabled: currentPage === totalPages }"
-								@click="nextPage"
-							>下一页</view>
-							<view class="page-hint">→ ↓ PgDn</view>
+						<!-- #endif -->
+						<view class="top-theme-btn" @click="toggleTheme">
+							<text class="top-theme-icon">{{ themeEmoji }}</text>
+							<text class="top-action-label">{{ themeLabel }}</text>
 						</view>
 					</view>
-			</styled-scroll-view>
+
+				</view>
+
+				<!-- 市场信息 -->
+				<view class="market-info" v-if="marketInfo && marketInfo.total">
+					<view class="info-tag">
+						<text class="info-icon">🌐</text>
+						<text class="info-label">当前源:</text>
+						<text class="info-value copyable" @click.stop="copyMarketValue(currentSourceUrl, '当前源地址')">{{ currentSourceUrl }}</text>
+					</view>
+					<view class="info-tag">
+						<text class="info-icon">📦</text>
+						<text class="info-label">插件总数:</text>
+						<text class="info-value copyable" @click.stop="copyMarketValue(String(marketInfo.total), '插件总数')">{{ marketInfo.total }}</text>
+					</view>
+					<view class="info-tag" v-if="searchWords.length > 0" :class="{ 'search-result': true }">
+						<text class="info-icon">🔍</text>
+						<text class="info-label">搜索结果:</text>
+						<text class="info-value highlight">{{ filteredPlugins.length }}</text>
+					</view>
+				</view>
+			</view>
+
+			<!-- 主体内容区域 -->
+			<view class="content">
+				<!-- 插件列表 -->
+				<view class="plugin-list">
+					<!-- 操作按钮 -->
+					<view class="result-header">
+						<view class="header-actions">
+							<!-- 翻页按钮组 -->
+							<view class="pagination-actions">
+								<button tabindex="0" role="button"
+									class="page-nav-btn prev-btn"
+									:class="{ disabled: currentPage === 1 }" :disabled="currentPage === 1"
+									@click="prevPage"
+						>
+									<text class="page-nav-icon">←</text>
+									<text class="page-nav-text">上一页</text>
+								</button>
+								<text class="page-status">{{ currentPage }} / {{ totalPages }}</text>
+								<button tabindex="0" role="button"
+									class="page-nav-btn next-btn"
+									:class="{ disabled: currentPage === totalPages }" :disabled="currentPage >= totalPages"
+									@click="nextPage"
+						>
+									<text class="page-nav-text">下一页</text>
+									<text class="page-nav-icon">→</text>
+								</button>
+							</view>
+
+							<!-- 功能按钮组 -->
+							<view class="function-actions">
+								<button tabindex="0" role="button" class="settings-btn filter-trigger" aria-controls="market-filter-dialog" :aria-expanded="drawerOpen" @click="drawerOpen = true">
+									<text class="settings-icon">☰</text><text class="settings-text">筛选</text><text v-if="activeFilterCount" class="filter-count">{{ activeFilterCount }}</text>
+								</button>
+								<button tabindex="0" role="button" class="settings-btn" @click="goToAgentPluginSearch" @mouseenter="startIconMotion" @mouseleave="settleIconMotion">
+									<text class="settings-icon" data-hover-spin-icon>🤖</text>
+									<text class="settings-text">Agent</text>
+								</button>
+								<button tabindex="0" role="button" class="settings-btn" @click="goToSettings" @mouseenter="startIconMotion" @mouseleave="settleIconMotion">
+									<text class="settings-icon" data-hover-spin-icon>⚙️</text>
+									<text class="settings-text">设置</text>
+								</button>
+								<button tabindex="0" role="button" class="refresh-btn" @click="handleRefreshClick" @mouseenter="startRefreshIconMotion" @mouseleave="settleIconMotion" :class="{ loading: isLoading }">
+									<text class="refresh-icon" data-hover-spin-icon>{{ isLoading ? '✕' : '🔄' }}</text>
+									<text class="refresh-text">{{ isLoading ? '取消' : '刷新' }}</text>
+								</button>
+							</view>
+						</view>
+					</view>
+					<!-- 加载状态 -->
+					<view v-if="isLoading && plugins.length === 0" class="loading-state">
+						<view class="loading-spinner"></view>
+						<text class="loading-text">正在加载插件数据...</text>
+						<view class="loading-actions">
+							<view class="loading-action-btn loading-cancel-btn" @click="cancelPluginLoad()">
+								<text class="loading-action-icon">✕</text>
+								<text>取消加载</text>
+							</view>
+							<view class="loading-action-btn loading-settings-btn" @click="goToSettings">
+								<text class="loading-action-icon">⚙️</text>
+								<text>前往设置</text>
+							</view>
+						</view>
+					</view>
+					<view v-else-if="loadError && plugins.length === 0" class="load-error-state">
+						<text class="load-error-icon">⚠️</text>
+						<text class="load-error-title">加载插件数据失败</text>
+						<text class="load-error-message">{{ loadError }}</text>
+						<view class="load-error-actions">
+							<view class="loading-action-btn loading-retry-btn" @click="retryLoad">
+								<text>重试</text>
+							</view>
+							<view class="loading-action-btn loading-default-source-btn" @click="useDefaultSourceAndRetry">
+								<text>更换默认源重试</text>
+							</view>
+						</view>
+					</view>
+
+					<!-- 插件卡片列表 -->
+					<styled-scroll-view
+						id="plugin-scroll-view"
+						:scroll-enabled="!drawerOpen"
+						@resize="calculatePageSize"
+						class="plugin-scroll"
+						:scroll-top="scrollTop"
+						v-show="!isLoading || plugins.length > 0"
+			>
+						<view v-if="loadError" class="load-error-banner">
+							<text class="load-error-message">加载失败：{{ loadError }}</text>
+							<view class="load-error-actions compact">
+								<view class="loading-action-btn loading-retry-btn" @click="retryLoad">
+									<text>重试</text>
+								</view>
+								<view class="loading-action-btn loading-default-source-btn" @click="useDefaultSourceAndRetry">
+									<text>更换默认源重试</text>
+								</view>
+							</view>
+						</view>
+						<view class="plugin-grid">
+							<plugin-card
+								v-for="plugin in paginatedPlugins"
+								:key="plugin.id"
+								:plugin="plugin"
+								@click="openPlugin"
+							/>
+						</view>
+						<!-- 空状态 -->
+						<view v-if="filteredPlugins.length === 0" class="empty-state">
+							<text class="empty-icon">📦</text>
+							<text class="empty-text">没有找到相关插件</text>
+						</view>
+
+						<!-- 分页 -->
+						<view v-if="totalPages > 1" class="pagination">
+							<view class="pagination-group">
+								<button tabindex="0" role="button"
+									class="page-btn"
+									:class="{ disabled: currentPage === 1 }" :disabled="currentPage === 1"
+									@click="prevPage"
+								>上一页</button>
+								<view class="page-hint">← ↑ PgUp</view>
+							</view>
+							<view class="page-info">{{ currentPage }} / {{ totalPages }}</view>
+							<view class="pagination-group">
+								<button tabindex="0" role="button"
+									class="page-btn"
+									:class="{ disabled: currentPage === totalPages }" :disabled="currentPage >= totalPages"
+									@click="nextPage"
+								>下一页</button>
+								<view class="page-hint">→ ↓ PgDn</view>
+							</view>
+						</view>
+					</styled-scroll-view>
+				</view>
 			</view>
 		</view>
+		<market-sidebar
+			:open="drawerOpen"
+			:market-info="marketInfo"
+			:sort-options="sortOptions"
+			:active-sort="activeSort"
+			:sort-order="sortOrder"
+			:badges="badges"
+			:active-badges="activeBadges"
+			:categories="categories"
+			:active-category="activeCategory"
+			@close="drawerOpen = false"
+			@sort-change="toggleSort"
+			@badge-change="toggleBadge"
+			@category-change="toggleCategory"
+		/>
 	</view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { onLoad } from "@dcloudio/uni-app";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch, getCurrentInstance } from 'vue'
+import { onLoad, onResize, onHide, onShow } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData, getCurrentEndpoint } from '@/utils/request.js'
 import { setPlugin } from '@/utils/plugin-store.js'
 import PluginCard from '@/components/plugin-card/plugin-card.vue'
@@ -204,12 +214,10 @@ import SearchHeader from '@/components/search-header/search-header.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 import { useMotionPreferences } from '@/utils/motion.js'
 import { createHoverIconMotion } from '@/utils/hover-icon-motion.js'
-// #ifdef MP-WEIXIN || MP-QQ
-import { getStatusBarHeight } from '@/utils/system.js'
-// #endif
+import { usePageLayout } from '@/utils/layout.js'
 
 // 小程序状态栏适配
-const statusBarOffset = ref(0)
+const { pageStyle } = usePageLayout()
 const { motionClass, resolvedMotionMode } = useMotionPreferences()
 const { start: startIconMotion, settle: settleIconMotion, clear: clearHoverIconMotion } = createHoverIconMotion(resolvedMotionMode)
 
@@ -220,7 +228,9 @@ const searchWords = ref([])
 const scrollTop = ref(0)
 
 // 侧边栏状态
-const sidebarCollapsed = ref(false)
+const drawerOpen = ref(false)
+const pageVisible = ref(true)
+const instance = getCurrentInstance()
 
 // 主题模式（默认跟随系统）
 const themeMode = ref('system')
@@ -327,8 +337,8 @@ const categories = ref([
 const plugins = ref([])
 const marketInfo = ref({})
 const currentPage = ref(1)
-const pageSize = ref(24) // 初始值，将根据视口高度动态调整
-const gridColumns = ref(4) // 当前 grid 列数
+const pageSize = ref(5) // 初始值，将根据视口高度动态调整
+const gridColumns = ref(1) // 当前 grid 列数
 
 // 计算属性
 const filteredPlugins = computed(() => {
@@ -401,7 +411,7 @@ const filteredPlugins = computed(() => {
 })
 
 const totalPages = computed(() => {
-	return Math.ceil(filteredPlugins.value.length / pageSize.value)
+	return Math.max(1, Math.ceil(filteredPlugins.value.length / pageSize.value))
 })
 
 const paginatedPlugins = computed(() => {
@@ -411,9 +421,12 @@ const paginatedPlugins = computed(() => {
 })
 
 // 方法
-const toggleSidebar = () => {
-	sidebarCollapsed.value = !sidebarCollapsed.value
-}
+const activeFilterCount = computed(() => activeBadges.value.length + (activeCategory.value ? 1 : 0))
+watch(totalPages, (pages) => { currentPage.value = Math.min(currentPage.value, pages) })
+onHide(() => {
+	drawerOpen.value = false
+	pageVisible.value = false
+})
 
 const toggleTheme = () => {
 	const modes = ['system', 'light', 'dark']
@@ -526,6 +539,13 @@ const nextPage = () => {
 
 // 键盘快捷键处理
 const handleKeyDown = (e) => {
+	if (!pageVisible.value || drawerOpen.value || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+	if ((e.key === 'Enter' || e.key === ' ') && e.target?.tagName === 'UNI-BUTTON') {
+		e.preventDefault()
+		if (!e.target.hasAttribute('disabled')) e.target.click()
+		return
+	}
+	if (e.target?.closest?.('input, textarea, select, button, uni-button, [contenteditable], [role="dialog"]')) return
 	// 右箭头、下箭头、PageDown - 下一页
 	if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') {
 		e.preventDefault()
@@ -674,70 +694,26 @@ const handleRefreshClick = () => {
 
 // 动态计算每页显示的插件数量
 const calculatePageSize = () => {
-	// 获取系统信息
-	const systemInfo = uni.getSystemInfoSync()
-	const windowWidth = systemInfo.windowWidth
-	
-	// 卡片宽度：336px + gap: 24rpx (约12px) = 348px
-	// 侧边栏宽度：展开时约 280px，收起时约 80px
-	// 内容区 padding：60rpx (约30px) × 2 = 60px
-	let cardWidth = 336 + 12 // 卡片宽度 + gap的一半
-	let sidebarWidth = sidebarCollapsed.value ? 80 : 280
-	let contentPadding = 50
-
-	// 平板及以下使用更紧凑的卡片，并将侧边栏视为覆盖层，不占内容区列数
-	if (windowWidth <= 900) {
-		cardWidth = 280
-		sidebarWidth = 0
-		contentPadding = 32
-	}
-
-	if (windowWidth <= 600) {
-		cardWidth = 240
-		contentPadding = 24
-	}
-	
-	// 可用宽度 = 窗口宽度 - 侧边栏 - padding
-	const availableWidth = windowWidth - sidebarWidth - contentPadding
-	
-	// 计算实际能容纳的列数
-	let columnsPerRow = Math.floor(availableWidth / cardWidth)
-
-	if (windowWidth > 600 && windowWidth <= 900) {
-		columnsPerRow = Math.max(2, columnsPerRow)
-	}
-	
-	// 限制列数范围 1-9
-	const actualColumns = Math.max(1, Math.min(9, columnsPerRow))
-	
-	// 固定5行
-	const fixedRows = 5
-	
-	// 计算每页显示数量 = 5行 × 列数
-	const newPageSize = fixedRows * actualColumns
-	
-	console.log('=== 计算每页显示数量 ===')
-	console.log('窗口宽度:', windowWidth, 'px')
-	console.log('侧边栏宽度:', sidebarWidth, 'px')
-	console.log('可用宽度:', availableWidth, 'px')
-	console.log('卡片宽度:', cardWidth, 'px')
-	console.log('计算列数:', columnsPerRow)
-	console.log('实际列数:', actualColumns)
-	console.log('固定行数:', fixedRows)
-	console.log('每页显示:', newPageSize)
-	console.log('======================')
-	
-	pageSize.value = newPageSize
-	gridColumns.value = actualColumns
+	nextTick(() => {
+		uni.createSelectorQuery().in(instance.proxy).select('.plugin-grid').boundingClientRect((rect) => {
+			if (!rect?.width) return
+			const info = typeof uni.getWindowInfo === 'function' ? uni.getWindowInfo() : uni.getSystemInfoSync()
+			const columns = info.windowWidth <= 600 ? 1 : Math.max(1, Math.min(9, Math.floor((rect.width + 12) / 292)))
+			const firstItem = (currentPage.value - 1) * pageSize.value
+			gridColumns.value = columns
+			pageSize.value = columns * 5
+			currentPage.value = Math.min(totalPages.value, Math.floor(firstItem / pageSize.value) + 1)
+		}).exec()
+	})
 }
 
+onResize(calculatePageSize)
+onShow(() => {
+	pageVisible.value = true
+	calculatePageSize()
+})
+
 onMounted(() => {
-	// 小程序状态栏适配
-	// #ifdef MP-WEIXIN || MP-QQ
-	const statusBarHeight = getStatusBarHeight()
-	statusBarOffset.value = statusBarHeight + 0.999999999
-	console.log('状态栏高度:', statusBarHeight, 'px，偏移量:', statusBarOffset.value, 'px')
-	// #endif
 	
 	// 从本地存储加载主题设置
 	const savedTheme = uni.getStorageSync('theme')
@@ -750,8 +726,6 @@ onMounted(() => {
 
 	// #ifdef WEB
 	
-	// 监听窗口大小变化
-	window.addEventListener('resize', calculatePageSize)
 	
 	// 添加键盘事件监听
 	window.addEventListener('keydown', handleKeyDown)
@@ -768,8 +742,9 @@ onMounted(() => {
 onUnmounted(() => {
 	cancelPluginLoad(false)
 	clearHoverIconMotion()
-	window.removeEventListener('resize', calculatePageSize)
+	// #ifdef WEB
 	window.removeEventListener('keydown', handleKeyDown)
+	// #endif
 	_cleanupSystemTheme?.()
 })
 
@@ -1654,258 +1629,255 @@ function onShareTimeline() {
 	font-weight: 500;
 }
 
+.market-page {
+	width: 100%;
+	height: 100vh;
+	height: 100dvh;
+	box-sizing: border-box;
+	overflow: hidden;
+	padding-bottom: max(var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+}
+.market-background {
+	flex: 1;
+	min-height: 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+}
+.top-section {
+	flex-shrink: 0;
+	background: var(--bg-primary);
+	border-bottom: 1px solid var(--border);
+}
+.search-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 8px 16px 0;
+}
+.search-row :deep(.search-header) {
+	flex: 1;
+	min-width: 0;
+	padding: 0;
+}
+.top-actions {
+	position: static;
+	flex: 0 0 auto;
+	gap: 6px;
+	z-index: auto;
+}
+.github-link, .top-theme-btn {
+	min-height: 36px;
+	padding: 0 10px;
+	gap: 6px;
+	box-sizing: border-box;
+	border-radius: 8px;
+}
+.github-icon {
+	width: 20px;
+	height: 20px;
+}
+.top-theme-icon {
+	font-size: 20px;
+}
+.top-action-label {
+	font-size: var(--font-caption);
+}
+.market-info {
+	padding: 6px 16px 8px;
+	gap: 6px;
+	min-width: 0;
+}
+.info-tag {
+	min-width: 0;
+	max-width: 100%;
+	box-sizing: border-box;
+	padding: 2px 6px;
+	gap: 6px;
+	font-size: var(--font-caption);
+	border-radius: 8px;
+}
+.info-tag:first-child {
+	max-width: min(100%, 360px);
+}
+.info-value {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.info-icon {
+	flex-shrink: 0;
+	font-size: 16px;
+}
+.content, .plugin-list {
+	min-height: 0;
+	min-width: 0;
+}
+.result-header {
+	position: relative;
+	inset: auto;
+	padding: 6px 16px;
+	background: var(--surface);
+	border-bottom: 1px solid var(--border);
+	z-index: 2;
+	box-sizing: border-box;
+}
+.header-actions {
+	flex-direction: row;
+	justify-content: space-between;
+	gap: 10px;
+}
+.function-actions {
+	order: 0;
+	width: auto;
+	gap: 6px;
+}
+.pagination-actions {
+	order: 1;
+	width: auto;
+	align-items: center;
+	gap: 6px;
+}
+.page-status {
+	flex-shrink: 0;
+	font-size: var(--font-caption);
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+.settings-btn, .refresh-btn, .page-nav-btn, .page-btn {
+	min-height: 36px;
+	height: auto;
+	min-width: 0;
+	margin: 0;
+	padding: 6px 10px;
+	gap: 6px;
+	border-radius: 8px;
+	font-family: inherit;
+	font-size: var(--font-caption);
+	line-height: 1.5;
+	box-sizing: border-box;
+	justify-content: center;
+	white-space: normal;
+}
+.settings-btn::after, .refresh-btn::after, .page-nav-btn::after, .page-btn::after {
+	border: none;
+}
+.settings-icon, .refresh-icon, .page-nav-icon {
+	font-size: 16px;
+}
+.settings-text, .refresh-text, .page-nav-text {
+	font-size: var(--font-caption);
+}
+.filter-count {
+	min-width: 16px;
+	text-align: center;
+	font-size: var(--font-caption);
+	color: var(--accent);
+}
+.plugin-scroll {
+	flex: 1;
+	min-height: 0;
+	height: 0;
+	padding: 0;
+	--scroll-padding: 12px 16px;
+}
+.plugin-grid {
+	grid-template-columns: repeat(v-bind(gridColumns), minmax(0, 1fr));
+	gap: 12px;
+}
+.pagination {
+	flex-wrap: wrap;
+	padding: 12px 0 2px;
+	gap: 8px;
+}
+.page-info {
+	font-size: var(--font-caption);
+}
+.page-hint {
+	font-size: 12px;
+}
+.loading-state, .load-error-state {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 16px;
+	box-sizing: border-box;
+}
+.loading-text, .load-error-title, .load-error-message, .empty-text {
+	font-size: var(--font-body);
+	overflow-wrap: anywhere;
+}
+.loading-actions, .load-error-actions {
+	flex-wrap: wrap;
+}
+.loading-action-btn {
+	min-height: 36px;
+	box-sizing: border-box;
+	font-size: var(--font-caption);
+}
+.settings-btn:focus-visible,
+.refresh-btn:focus-visible,
+.page-nav-btn:focus-visible,
+.page-btn:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
 @media (max-width: 900px) {
-	.market-info {
-		padding: 12rpx 24rpx;
-		gap: 10rpx;
-	}
-
-	.info-tag {
-		padding: 8rpx 14rpx;
-		font-size: 22rpx;
-	}
-
-	.info-icon {
-		font-size: 24rpx;
-	}
-
-	::v-deep .search-header {
-		padding: 10rpx 24rpx 8rpx;
-	}
-
-	.result-header {
-		padding: 8rpx 16rpx;
-	}
-
-	.page-nav-btn {
-		padding: 8rpx 14rpx;
-		font-size: 22rpx;
-	}
-
-	.page-nav-icon {
-		font-size: 24rpx;
-	}
-
-	.settings-btn,
-	.refresh-btn {
-		padding: 8rpx 14rpx;
-		font-size: 22rpx;
-	}
-
-	.settings-icon,
-	.refresh-icon {
-		font-size: 24rpx;
-	}
-
-	.plugin-scroll {
-		padding: 88rpx 18rpx 18rpx 18rpx;
-	}
-
-	.plugin-grid {
-		grid-template-columns: repeat(v-bind(gridColumns), minmax(0, 280px));
-		gap: 16rpx;
-	}
-
-	.pagination {
-		padding: 28rpx 18rpx;
-	}
-
-	.page-btn {
-		height: 60rpx;
-		min-width: 72rpx;
-		font-size: 22rpx;
-	}
-
-	.page-info {
-		font-size: 22rpx;
-	}
+.header-actions {
+	flex-direction: column;
+	gap: 6px;
 }
-
-/* 响应式布局 - 只在真正的小屏设备上应用 */
+.function-actions {
+	width: 100%;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.pagination-actions {
+	width: 100%;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+}
 @media (max-width: 600px) {
-	.load-error-banner {
-		align-items: stretch;
-		flex-direction: column;
-	}
-
-	.load-error-actions.compact {
-		width: 100%;
-	}
-
-	.top-actions {
-		top: 15rpx;
-		right: 15rpx;
-		gap: 12rpx;
-	}
-	
-	.github-link {
-		min-height: 52rpx;
-		padding: 2rpx 10rpx;
-	}
-	
-	.github-icon {
-		width: 34rpx;
-		height: 34rpx;
-	}
-	
-	.top-theme-btn {
-		min-height: 52rpx;
-		padding: 2rpx 10rpx;
-	}
-	
-	.top-theme-icon {
-		font-size: 28rpx;
-	}
-
-	.top-action-label {
-		font-size: 19rpx;
-	}
-	
-	.top-section {
-		position: sticky;
-		top: 0;
-		z-index: 100;
-		background-color: var(--bg-primary);
-		box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-	}
-	
-	.market-info {
-		padding: 16rpx 20rpx;
-		gap: 12rpx;
-		justify-content: center;
-		flex-wrap: wrap;
-	}
-	
-	.info-tag {
-		padding: 10rpx 20rpx;
-		font-size: 24rpx;
-		gap: 6rpx;
-		flex: 0 1 auto;
-	}
-	
-	.info-icon {
-		font-size: 26rpx;
-	}
-	
-	.info-label {
-		display: none;
-	}
-	
-	::v-deep .search-header {
-		padding: 9.9rpx 20rpx 16rpx;
-	}
-	
-	.content {
-		position: relative;
-	}
-	
-	.plugin-list {
-		width: 100%;
-	}
-	
-	.result-header {
-		padding: 8rpx 10rpx;
-		justify-content: center;
-	}
-	
-	/* 手机端翻页按钮在上方 */
-	.pagination-actions {
-		width: 100%;
-		justify-content: space-between;
-		order: 1;
-		gap: 10rpx;
-	}
-	
-	.page-nav-btn {
-		flex: 1;
-		justify-content: center;
-		padding: 12rpx 14rpx;
-		font-size: 24rpx;
-		min-width: 0;
-	}
-	
-	.page-nav-icon {
-		font-size: 26rpx;
-	}
-	
-	/* 手机端功能按钮在下方 */
-	.function-actions {
-		width: 100%;
-		order: 2;
-		flex-wrap: nowrap;
-		gap: 10rpx;
-		justify-content: space-between;
-	}
-	
-	.settings-btn,
-	.refresh-btn {
-		flex: 1;
-		min-width: 0;
-		justify-content: center;
-		padding: 12rpx 10rpx;
-		font-size: 22rpx;
-	}
-	
-	.settings-icon,
-	.refresh-icon {
-		font-size: 24rpx;
-	}
-	
-	.plugin-grid {
-		grid-template-columns: 1fr;
-		gap: 20rpx;
-		padding: 0;
-	}
-	
-	.plugin-scroll {
-		padding: 16rpx;
-	}
-	
-	.pagination {
-		padding: 24rpx 16rpx;
-		gap: 12rpx;
-		flex-wrap: wrap;
-	}
-	
-	.pagination-group {
-		flex-direction: row;
-		gap: 12rpx;
-	}
-	
-	.page-btn {
-		height: 60rpx;
-		min-width: 64rpx;
-		font-size: 22rpx;
-	}
-	
-	.page-hint {
-		font-size: 18rpx;
-		white-space: nowrap;
-	}
-	
-	.page-info {
-		width: 100%;
-		text-align: center;
-		font-size: 22rpx;
-	}
+.search-row {
+	flex-wrap: wrap;
+	padding: 8px 12px 0;
+	gap: 6px;
 }
-
-/* 超小屏幕优化 */
-@media (max-width: 375px) {
-	.info-tag {
-		padding: 8rpx 16rpx;
-		font-size: 22rpx;
-	}
-	
-	.settings-btn,
-	.refresh-btn {
-		padding: 10rpx 12rpx;
-		font-size: 20rpx;
-	}
-	
-	.settings-text,
-	.refresh-text {
-		display: none;
-	}
+.search-row :deep(.search-header) {
+	flex-basis: 100%;
+}
+.top-actions {
+	margin-left: auto;
+}
+.market-info {
+	padding: 6px 12px;
+}
+.info-label {
+	display: none;
+}
+.result-header {
+	padding: 6px 12px;
+}
+.settings-btn, .refresh-btn {
+	padding: 6px 4px;
+	gap: 4px;
+}
+.filter-trigger .settings-icon {
+	display: none;
+}
+.plugin-scroll {
+	--scroll-padding: 10px 12px;
+}
+.page-hint {
+	display: none;
+}
+.load-error-banner {
+	flex-direction: column;
+	align-items: stretch;
+}
+.load-error-actions.compact {
+	width: 100%;
+}
 }
 </style>

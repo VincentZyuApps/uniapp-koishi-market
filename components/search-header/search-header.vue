@@ -234,4 +234,61 @@ const handleRemoveTag = (index) => {
 	opacity: 1;
 	transform: rotate(90deg);
 }
+.search-header {
+	min-width: 0;
+	box-sizing: border-box;
+}
+.search-bar {
+	width: 100%;
+	max-width: none;
+	box-sizing: border-box;
+	min-height: 40px;
+	padding: 6px 12px;
+	border-radius: 12px;
+}
+.search-bar:focus-within {
+	transform: none;
+}
+.search-icon {
+	font-size: 18px;
+	margin-right: 6px;
+	flex-shrink: 0;
+}
+.search-input {
+	min-width: 0;
+	height: 24px;
+	font-size: var(--font-body, 16px);
+	line-height: 24px;
+}
+.clear-icon {
+	font-size: 16px;
+	min-width: 24px;
+	text-align: center;
+}
+.search-tags {
+	width: 100%;
+	max-width: 100%;
+	margin-top: 6px;
+	padding: 0;
+	box-sizing: border-box;
+}
+.tag-list {
+	flex-wrap: nowrap;
+	gap: 6px;
+}
+.search-tag {
+	flex-shrink: 0;
+	max-width: 240px;
+	padding: 4px 8px;
+	font-size: var(--font-caption, 13px);
+	border-radius: 8px;
+	background: var(--accent);
+	color: var(--on-accent);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.tag-close {
+	margin-left: 4px;
+	font-size: 14px;
+}
 </style>

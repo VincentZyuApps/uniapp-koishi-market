@@ -1,75 +1,48 @@
 <template>
-	<view class="sidebar" :class="{ collapsed: collapsed }">
-		<!-- 折叠按钮 -->
-		<view class="collapse-btn" @click="toggleCollapse">
-			<text>{{ collapsed ? '➡️' : '⬅️' }}</text>
+	<view class="drawer-layer" :class="{ 'is-open': open }" :aria-hidden="!open" :inert="!open || undefined">
+		<view class="drawer-backdrop" @click="close" @touchmove.stop.prevent></view>
+		<view id="market-filter-dialog" class="sidebar" role="dialog" aria-modal="true" aria-labelledby="filter-heading" tabindex="-1">
+			<view class="drawer-header">
+				<text id="filter-heading" class="drawer-title">筛选与排序</text>
+				<button tabindex="0" role="button" class="drawer-close" aria-label="关闭筛选面板" @click="close">✕</button>
+			</view>
+			<styled-scroll-view class="sidebar-content" :scroll-enabled="open">
+				<view class="filter-group">
+					<view class="filter-title">排序方式</view>
+					<button tabindex="0" role="button" v-for="sort in sortOptions" :key="sort.key" class="filter-item" :class="{ active: activeSort === sort.key }" :aria-pressed="activeSort === sort.key" @click="handleSortClick(sort.key)">
+						<text class="filter-icon">{{ sort.icon }}</text>
+						<text class="filter-text">{{ sort.label }}</text>
+						<text v-if="activeSort === sort.key" class="order-icon">{{ sortOrder === 'desc' ? '↓' : '↑' }}</text>
+					</button>
+				</view>
+				<view class="filter-group">
+					<view class="filter-title">筛选条件</view>
+					<button tabindex="0" role="button" v-for="badge in badges" :key="badge.key" class="filter-item" :class="{ active: activeBadges.includes(badge.key), [badge.key]: true }" :aria-pressed="activeBadges.includes(badge.key)" @click="handleBadgeClick(badge.key)">
+						<text class="filter-icon">{{ badge.icon }}</text>
+						<text class="filter-text">{{ badge.label }}</text>
+						<text class="filter-count">{{ badge.count || 0 }}</text>
+					</button>
+				</view>
+				<view class="filter-group">
+					<view class="filter-title">插件分类</view>
+					<button tabindex="0" role="button" v-for="category in categories" :key="category.key" class="filter-item" :class="{ active: activeCategory === category.key }" :aria-pressed="activeCategory === category.key" @click="handleCategoryClick(category.key)">
+						<text class="filter-icon">{{ category.icon }}</text>
+						<text class="filter-text">{{ category.label }}</text>
+						<text class="filter-count">{{ category.count || 0 }}</text>
+					</button>
+				</view>
+			</styled-scroll-view>
+			<view class="drawer-footer"><button tabindex="0" role="button" class="drawer-done" @click="close">完成</button></view>
 		</view>
-		
-		<styled-scroll-view class="sidebar-content" v-if="!collapsed">
-			<!-- 排序方式 -->
-			<view class="filter-group">
-				<view class="filter-title">排序方式</view>
-				<view 
-					v-for="sort in sortOptions" 
-					:key="sort.key"
-					class="filter-item"
-					:class="{ active: activeSort === sort.key }"
-					@click="handleSortClick(sort.key)"
-				>
-					<text class="filter-icon">{{ sort.icon }}</text>
-					<text class="filter-text">{{ sort.label }}</text>
-					<view class="spacer"></view>
-					<text v-if="activeSort === sort.key" class="order-icon">
-						{{ sortOrder === 'desc' ? '↓' : '↑' }}
-					</text>
-				</view>
-			</view>
-			
-			<!-- 筛选条件 -->
-			<view class="filter-group">
-				<view class="filter-title">筛选条件</view>
-				<view 
-					v-for="badge in badges" 
-					:key="badge.key"
-					class="filter-item"
-					:class="{ 
-						active: activeBadges.includes(badge.key),
-						[badge.key]: true 
-					}"
-					@click="handleBadgeClick(badge.key)"
-				>
-					<text class="filter-icon">{{ badge.icon }}</text>
-					<text class="filter-text">{{ badge.label }}</text>
-					<view class="spacer"></view>
-					<text class="filter-count">{{ badge.count || 0 }}</text>
-				</view>
-			</view>
-			
-			<!-- 分类 -->
-			<view class="filter-group">
-				<view class="filter-title">插件分类</view>
-				<view 
-					v-for="category in categories" 
-					:key="category.key"
-					class="filter-item"
-					:class="{ active: activeCategory === category.key }"
-					@click="handleCategoryClick(category.key)"
-				>
-					<text class="filter-icon">{{ category.icon }}</text>
-					<text class="filter-text">{{ category.label }}</text>
-					<view class="spacer"></view>
-					<text class="filter-count">{{ category.count || 0 }}</text>
-				</view>
-			</view>
-		</styled-scroll-view>
 	</view>
 </template>
-
 <script setup>
+import { toRef } from 'vue'
+import { useDrawerFocus } from '@/utils/layout.js'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 
 const props = defineProps({
-	collapsed: {
+	open: {
 		type: Boolean,
 		default: false
 	},
@@ -107,11 +80,10 @@ const props = defineProps({
 	}
 })
 
-const emit = defineEmits(['toggle', 'sort-change', 'badge-change', 'category-change'])
+const emit = defineEmits(['close', 'sort-change', 'badge-change', 'category-change'])
 
-const toggleCollapse = () => {
-	emit('toggle')
-}
+const close = () => emit('close')
+useDrawerFocus(toRef(props, 'open'), 'market-filter-dialog', close)
 
 const handleSortClick = (key) => {
 	emit('sort-change', key)
@@ -127,285 +99,173 @@ const handleCategoryClick = (key) => {
 </script>
 
 <style scoped>
-.sidebar {
-	width: 400rpx;
-	background-color: var(--bg-secondary, #f8f8f9);
-	border-right: 2rpx solid var(--border-color, #d0d7de);
-	position: relative;
-	transition: width 0.3s ease;
-	flex-shrink: 0;
+.drawer-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	visibility: hidden;
+	pointer-events: none;
+	transition: visibility 0.25s;
 }
-
-.sidebar.collapsed {
-	width: 80rpx;
+.drawer-layer.is-open {
+	visibility: visible;
+	pointer-events: auto;
 }
-
-@media (max-width: 900px) {
-	.sidebar {
-		width: 320rpx;
-	}
-
-	.sidebar.collapsed {
-		width: 64rpx;
-	}
-
-	.collapse-btn {
-		right: 8rpx;
-		top: 14rpx;
-		width: 48rpx;
-		height: 48rpx;
-		font-size: 20rpx;
-	}
-
-	.sidebar-content {
-		padding: 24rpx;
-		padding-top: 84rpx;
-	}
-}
-
-/* 移动端样式 - 侧边栏占满整个页面 */
-@media (max-width: 768rpx) {
-	.sidebar {
-		position: fixed;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 100vw !important;
-		z-index: 1000;
-		transform: translateX(-100%);
-		transition: transform 0.3s ease;
-		box-shadow: 4rpx 0 24rpx rgba(0, 0, 0, 0.2);
-	}
-	
-	.sidebar:not(.collapsed) {
-		transform: translateX(0);
-	}
-	
-	.sidebar.collapsed {
-		width: 72rpx !important;
-		transform: translateX(-100%);
-	}
-	
-	.collapse-btn {
-		right: 14rpx;
-		top: 14rpx;
-		width: 60rpx;
-		height: 60rpx;
-		font-size: 24rpx;
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
-	}
-	
-	.sidebar-content {
-		padding: 40rpx;
-		padding-top: 120rpx;
-	}
-}
-
-
-.collapse-btn {
+.drawer-backdrop {
 	position: absolute;
-	right: 10rpx;
-	top: 20rpx;
-	width: 60rpx;
-	height: 60rpx;
+	inset: 0;
+	background: var(--overlay-backdrop);
+	opacity: 0;
+	transition: opacity 0.25s;
+}
+.is-open .drawer-backdrop {
+	opacity: 1;
+}
+.sidebar {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	width: 320px;
+	max-width: calc(100vw - 64px);
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	padding-top: max(var(--safe-top, 0px), env(safe-area-inset-top, 0px));
+	padding-bottom: max(var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+	background: var(--surface);
+	color: var(--text-primary);
+	transform: translateX(-100%);
+	transition: transform 0.25s ease;
+	overscroll-behavior: contain;
+}
+.is-open .sidebar {
+	transform: translateX(0);
+}
+.drawer-header {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	background-color: var(--bg-primary, #ffffff);
-	border-radius: 50%;
-	font-size: 24rpx;
-	z-index: 10;
-	cursor: pointer;
-	color: var(--text-primary, #1f2328);
-	border: 2rpx solid var(--border-color, #d0d7de);
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 16px;
+	border-bottom: 1px solid var(--border);
+	flex-shrink: 0;
 }
-
-.collapse-btn:hover {
-	background-color: var(--primary-color, #5546a3);
-	color: #fff;
-	border-color: var(--primary-color, #5546a3);
-	transform: scale(1.1);
-	box-shadow: 0 4rpx 16rpx rgba(85, 70, 163, 0.3);
-}
-
-.collapse-btn:active {
-	transform: scale(0.95);
-}
-
-.sidebar-content {
-	height: 100%;
-	padding: 32rpx;
-	padding-top: 100rpx;
-	overflow-y: auto;
-}
-
-.filter-group {
-	margin-bottom: 48rpx;
-}
-
-.filter-title {
-	font-size: 32rpx;
+.drawer-title {
+	font-size: var(--font-section);
 	font-weight: 600;
-	color: var(--text-primary, #1f2328);
-	margin-bottom: 24rpx;
-	line-height: 1;
 }
-
+.drawer-close, .drawer-done, .filter-item {
+	margin: 0;
+	font: inherit;
+	border: 0;
+	border-radius: 8px;
+}
+.drawer-close::after, .drawer-done::after, .filter-item::after {
+	border: 0;
+}
+.drawer-close {
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	line-height: 36px;
+	background: var(--bg-secondary);
+	color: var(--text-primary);
+	flex-shrink: 0;
+}
+.sidebar-content {
+	flex: 1;
+	min-height: 0;
+	height: 0;
+	--scroll-padding: 2px 16px 10px;
+}
+.filter-group {
+	padding: 10px 0;
+	border-bottom: 1px solid var(--border);
+}
+.filter-group:last-child {
+	border-bottom: 0;
+}
+.filter-title {
+	font-size: var(--font-caption);
+	line-height: 1.5;
+	font-weight: 600;
+	color: var(--text-secondary);
+	margin-bottom: 4px;
+}
 .filter-item {
 	display: flex;
-	align-items: center;
-	padding: 0 16rpx;
-	margin: 8rpx 0;
-	border-radius: 8rpx;
-	font-size: 28rpx;
-	color: var(--k-text-normal, #656d76);
-	cursor: pointer;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	min-width: 0;
-	overflow: hidden;
-	height: 48rpx;
-	z-index: 2;
-	gap: 8rpx;
-	position: relative;
-}
-
-/* 悬浮背景效果 */
-.filter-item::before {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 0;
-	height: 100%;
-	background: var(--primary-color, #5546a3);
-	opacity: 0.1;
-	border-radius: 8rpx;
-	transition: width 0.3s ease;
-}
-
-.filter-item:hover::before {
 	width: 100%;
+	min-height: 34px;
+	padding: 4px 8px;
+	gap: 8px;
+	align-items: center;
+	background: transparent;
+	color: var(--text-secondary);
+	text-align: left;
+	box-sizing: border-box;
+	transition: color 0.2s, background-color 0.2s;
 }
-
-.filter-item:hover {
-	color: var(--k-text-dark, #1f2328);
-	transform: translateX(8rpx);
-}
-
-.filter-item:active {
-	transform: translateX(4rpx) scale(0.98);
-}
-
 .filter-item.active {
-	color: var(--k-text-active, #5546a3);
+	background: var(--accent-soft);
+	color: var(--accent);
 	font-weight: 600;
 }
-
-.filter-item.active::before {
-	width: 100%;
-	opacity: 0.15;
+.filter-item.verified.active, .filter-item.newborn.active {
+	color: var(--success-color);
 }
-
-.filter-item.verified.active {
-	color: var(--success-color, #1a7f37);
+.filter-item.preview.active, .filter-item.portable.active {
+	color: var(--warning-color);
 }
-
-.filter-item.newborn.active {
-	color: var(--success-color, #1a7f37);
-}
-
-.filter-item.preview.active {
-	color: var(--warning-color, #bf8700);
-}
-
-.filter-item.portable.active {
-	color: var(--warning-color, #bf8700);
-}
-
 .filter-item.insecure.active {
-	color: var(--danger-color, #d1242f);
+	color: var(--danger-color);
 }
-
-.filter-item.disabled {
-	opacity: 0.5;
-	text-decoration: line-through 4rpx;
-}
-
 .filter-icon {
-	margin-right: 8rpx;
-	font-size: 32rpx;
-	display: inline-flex;
-	width: 56rpx;
-	align-items: center;
-	justify-content: center;
-	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	flex: 0 0 24px;
+	width: 24px;
+	font-size: 20px;
+	line-height: 24px;
+	text-align: center;
 }
-
-.filter-item:hover .filter-icon {
-	transform: scale(1.2) rotate(10deg);
-}
-
 .filter-text {
-	flex: 0 1 auto;
+	flex: 1;
 	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	line-height: 40rpx;
-	font-size: 28rpx;
-	font-weight: 500;
+	overflow-wrap: anywhere;
+	font-size: var(--font-body);
+	line-height: 1.5;
 }
-
 .spacer {
-	flex: 0 0 auto;
-	width: auto;
+	display: none;
 }
-
-.filter-count {
-	font-size: 32rpx;
-	line-height: 40rpx;
-	color: var(--text-tertiary, #8c959f);
-	font-weight: 500;
+.filter-count, .order-icon {
 	flex-shrink: 0;
-	min-width: 40rpx;
-	text-align: left;
+	min-width: 32px;
+	font-size: var(--font-caption);
+	text-align: right;
+	font-variant-numeric: tabular-nums;
 }
-
-.order-icon {
-	display: inline-flex;
-	width: 56rpx;
-	align-items: center;
-	justify-content: center;
+.drawer-footer {
+	padding: 8px 16px;
+	border-top: 1px solid var(--border);
+	flex-shrink: 0;
 }
-
-/* 移动端优化 */
-@media (max-width: 768rpx) {
-	.market-sidebar.show {
-		width: 85vw;
-		max-width: 600rpx;
-		box-shadow: 4rpx 0 16rpx rgba(0, 0, 0, 0.2);
-	}
-
-	.collapse-btn {
-		position: fixed;
-		top: 50%;
-		transform: translateY(-50%);
-		z-index: 10001;
-		width: 48rpx;
-		height: 48rpx;
-		border-radius: 50%;
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
-		transition: all 0.3s ease, left 0.3s ease, right 0.3s ease;
-	}
-
-	.market-sidebar:not(.show) .collapse-btn {
-		left: -80rpx;
-	}
-
-	.market-sidebar.show .collapse-btn {
-		right: -30rpx;
-		left: auto;
+.drawer-done {
+	min-height: 36px;
+	line-height: 1.5;
+	padding: 6px 12px;
+	background: var(--accent);
+	color: var(--on-accent);
+}
+.drawer-close:focus-visible,
+.drawer-done:focus-visible,
+.filter-item:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+@media (hover: hover) {
+	.filter-item:hover {
+		background: var(--accent-soft);
+		color: var(--accent);
 	}
 }
 </style>

@@ -594,213 +594,116 @@ const handleClick = () => {
 	font-weight: bold;
 }
 
-@media (max-width: 900px) {
-	.plugin-card {
-		height: auto;
-		min-height: 300rpx;
-		padding: 20rpx 18rpx 14rpx 20rpx;
-		gap: 14rpx;
-	}
-
-	.card-header {
-		gap: 22rpx;
-	}
-
-	.category-icon {
-		width: 92rpx;
-		height: 92rpx;
-		font-size: 46rpx;
-	}
-
-	.plugin-name {
-		font-size: 31rpx;
-		line-height: 1.4;
-	}
-
-	.badge-icon {
-		width: 32rpx;
-		height: 32rpx;
-		font-size: 32rpx;
-	}
-
-	.stars {
-		gap: 5rpx;
-	}
-
-	.star {
-		font-size: 24rpx;
-	}
-
-	.rating-value {
-		font-size: 22rpx;
-	}
-
-	.card-description {
-		font-size: 24rpx;
-		line-height: 1.45;
-		max-height: 3.05em;
-	}
-
-	.card-footer {
-		gap: 10rpx;
-		height: 40rpx;
-		font-size: 22rpx;
-		margin-bottom: 0;
-	}
-
-	.footer-item {
-		gap: 5rpx;
-	}
-
-	.footer-icon {
-		width: 24rpx;
-		font-size: 20rpx;
-		margin-right: 0;
-	}
-
-	.footer-text {
-		font-size: 22rpx;
-	}
-
-	.author-avatar {
-		width: 40rpx;
-		height: 40rpx;
-	}
-
-	.avatar-text {
-		font-size: 20rpx;
-	}
+.plugin-card {
+	height: auto;
+	min-height: 160px;
+	padding: 12px;
+	gap: 8px;
+	border-radius: 10px;
 }
-
+.card-header {
+	gap: 8px;
+	align-items: flex-start;
+	min-width: 0;
+}
+.icon-container {
+	flex: 0 0 auto;
+}
+.category-icon {
+	width: 40px;
+	height: 40px;
+	font-size: 26px;
+	border-radius: 8px;
+	box-sizing: border-box;
+}
+.title-row {
+	gap: 4px;
+	align-items: flex-start;
+}
+.plugin-name {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	font-size: var(--font-card, 16px);
+	line-height: 1.5;
+}
+.badge-icon {
+	width: 18px;
+	height: 24px;
+	font-size: 18px;
+}
+.rating-row {
+	height: auto;
+	min-height: 20px;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+.stars {
+	gap: 2px;
+	flex-shrink: 0;
+}
+.star {
+	font-size: 15px;
+}
+.rating-value {
+	font-size: var(--font-caption, 13px);
+}
+.card-description {
+	flex: 1;
+	font-size: var(--font-body, 14px);
+	line-height: 1.5;
+	max-height: none;
+	overflow-wrap: anywhere;
+}
+.description-text {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
+}
+.card-description::after {
+	display: none;
+}
+.card-footer {
+	height: auto;
+	min-height: 24px;
+	gap: 4px;
+	overflow: visible;
+	margin: 0;
+	font-size: var(--font-caption, 13px);
+}
+.footer-top, .footer-bottom {
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	min-height: 0;
+}
+.footer-top:empty {
+	display: none;
+}
+.footer-item {
+	gap: 4px;
+	max-width: 100%;
+}
+.footer-icon {
+	width: 16px;
+	font-size: 13px;
+	margin: 0;
+}
+.footer-text {
+	font-size: var(--font-caption, 13px);
+}
+.author-avatar {
+	width: 24px;
+	height: 24px;
+}
+.avatar-text {
+	font-size: 12px;
+}
 @media (max-width: 600px) {
 	.plugin-card {
-		min-height: 276rpx;
-		padding: 18rpx 16rpx 12rpx 18rpx;
-		gap: 12rpx;
-		border-radius: 10rpx;
-	}
-
-	.card-header {
-		gap: 20rpx;
-	}
-
-	.category-icon {
-		width: 84rpx;
-		height: 84rpx;
-		border-radius: 12rpx;
-		font-size: 42rpx;
-	}
-
-	.plugin-name {
-		font-size: 30rpx;
-		line-height: 1.35;
-	}
-
-	.badge-icon {
-		width: 30rpx;
-		height: 30rpx;
-		font-size: 30rpx;
-	}
-
-	.rating-row {
-		gap: 6rpx;
-		height: 40rpx;
-	}
-
-	.stars {
-		gap: 4rpx;
-	}
-
-	.star {
-		font-size: 24rpx;
-	}
-
-	.rating-value {
-		font-size: 22rpx;
-	}
-
-	.card-description {
-		font-size: 25rpx;
-		line-height: 1.45;
-		max-height: 3.05em;
-	}
-
-	.card-footer {
-		gap: 10rpx;
-		font-size: 22rpx;
-	}
-
-	.footer-top {
-		gap: 10rpx;
-		min-height: 32rpx;
-	}
-
-	.footer-bottom {
-		gap: 10rpx;
-	}
-
-	.footer-item {
-		gap: 4rpx;
-	}
-
-	.footer-icon {
-		width: 24rpx;
-		font-size: 20rpx;
-		margin-right: 0;
-	}
-
-	.footer-text {
-		font-size: 22rpx;
-	}
-
-	.author-avatar {
-		width: 40rpx;
-		height: 40rpx;
-	}
-
-	.avatar-text {
-		font-size: 20rpx;
-	}
-}
-
-@media (max-width: 375px) {
-	.plugin-card {
-		min-height: 252rpx;
-		padding: 16rpx 14rpx 10rpx 16rpx;
-		gap: 10rpx;
-	}
-
-	.category-icon {
-		width: 76rpx;
-		height: 76rpx;
-		font-size: 38rpx;
-	}
-
-	.plugin-name {
-		font-size: 28rpx;
-	}
-
-	.card-description {
-		font-size: 23rpx;
-		max-height: 3.05em;
-	}
-
-	.card-footer {
-		gap: 8rpx;
-	}
-
-	.footer-top,
-	.footer-bottom {
-		gap: 8rpx;
-	}
-
-	.footer-text {
-		font-size: 20rpx;
-	}
-
-	.author-avatar {
-		width: 36rpx;
-		height: 36rpx;
+		min-height: 0;
 	}
 }
 </style>
