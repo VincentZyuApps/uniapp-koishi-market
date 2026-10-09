@@ -978,6 +978,8 @@ function onShareTimeline() {
 }
 
 .info-label {
+	flex-shrink: 0;
+	white-space: nowrap;
 	color: var(--text-tertiary);
 	font-weight: 500;
 }
