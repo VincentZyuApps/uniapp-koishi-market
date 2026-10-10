@@ -1,6 +1,6 @@
 {
 	"name": "uniapp-koishi-market",
-	"version": "0.3.0-beta.7",
+	"version": "0.3.1-beta.8",
 	"main": "index.js",
 	"author": "VincentZyu <1830540513@qq.com>",
 	"license": "MIT",
@@ -10,17 +10,28 @@
 		"url": "https://github.com/VincentZyuApps/uniapp-koishi-market"
 	},
 	"dependencies": {
-		"marked": "^15.0.8"
+		"@dcloudio/uni-app": "3.0.0-alpha-5030120260930001",
+		"@dcloudio/uni-app-plus": "3.0.0-alpha-5030120260930001",
+		"@dcloudio/uni-components": "3.0.0-alpha-5030120260930001",
+		"@dcloudio/uni-h5": "3.0.0-alpha-5030120260930001",
+		"@dcloudio/uni-mp-qq": "3.0.0-alpha-5030120260930001",
+		"@dcloudio/uni-mp-weixin": "3.0.0-alpha-5030120260930001",
+		"@fontsource/cascadia-mono": "^5.3.0",
+		"@free-fonts/lxgw-wenkai": "^1.0.1",
+		"marked": "^15.0.8",
+		"vue": "^3.4.21"
 	},
 	"scripts": {
-		"dev:h5": "uni --type h5 --watch",
-		"build:h5": "uni build -p h5"
+		"dev:h5": "cross-env UNI_INPUT_DIR=. uni --type h5 --watch",
+		"build:h5": "cross-env UNI_INPUT_DIR=. UNI_OUTPUT_DIR=unpackage/dist/build/web uni build -p h5"
 	},
 	"devDependencies": {
-		"@dcloudio/uni-cli-shared": "^2.0.2-4080720251210002",
-		"@dcloudio/vite-plugin-uni": "^3.0.0-alpha-3000020210521001",
-		"@vitejs/plugin-vue": "^6.0.3",
-		"@vue/compiler-sfc": "^3.5.25",
-		"vite": "^7.2.7"
+		"@dcloudio/types": "^3.4.8",
+		"@dcloudio/uni-cli-shared": "3.0.0-alpha-5030120260930001",
+		"@dcloudio/vite-plugin-uni": "3.0.0-alpha-5030120260930001",
+		"@vue/compiler-sfc": "^3.4.21",
+		"cross-env": "^10.1.0",
+		"sass": "^1.72.0",
+		"vite": "5.2.8"
 	}
 }

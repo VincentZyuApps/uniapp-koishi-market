@@ -1,30 +1,35 @@
 # 构建与部署说明
 
-本项目的构建**在本地 HBuilderX 中完成**，构建产物提交到仓库后由 GitHub Actions / GitLab CI 自动上传到三个托管平台。
-
-> **核心原则**：CI 不做构建，只负责上传——和你在本地 build 完手动拖文件到托管平台的行为完全一致。
+本项目采用**双轨部署架构**，既支持在本地完成构建并将产物提交上传（传统模式），也支持纯源码提交并由 GitHub Actions 在线自动化编译构建并部署（现代模式）。
 
 ---
 
-## 📋 触发机制 (Trigger)
+## 📋 触发机制与部署标记 (Trigger)
 
-部署需要同时满足两个条件：
-1. 推送到 `main` 分支
-2. Commit Message 中包含精确部署标记 `[pub-page]` 或 `[pub page]`
+部署由 Commit Message 中的标记触发，支持两种互斥模式：
 
-| 关键词 | 说明 | 触发动作 |
+| 标记 | 模式说明 | 触发动作 |
 | :--- | :--- | :--- |
-| `[pub-page]` | 推荐的规范标记 | ✅ 部署到 GitHub Pages<br>✅ 部署到 Cloudflare Pages<br>✅ 部署到 GitLab Pages（`.gitlab-ci.yml`） |
-| `[pub page]` | 兼容旧空格格式 | ✅ 部署到 GitHub Pages<br>✅ 部署到 Cloudflare Pages<br>✅ 部署到 GitLab Pages（`.gitlab-ci.yml`） |
+| **`[pub-page]`** | **本地预构建直传**（本地已有 `unpackage/dist/build/web`）<br>*(注：不加连字符的 `[pub page]` 完全等价)* | ✅ 验证现有产物并上传<br>✅ 部署到 GitHub Pages (main)<br>✅ 部署到 Cloudflare Pages |
+| **`[build-page]`** | **云端 CI 在线构建**（纯源码提交，本地无需构建）<br>*(注：不加连字符的 `[build page]` 完全等价)* | ✅ 在线安装依赖并执行 `npm run build:h5`<br>✅ 自动生成 `_redirects`<br>✅ 部署到 GitHub Pages (main)<br>✅ 部署到 Cloudflare Pages |
 
-也可以从 GitHub Actions 页面通过 `workflow_dispatch` 手动触发，此时不检查提交信息。
+> [!TIP]
+> 在 `[build-page]` 模式下，构建产物由云端自动在线编译并输出，推荐检查并避免将 `unpackage` 目录中的构建产物提交到 Git，以保持代码仓库精简轻量（此项为建议，非强制要求）。
 
-**示例 Commit：**
-```bash
-git commit -m "feat: 发布 v0.1.x Web H5 [pub-page]"
-```
+### 🚨 严格互斥规则
+单次提交的 HEAD Commit Message **只能包含其中一种标记**。
+若同时检测到 `[pub-page]` 与 `[build-page]`，CI 将在最第一步抛出 `Deployment Tag Conflict` 致命错误并**直接中断打出红叉 ❌**。
 
-如果一次推送包含多个提交，GitHub Actions 检查的是本次推送的 **HEAD 提交信息**，因此最后一个提交必须包含精确小写标记 `[pub-page]` 或 `[pub page]`。GitLab CI 同样要求推送到 `main` 且提交信息包含其中一个标记；不带方括号的 `pub-page` 不会触发部署。
+### 🌐 分支环境与隔离预览策略
+1. **推送到 `main` 分支**：
+   - 部署生产环境 GitHub Pages：`https://vincentzyuapps.github.io/uniapp-koishi-market/`
+   - 部署生产环境 Cloudflare Pages：`https://uniapp-koishi-market.pages.dev`
+2. **推送到非 `main` 测试分支**：
+   - **GitHub Pages 自动跳过**，100% 保护生产主站不被覆盖；
+   - **Cloudflare Pages 自动部署为独立分支预览（Preview Deployment）**，分配形如 `https://<branch>.uniapp-koishi-market.pages.dev` 的独立隔离地址，不影响生产流量；
+   - CI 构建产物以 GitHub Actions Artifact (zip) 保存 30 天，可随时下载验证。
+3. **手动触发 (`workflow_dispatch`)**：
+   - 可在 Actions 界面下拉选择 `build` 或 `pub` 模式执行。
 
 ---
 

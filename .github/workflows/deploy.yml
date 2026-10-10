@@ -3,9 +3,18 @@ name: Deploy to GitHub Pages & Cloudflare Pages
 on:
   push:
     branches:
-      - main
+      - '**'
 
   workflow_dispatch:
+    inputs:
+      build_mode:
+        description: '构建与发布模式'
+        required: true
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - pub
 
 permissions:
   contents: read
@@ -14,29 +23,136 @@ permissions:
   deployments: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "pages-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
-  # Job 1: 部署到 GitHub Pages
-  deploy-gh-pages:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, '[pub-page]') ||
-      contains(github.event.head_commit.message, '[pub page]')
+  validate-and-prepare:
+    name: 验证标记与构建产物
     runs-on: ubuntu-latest
-
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      mode: ${{ steps.check.outputs.mode }}
+      is_main: ${{ steps.check.outputs.is_main }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Validate Deployment Tags
+        id: check
+        shell: bash
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          EVENT_NAME="${{ github.event_name }}"
+          IS_MAIN=$([ "${{ github.ref }}" = "refs/heads/main" ] && echo "true" || echo "false")
+          echo "is_main=$IS_MAIN" >> $GITHUB_OUTPUT
 
-      - name: Upload artifact
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "手动触发工作流，构建模式：${{ inputs.build_mode }}"
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "mode=${{ inputs.build_mode }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PUB_PAGE=false
+          BUILD_PAGE=false
+          TITLE=$(echo "$COMMIT_MSG" | head -n 1)
+
+          # 优先检测标题（Subject）中的显式标记
+          if echo "$TITLE" | grep -Eqi '\[pub[- ]page\]'; then
+            PUB_PAGE=true
+          fi
+          if echo "$TITLE" | grep -Eqi '\[build[- ]page\]'; then
+            BUILD_PAGE=true
+          fi
+
+          # 若标题中未指定任何标记，再检测完整提交说明
+          if [ "$PUB_PAGE" = false ] && [ "$BUILD_PAGE" = false ]; then
+            if echo "$COMMIT_MSG" | grep -Eqi '\[pub[- ]page\]'; then
+              PUB_PAGE=true
+            fi
+            if echo "$COMMIT_MSG" | grep -Eqi '\[build[- ]page\]'; then
+              BUILD_PAGE=true
+            fi
+          fi
+
+          # 互斥检查：如果同时包含两个标记，直接抛出红叉异常
+          if [ "$PUB_PAGE" = true ] && [ "$BUILD_PAGE" = true ]; then
+            echo "::error title=Deployment Tag Conflict::[pub-page] 与 [build-page] 部署标记互斥，不能同时指定！"
+            exit 1
+          fi
+
+          if [ "$PUB_PAGE" = false ] && [ "$BUILD_PAGE" = false ]; then
+            echo "未检测到 [pub-page] 或 [build-page] 标记，跳过构建与部署。"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "mode=none" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "should_run=true" >> $GITHUB_OUTPUT
+          if [ "$PUB_PAGE" = true ]; then
+            echo "检测到 [pub-page] 标记：使用已有本地构建产物"
+            echo "mode=pub" >> $GITHUB_OUTPUT
+          else
+            echo "检测到 [build-page] 标记：在 CI 中执行依赖安装与在线构建"
+            echo "mode=build" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js (build 模式)
+        if: steps.check.outputs.should_run == 'true' && steps.check.outputs.mode == 'build'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Setup Python (build 模式)
+        if: steps.check.outputs.should_run == 'true' && steps.check.outputs.mode == 'build'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies & Build H5 (build 模式)
+        if: steps.check.outputs.should_run == 'true' && steps.check.outputs.mode == 'build'
+        run: |
+          # 建议提示：CI 在线构建模式下，推荐无需将 unpackage 产物纳入 git（仅为建议，非强制）
+          if git ls-files unpackage/dist/build/web/ | grep -q 'index.html'; then
+            echo "::notice title=Git 仓库轻量建议::检测到提交中包含了 unpackage 本地构建内容。在 [build-page] CI 在线构建模式下，建议后续仅提交源码，无需将 unpackage 产物纳入 git，以保持仓库体积精简（此条仅为建议，不影响本次正常构建发布）。"
+          fi
+          npm ci
+          npm run build:h5
+          python scripts/generate_cf_redirects.py
+
+      - name: Verify Prebuilt Artifacts (pub 模式)
+        if: steps.check.outputs.should_run == 'true' && steps.check.outputs.mode == 'pub'
+        run: |
+          if [ ! -f "unpackage/dist/build/web/index.html" ]; then
+            echo "::error title=Missing Build Artifacts::[pub-page] 模式要求提交中包含本地构建产物 unpackage/dist/build/web/index.html"
+            exit 1
+          fi
+
+      - name: Upload Web Build Artifact
+        if: steps.check.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: unpackage/dist/build/web
+          retention-days: 30
+
+      - name: Upload GitHub Pages Artifact (仅 main 分支)
+        if: steps.check.outputs.should_run == 'true' && steps.check.outputs.is_main == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: './unpackage/dist/build/web'
+
+  # Job: 部署至 GitHub Pages（仅 main 分支生效，保护主站）
+  deploy-gh-pages:
+    name: 部署至 GitHub Pages (仅 main)
+    needs: validate-and-prepare
+    if: needs.validate-and-prepare.outputs.should_run == 'true' && needs.validate-and-prepare.outputs.is_main == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -46,25 +162,27 @@ jobs:
       name: GitHub Pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-  # Job 2: 部署到 Cloudflare Pages
+  # Job: 部署至 Cloudflare Pages（main 部署主站，其他分支部署 Preview 预览隔离环境）
   deploy-cf-pages:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, '[pub-page]') ||
-      contains(github.event.head_commit.message, '[pub page]')
+    name: 部署至 Cloudflare Pages
+    needs: validate-and-prepare
+    if: needs.validate-and-prepare.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download Web Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: unpackage/dist/build/web
 
       - name: Publish to Cloudflare Pages
+        id: cf_deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy unpackage/dist/build/web --project-name=uniapp-koishi-market
+          command: pages deploy unpackage/dist/build/web --project-name=uniapp-koishi-market --branch=${{ github.ref_name }}
 
     environment:
-      name: Cloudflare Pages
-      url: https://uniapp-koishi-market.pages.dev
+      name: ${{ needs.validate-and-prepare.outputs.is_main == 'true' && 'Cloudflare Pages' || 'Cloudflare Preview' }}
+      url: ${{ needs.validate-and-prepare.outputs.is_main == 'true' && 'https://uniapp-koishi-market.pages.dev' || format('https://{0}.uniapp-koishi-market.pages.dev', github.ref_name) }}

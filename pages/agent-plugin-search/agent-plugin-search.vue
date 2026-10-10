@@ -531,7 +531,7 @@ onMounted(() => {
 	color: var(--text-primary);
 	font-size: 25rpx;
 	line-height: 1.55;
-	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
 
 .compact-input {
@@ -547,7 +547,7 @@ onMounted(() => {
 }
 
 .url-preview {
-	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	font-size: 21rpx;
 	line-height: 1.45;
 	word-break: break-all;
@@ -606,7 +606,7 @@ onMounted(() => {
 .prompt-preview {
 	min-height: 300rpx;
 	padding: 18rpx 20rpx;
-	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	font-size: 22rpx;
 }
 

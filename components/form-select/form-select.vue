@@ -79,7 +79,7 @@ function selectOption(option) {
 	position: relative;
 	z-index: 1;
 	color: var(--text-primary, #1f2328);
-	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-family: 'LXGW WenKai', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 }
 
 .form-select.is-open {
@@ -148,6 +148,7 @@ function selectOption(option) {
 	font-size: 21rpx;
 	line-height: 1.45;
 	color: var(--text-secondary, #656d76);
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
 
 .select-arrow {
