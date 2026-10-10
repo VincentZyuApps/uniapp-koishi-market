@@ -4,13 +4,7 @@
 			<!-- 顶部搜索栏和信息栏 -->
 			<view class="top-section">
 				<view class="search-row">
-					<view class="market-brand" title="Koishi 插件市场">
-						<image
-							class="market-brand-logo"
-							src="/static/koishi_market_transparent.png"
-							mode="aspectFit"
-						/>
-					</view>
+					<market-brand-logo version="0.3.4-beta.13" />
 					<search-header
 						:model-value="searchWords"
 						@update:model-value="searchWords = $event"
@@ -227,6 +221,7 @@ import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
 import SearchHeader from '@/components/search-header/search-header.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
+import MarketBrandLogo from '@/components/market-brand-logo/market-brand-logo.vue'
 import { useMotionPreferences } from '@/utils/motion.js'
 import { createHoverIconMotion } from '@/utils/hover-icon-motion.js'
 import { usePageLayout } from '@/utils/layout.js'
@@ -788,7 +783,7 @@ function onShareAppMessage() {
 	return {
 		title: 'Koishi 插件市场 - 浏览和搜索 Koishi 机器人插件',
 		path: '/pages/index/index',
-		imageUrl: '/static/koishi_market_mp.png'  // 分享图片
+		imageUrl: '/static/logo_roundedrectangle_bg.png'  // 分享图片
 	}
 }
 
