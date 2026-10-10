@@ -375,7 +375,7 @@ const handleLinkClick = (url) => {
 }
 
 .code-text {
-	font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'Consolas', 'Monaco', 'Courier New', monospace;
 	background-color: rgba(150, 150, 150, 0.1);
 	padding: 2rpx 8rpx;
 	border-radius: 6rpx;

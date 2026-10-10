@@ -19,29 +19,28 @@
 
 	/* #ifdef WEB */
 	@import '@free-fonts/lxgw-wenkai/lxgw-wenkai.css';
+	@import '@fontsource/cascadia-mono/index.css';
 	/* #endif */
 	
 	/* 全局应用字体 */
 	page {
-		font-family: 'LXGW WenKai', 'LXGWWenKaiMono', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		font-family: 'LXGW WenKai', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	}
 
 	/*  #ifdef WEB  */
-	/* 确保所有元素继承字体 */
-	* {
+	/* 确保所有常规元素继承字体，等宽代码区域采用 Cascadia Mono + 霞鹜文楷 */
+	*, ::before, ::after {
 		font-family: inherit;
+	}
+
+	code, kbd, samp, pre {
+		font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	}
 	/*  #endif  */
 
-	/*  #ifdef  MP-WEIXIN  */
+	/*  #ifdef  MP-WEIXIN || MP-QQ  */
 	page, view, text, button, input, textarea {
 	    font-family: inherit;
-	}
-	/*  #endif  */
-	
-	/*  #ifdef  MP-QQ  */
-	* {
-		font-family: inherit;
 	}
 	/*  #endif  */
 

@@ -637,7 +637,7 @@ onLoad(()=>{
 	border-radius: 12rpx;
 	font-size: 28rpx;
 	color: var(--text-primary);
-	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	box-sizing: border-box;
 	line-height: 1.6;
 	transition: all 0.3s;
@@ -654,7 +654,7 @@ onLoad(()=>{
 	font-size: 26rpx;
 	color: var(--primary-color);
 	word-break: break-all;
-	font-family: 'LXGWWenKaiMono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 	user-select: text;
 	-webkit-user-select: text;
 }
