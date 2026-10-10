@@ -22,6 +22,10 @@
 							<text class="top-action-label">GitHub</text>
 						</view>
 						<!-- #endif -->
+						<view class="top-privacy-btn" @click="isPrivacyModalVisible = true">
+							<text class="top-privacy-icon">📄</text>
+							<text class="top-action-label">隐私</text>
+						</view>
 						<view class="top-theme-btn" @click="toggleTheme">
 							<text class="top-theme-icon">{{ themeEmoji }}</text>
 							<text class="top-action-label">{{ themeLabel }}</text>
@@ -200,6 +204,9 @@
 			@badge-change="toggleBadge"
 			@category-change="toggleCategory"
 		/>
+
+		<!-- 隐私政策弹窗 -->
+		<privacy-modal v-model:visible="isPrivacyModalVisible" />
 	</view>
 </template>
 
@@ -212,6 +219,7 @@ import PluginCard from '@/components/plugin-card/plugin-card.vue'
 import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
 import SearchHeader from '@/components/search-header/search-header.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
+import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
 import { useMotionPreferences } from '@/utils/motion.js'
 import { createHoverIconMotion } from '@/utils/hover-icon-motion.js'
 import { usePageLayout } from '@/utils/layout.js'
@@ -220,6 +228,9 @@ import { usePageLayout } from '@/utils/layout.js'
 const { pageStyle } = usePageLayout()
 const { motionClass, resolvedMotionMode } = useMotionPreferences()
 const { start: startIconMotion, settle: settleIconMotion, clear: clearHoverIconMotion } = createHoverIconMotion(resolvedMotionMode)
+
+// 隐私弹窗可见性
+const isPrivacyModalVisible = ref(false)
 
 // 搜索相关
 const searchWords = ref([])
@@ -854,7 +865,8 @@ function onShareTimeline() {
 	to { transform: rotate(360deg) scale(1); }
 }
 
-/* 顶部主题按钮 */
+/* 顶部隐私与主题按钮 */
+.top-privacy-btn,
 .top-theme-btn {
 	min-height: 60rpx;
 	padding: 3rpx 14rpx;
@@ -870,6 +882,24 @@ function onShareTimeline() {
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
+}
+
+.top-privacy-btn:hover,
+.top-theme-btn:hover {
+	transform: translateY(-3rpx);
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.3);
+	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
+}
+
+.top-privacy-btn:active,
+.top-theme-btn:active {
+	transform: scale(1.05);
+}
+
+.top-privacy-icon {
+	font-size: 28rpx;
+	line-height: 1;
 }
 
 .top-theme-btn::before {

@@ -15,7 +15,7 @@
 			<!-- 可滑动主体内容 -->
 			<scroll-view class="privacy-modal-body" scroll-y>
 				<view class="markdown-wrapper">
-					<rich-text-parser :content="PRIVACY_MARKDOWN" />
+					<rich-text :nodes="privacyHtml" @itemclick="handleRichTextClick" />
 				</view>
 			</scroll-view>
 
@@ -30,8 +30,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { marked } from 'marked'
 import { PRIVACY_MARKDOWN } from '@/utils/privacy-content.js'
-import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue'
 
 const props = defineProps({
 	visible: {
@@ -42,6 +43,14 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'close'])
 
+const privacyHtml = computed(() => {
+	try {
+		return marked.parse(PRIVACY_MARKDOWN)
+	} catch (e) {
+		return PRIVACY_MARKDOWN
+	}
+})
+
 const close = () => {
 	emit('update:visible', false)
 	emit('close')
@@ -49,6 +58,20 @@ const close = () => {
 
 const handleOverlayClick = () => {
 	close()
+}
+
+const handleRichTextClick = (e) => {
+	if (e?.detail?.href) {
+		uni.setClipboardData({
+			data: e.detail.href,
+			success: () => {
+				uni.showToast({
+					title: '链接已复制，请在浏览器中打开',
+					icon: 'none'
+				})
+			}
+		})
+	}
 }
 </script>
 
