@@ -2,6 +2,8 @@
 
 # uniapp-koishi-market
 
+[![Version](https://img.shields.io/badge/version-0.3.1--beta.8%2B20261010-2B9939?labelColor=F7DF1E&logo=javascript&logoColor=black)](manifest.json)
+
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/uniapp-koishi-market)

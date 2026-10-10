@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 📦 统一更新 package.json、manifest.json 与 App.vue 的版本信息。
+# 📦 统一更新 package.json、manifest.json、App.vue 与 readme.md 的版本信息。
 # 🧭 versionCode 默认采用 Asia/Shanghai 当天日期；-c、--code、--versioncode、--version-code 完全等价。
 # 1. 🚀 常规发布（最常用，versionCode 自动取上海当天日期）：
 #    python scripts/bump.py -v 1.2.3-rc.1
@@ -41,6 +41,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PACKAGE_JSON = os.path.join(ROOT, "package.json")
 MANIFEST_JSON = os.path.join(ROOT, "manifest.json")
 APP_VUE = os.path.join(ROOT, "App.vue")
+README_MD = os.path.join(ROOT, "readme.md")
 
 SEMVER_IDENTIFIER = r"(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
 VERSION_VALUE_PATTERN = (
@@ -56,6 +57,11 @@ MANIFEST_VERSION_REGEX = re.compile(r'("versionName"\s*:\s*")([^"]+)(")')
 MANIFEST_CODE_REGEX = re.compile(r'("versionCode"\s*:\s*)(\d+)')
 APP_VERSION_REGEX = re.compile(
     r"(const\s+APP_VERSION\s*=\s*['\"])([^'\"]+)(['\"])"
+)
+README_BADGE_REGEX = re.compile(
+    r"(\[!\[Version\]\(https://img\.shields\.io/badge/version-)"
+    r"([^\)]+?)"
+    r"(-2B9939\?[^\)]*\)\]\(manifest\.json\))"
 )
 SHANGHAI_TZ = timezone(timedelta(hours=8), "Asia/Shanghai")
 
@@ -193,6 +199,7 @@ def read_project_state():
     package_content = read_file(PACKAGE_JSON)
     manifest_content = read_file(MANIFEST_JSON)
     app_content = read_file(APP_VUE)
+    readme_content = read_file(README_MD)
 
     try:
         package_data = json.loads(package_content)
@@ -231,6 +238,9 @@ def read_project_state():
             raise BumpError(f"Invalid version in {name}: {version}") from error
     validate_version_code(code_match.group(2))
 
+    # 校验 readme.md 中是否存在规范的 Version Badge
+    get_single_match(README_BADGE_REGEX, readme_content, "readme.md Version Badge")
+
     return {
         "versions": versions,
         "version_code": code_match.group(2),
@@ -238,6 +248,7 @@ def read_project_state():
             PACKAGE_JSON: package_content,
             MANIFEST_JSON: manifest_content,
             APP_VUE: app_content,
+            README_MD: readme_content,
         },
     }
 
@@ -275,6 +286,15 @@ def build_changes(state, target_version, target_code):
             target_code,
             "manifest.json versionCode",
         )
+
+    # 徽标编码规则：Shields.io 中 '-' 转义为 '--'，'+' 编码为 '%2B'
+    escaped_version = target_version.replace("-", "--")
+    badge_value = f"{escaped_version}%2B{target_code}"
+    updated[README_MD] = README_BADGE_REGEX.sub(
+        lambda m: f"{m.group(1)}{badge_value}{m.group(3)}",
+        updated[README_MD],
+        count=1,
+    )
 
     return {
         path: content
