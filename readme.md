@@ -73,25 +73,54 @@
 ## 🚀 GitHub Action 部署
 
 > [!IMPORTANT]
-> 自动部署要求推送到 `main`，且本次推送的 HEAD commit message 包含精确小写标记 `[pub-page]` 或 `[pub page]`。
+> 自动部署支持两种互斥标记，推送到 `main` 分支时生效：
 >
-> - 推送到 [GitHub](https://github.com/VincentZyuApps/uniapp-koishi-market/actions)：部署 GitHub Pages 与 Cloudflare Pages。
-> - 从 GitHub Actions 通过 `workflow_dispatch` 手动触发时不检查提交信息，但只部署 GitHub Pages 与 Cloudflare Pages，不会触发 GitLab Pages。
-> - 推送到 [GitLab](https://gitlab.com/VincentZyu233/uniapp-koishi-market/-/pipelines)：由独立 GitLab CI 部署 GitLab Pages，使用相同的两个标记。
+> - **`[pub-page]`（本地构建上传）**：使用本地已生成的 `unpackage/dist/build/web` 构建产物直接部署（提交说明中不带连字符的 `[pub page]` 等价）。
+> - **`[build-page]`（云端自动构建）**：仅提交纯源码，由 GitHub Actions 在线安装依赖、自动编译 H5、生成重定向并部署（提交说明中不带连字符的 `[build page]` 等价）。
+>
+> 🚨 **互斥规则**：单次提交只能包含其中一个标记，若同时包含 `[pub-page]` 与 `[build-page]`，CI 将直接判定冲突并报错中断！
+>
+> - 推送到 [GitHub](https://github.com/VincentZyuApps/uniapp-koishi-market/actions)：部署 GitHub Pages 与 Cloudflare Pages（非 `main` 分支自动启用 Cloudflare Preview 隔离预览）。
+> - 从 GitHub Actions 通过 `workflow_dispatch` 手动触发：可自由选择 `build` 或 `pub` 模式。
+> - 推送到 [GitLab](https://gitlab.com/VincentZyu233/uniapp-koishi-market/-/pipelines)：由独立 GitLab CI 部署 GitLab Pages。
 
 ## 📟 Git 命令行操作
+
+### 方式一：本地构建并提交发布（传统双轨模式）
+
 ```shell
+# 1. 更新版本号
 python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
-# HBuilderX gui界面左上角： 发行 -> 发行到WebH5
+
+# 2. 本地构建（HBuilderX GUI 发行到 Web H5，或运行 npm run build:h5）
+# 3. 重新生成 Cloudflare 重定向映射
 python scripts/generate_cf_redirects.py
+
+# 4. 强制暂存包含新哈希的构建产物
 git add -A
 git add -f unpackage/dist/build/web/
 git --no-pager status --short
-git --no-pager diff HEAD --stat  
-git --no-pager status unpackage/dist/build/web/
-git ls-files unpackage/dist/build/web/
-# 若要触发 CI 更新 GitHub Pages、Cloudflare Pages 与 GitLab Pages，提交信息必须包含 [pub-page] 或 [pub page]
-git commit -m "feat: 发布 Web H5 [pub-page]"
+git --no-pager diff HEAD --stat
+
+# 5. 提交并携带 [pub-page] 标记（不加连字符等价）
+git commit -m "chore(release): 发布 vX.Y.Z Web H5 [pub-page]"
+git push github main
+git push gitee main
+git push gitlab main
+git push codeberg main
+```
+
+### 方式二：纯源码提交与 CI 自动化构建（推荐现代流）
+
+```shell
+# 1. 更新版本号
+python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
+
+# 2. 仅暂存源码与配置文件（无需在本地执行 build，不污染 git 仓库）
+git add -A
+
+# 3. 提交并携带 [build-page] 标记（不加连字符等价）
+git commit -m "feat: 更新业务功能并发布 [build-page]"
 git push github main
 git push gitee main
 git push gitlab main
