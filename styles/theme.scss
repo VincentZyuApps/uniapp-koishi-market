@@ -96,6 +96,7 @@ $dark-accent: #7c6bce;
 }
 
 // 动画档位由页面根节点继承，组件内的 scoped 样式也会被这些规则覆盖。
+/* #ifndef MP-WEIXIN */
 .motion-ultra-low,
 .motion-ultra-low *,
 .motion-ultra-low *::before,
@@ -111,6 +112,33 @@ $dark-accent: #7c6bce;
 	transition-duration: 0.14s !important;
 	transition-delay: 0ms !important;
 }
+/* #endif */
+
+/* #ifdef MP-WEIXIN */
+.motion-ultra-low,
+.motion-ultra-low view,
+.motion-ultra-low text,
+.motion-ultra-low button,
+.motion-ultra-low input,
+.motion-ultra-low textarea,
+.motion-ultra-low image,
+.motion-ultra-low scroll-view {
+	animation: none !important;
+	transition-duration: 0.01ms !important;
+	transition-delay: 0ms !important;
+}
+
+.motion-low view,
+.motion-low text,
+.motion-low button,
+.motion-low input,
+.motion-low textarea,
+.motion-low image,
+.motion-low scroll-view {
+	transition-duration: 0.14s !important;
+	transition-delay: 0ms !important;
+}
+/* #endif */
 
 .motion-low .tool-section,
 .motion-low .setting-section,
@@ -120,23 +148,52 @@ $dark-accent: #7c6bce;
 	animation: none !important;
 }
 
+/* #ifndef MP-WEIXIN */
 .motion-medium *,
 .motion-medium *::before,
 .motion-medium *::after {
 	transition-duration: 0.2s !important;
 	transition-delay: 0ms !important;
 }
+/* #endif */
+
+/* #ifdef MP-WEIXIN */
+.motion-medium view,
+.motion-medium text,
+.motion-medium button,
+.motion-medium input,
+.motion-medium textarea,
+.motion-medium image,
+.motion-medium scroll-view {
+	transition-duration: 0.2s !important;
+	transition-delay: 0ms !important;
+}
+/* #endif */
 
 .motion-medium .tool-section:nth-child(n + 4),
 .motion-medium .setting-section:nth-child(n + 3) {
 	animation: none !important;
 }
 
+/* #ifndef MP-WEIXIN */
 .motion-ultra-high *,
 .motion-ultra-high *::before,
 .motion-ultra-high *::after {
 	transition-duration: 0.42s !important;
 }
+/* #endif */
+
+/* #ifdef MP-WEIXIN */
+.motion-ultra-high view,
+.motion-ultra-high text,
+.motion-ultra-high button,
+.motion-ultra-high input,
+.motion-ultra-high textarea,
+.motion-ultra-high image,
+.motion-ultra-high scroll-view {
+	transition-duration: 0.42s !important;
+}
+/* #endif */
 
 .motion-ultra-high .tool-section,
 .motion-ultra-high .setting-section,
