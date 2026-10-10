@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://vincentzyuapps.github.io/uniapp-koishi-market/">
-    <img src="static/logo_transparent_bg.png" alt="Koishi Market Logo">
+    <img src="static/logo_roundedrectangle_bg.png" width="140" alt="Koishi Market Logo" style="max-width: 140px; border-radius: 30px;">
   </a>
 </p>
 
