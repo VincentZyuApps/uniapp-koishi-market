@@ -5,27 +5,87 @@
 # Container Scanning customization: https://docs.gitlab.com/user/application_security/container_scanning/#customizing-analyzer-behavior
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ci/variables/#cicd-variable-precedence
+
 stages:
-- test
-- secret-detection
-- deploy
+  - test
+  - secret-detection
+  - deploy
+
 sast:
   stage: test
+
 include:
-- template: Security/SAST.gitlab-ci.yml
-- template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
 variables:
   SECRET_DETECTION_ENABLED: 'true'
+
 secret_detection:
   stage: secret-detection
 
 pages:
   stage: deploy
-  image: alpine:latest
+  image: node:22-alpine
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - apk add --no-cache bash grep git
   script:
-    - mv unpackage/dist/build/web public
+    - |
+      set -e
+      echo "=== GitLab Pages 部署阶段 ==="
+      COMMIT_MSG="$CI_COMMIT_MESSAGE"
+      TITLE=$(echo "$COMMIT_MSG" | head -n 1)
+
+      PUB_PAGE=false
+      BUILD_PAGE=false
+
+      if echo "$TITLE" | grep -Eqi '\[pub[- ]page\]'; then
+        PUB_PAGE=true
+      fi
+      if echo "$TITLE" | grep -Eqi '\[build[- ]page\]'; then
+        BUILD_PAGE=true
+      fi
+
+      if [ "$PUB_PAGE" = false ] && [ "$BUILD_PAGE" = false ]; then
+        if echo "$COMMIT_MSG" | grep -Eqi '\[pub[- ]page\]'; then
+          PUB_PAGE=true
+        fi
+        if echo "$COMMIT_MSG" | grep -Eqi '\[build[- ]page\]'; then
+          BUILD_PAGE=true
+        fi
+      fi
+
+      if [ "$PUB_PAGE" = true ] && [ "$BUILD_PAGE" = true ]; then
+        echo "❌ [pub-page] 与 [build-page] 部署标记互斥，不能同时指定！"
+        exit 1
+      fi
+
+      if [ "$PUB_PAGE" = true ]; then
+        echo "📦 模式：[pub-page] 使用已有本地构建产物"
+        if [ ! -f "unpackage/dist/build/web/index.html" ]; then
+          echo "❌ 缺少本地构建产物 unpackage/dist/build/web/index.html"
+          exit 1
+        fi
+        rm -rf public
+        mv unpackage/dist/build/web public
+      else
+        echo "🚀 模式：[build-page] 在线依赖安装与 H5 构建"
+        npm ci --cache .npm --prefer-offline
+        npm run build:h5
+        rm -rf public
+        mv unpackage/dist/build/web public
+      fi
+
+      echo "✅ 构建产物准备就绪，包含 index.html："
+      ls -la public/index.html
   artifacts:
     paths:
       - public
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /\[(pub-page|pub page)\]/'
+    - if: '$CI_COMMIT_BRANCH == "main" && ($CI_COMMIT_MESSAGE =~ /\[(pub-page|pub page|build-page|build page)\]/i)'
