@@ -2,7 +2,7 @@
 
 # uniapp-koishi-market
 
-[![Version](https://img.shields.io/badge/version-0.3.1--beta.8%2B20261010-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.2--beta.9%2B20261010-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
@@ -91,6 +91,9 @@
 ### 方式一：本地构建并提交发布（传统双轨模式）
 
 ```shell
+# 0. 若修改了隐私政策，先同步隐私文案至前端
+python scripts/sync_privacy.py
+
 # 1. 更新版本号
 python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
 
@@ -115,6 +118,9 @@ git push codeberg main
 ### 方式二：纯源码提交与 CI 自动化构建（推荐现代流）
 
 ```shell
+# 0. 若修改了隐私政策，先同步隐私文案至前端
+python scripts/sync_privacy.py
+
 # 1. 更新版本号
 python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
 

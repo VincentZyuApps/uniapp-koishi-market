@@ -120,6 +120,17 @@
 				</view>
 			</view>
 			
+			<!-- 关于与隐私合规 -->
+			<view class="setting-section privacy-section">
+				<view class="privacy-entry-row" @click="openPrivacyModal">
+					<view class="privacy-entry-copy">
+						<text class="privacy-entry-title">📄 隐私政策与数据合规声明</text>
+						<text class="privacy-entry-desc">了解剪贴板、本地存储与开源数据透明度原则</text>
+					</view>
+					<text class="privacy-entry-arrow">›</text>
+				</view>
+			</view>
+
 			<!-- 返回按钮 -->
 			<view class="back-section">
 				<button class="back-btn" @click="returnToMarket">
@@ -128,6 +139,9 @@
 			</view>
 			</view>
 		</view>
+
+		<!-- 隐私政策弹窗 -->
+		<privacy-modal v-model:visible="isPrivacyModalVisible" />
 	</view>
 </template>
 
@@ -135,6 +149,7 @@
 import { ref, onMounted, computed, nextTick } from 'vue'
 import FormSelect from '@/components/form-select/form-select.vue'
 import FormToggle from '@/components/form-toggle/form-toggle.vue'
+import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
 import { MOTION_OPTIONS, useMotionPreferences } from '@/utils/motion.js'
 import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
@@ -142,6 +157,11 @@ import { usePageLayout } from '@/utils/layout.js'
 
 // 主题模式
 const isDarkMode = ref(true)
+const isPrivacyModalVisible = ref(false)
+
+const openPrivacyModal = () => {
+	isPrivacyModalVisible.value = true
+}
 const { pageStyle } = usePageLayout()
 const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
 const {
@@ -997,6 +1017,61 @@ onLoad(()=>{
 @keyframes progressPulse {
 	0%, 100% { opacity: 0.35; transform: scale(0.75); }
 	50% { opacity: 1; transform: scale(1.2); }
+}
+
+.privacy-section {
+	padding: 0;
+	overflow: hidden;
+	background-color: var(--bg-secondary);
+	border: 2rpx solid var(--border-color);
+	border-radius: 12rpx;
+	margin-bottom: 24rpx;
+	transition: all 0.2s;
+}
+
+.privacy-entry-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 24rpx 32rpx;
+	cursor: pointer;
+	user-select: none;
+}
+
+.privacy-entry-row:hover {
+	background-color: var(--accent-soft);
+}
+
+.privacy-entry-row:active {
+	opacity: 0.85;
+}
+
+.privacy-entry-copy {
+	min-width: 0;
+	flex: 1;
+}
+
+.privacy-entry-title {
+	display: block;
+	font-size: 28rpx;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.privacy-entry-desc {
+	display: block;
+	margin-top: 6rpx;
+	font-size: 22rpx;
+	color: var(--text-secondary);
+	line-height: 1.4;
+}
+
+.privacy-entry-arrow {
+	font-size: 38rpx;
+	color: var(--text-tertiary);
+	font-weight: 300;
+	margin-left: 16rpx;
+	line-height: 1;
 }
 
 .back-section {

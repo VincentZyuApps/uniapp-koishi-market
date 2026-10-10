@@ -62,6 +62,13 @@
 - 修改市场端点、预设内容或预设顺序时，必须兼容历史 `market_endpoint` 与 `market_preset_index` 本地存储值喵。
 - 删除预设后必须校验旧索引边界，避免历史用户进入设置页时越界喵。
 
+## Privacy Policy & Compliance
+
+- 根目录的 `privacy.md` 是全项目隐私保护与数据合规文案的唯一事实来源（Single Source of Truth）喵。
+- 严禁在 Vue 组件或 JS 文件中直接硬编码、修改或篡改隐私政策文案喵。
+- 修改 `privacy.md` 后，必须执行 `python scripts/sync_privacy.py` 同步生成 `utils/privacy-content.js` 喵。
+- `sync_privacy.py --check` 可用于检查前端产物是否处于最新同步状态喵。
+
 ## Release Verification
 
 - 在获得用户明确授权后，检查 `index.html` 引用的所有入口资源是否存在喵。
