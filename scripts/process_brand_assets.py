@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 STATIC_DIR = 'static'
 SRC_GPT = 'tmp/image/try-imagen/gpt自己二次处理过的-霓虹轨道紫色星球图标.png'
 
-# 4 张新资产目标文件
+# 仅保留这 4 张标准命名的资产
 OUT_TRANS_PNG = os.path.join(STATIC_DIR, 'logo_transparent_bg.png')
 OUT_TRANS_ICO = os.path.join(STATIC_DIR, 'logo_transparent_bg.ico')
 OUT_ROUND_PNG = os.path.join(STATIC_DIR, 'logo_roundedrectangle_bg.png')
@@ -13,21 +13,15 @@ OUT_ROUND_ICO = os.path.join(STATIC_DIR, 'logo_roundedrectangle_bg.ico')
 def main():
     print("1. 读取并净化 GPT 真透明图片底噪...")
     im = Image.open(SRC_GPT).convert('RGBA')
-    w, h = im.size
+    r, g, b, a = im.split()
     
-    # 过滤微弱底噪 (Alpha <= 5 设为 0)
-    datas = im.getdata()
-    new_data = []
-    for item in datas:
-        if item[3] <= 5:
-            new_data.append((0, 0, 0, 0))
-        else:
-            new_data.append(item)
-    im.putdata(new_data)
+    # 过滤微弱底噪: Alpha <= 5 设为 0
+    a = a.point(lambda p: 0 if p <= 5 else p)
+    im.putalpha(a)
     
     # 紧凑裁剪主体
     bbox = im.getbbox()
-    print(f"净化后实际主体 bbox: {bbox}")
+    print(f"主体实际 bbox: {bbox}")
     cropped = im.crop(bbox)
     cw, ch = cropped.size
 
@@ -52,20 +46,11 @@ def main():
     canvas_trans.save(OUT_TRANS_ICO, format='ICO', sizes=ico_sizes)
     print(f"已生成: {OUT_TRANS_ICO}")
 
-    print("2. 生成带有深色质感圆角矩形背景的 Logo...")
-    # 深色拟物背景: Koishi 深空墨紫 (#161426)
+    print("2. 生成纯净深色圆角矩形背景的 Logo (无额外紫色圆圈/光晕)...")
+    # 纯净深色卡片背景 (#161426, RGB: 22, 20, 38)
     bg = Image.new('RGBA', (target_size, target_size), (22, 20, 38, 255))
     
-    # 中心微光光晕
-    bg_draw = ImageDraw.Draw(bg)
-    for r in range(512, 0, -16):
-        alpha_val = int(45 * (1 - r / 512))
-        bg_draw.ellipse(
-            [512 - r, 512 - r, 512 + r, 512 + r],
-            fill=(110, 85, 210, alpha_val)
-        )
-    
-    # 主体在卡片中占比 84%
+    # 主体在卡片中占比 84% 居中贴合
     bg_scale = (target_size * 0.84) / max(cw, ch)
     bnw = int(cw * bg_scale)
     bnh = int(ch * bg_scale)
@@ -74,7 +59,7 @@ def main():
     boy = (target_size - bnh) // 2
     bg.paste(bg_resized, (box, boy), bg_resized)
 
-    # 4x 超采样绘制精致平滑圆角矩形蒙版 (radius 220px)
+    # 4x 超采样绘制平滑圆角矩形蒙版 (radius 220px)
     supersample = 4
     ss = target_size * supersample
     mask_super = Image.new('L', (ss, ss), 0)
@@ -97,12 +82,6 @@ def main():
     # 导出 logo_roundedrectangle_bg.ico
     canvas_round.save(OUT_ROUND_ICO, format='ICO', sizes=ico_sizes)
     print(f"已生成: {OUT_ROUND_ICO}")
-
-    # 兼容过渡软链接/复制给旧文件名，确保历史路径完全不损坏
-    canvas_trans.save(os.path.join(STATIC_DIR, 'koishi_market_mp.ico'), format='ICO', sizes=ico_sizes)
-    canvas_round.save(os.path.join(STATIC_DIR, 'koishi_market_mp.png'), 'PNG')
-    canvas_trans.save(os.path.join(STATIC_DIR, 'koishi_market_transparent.png'), 'PNG')
-    print("旧文件名兼容镜像更新完毕！")
 
 if __name__ == '__main__':
     main()

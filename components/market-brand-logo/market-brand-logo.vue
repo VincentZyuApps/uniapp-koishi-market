@@ -96,7 +96,7 @@ import { ref } from 'vue'
 const props = defineProps({
 	version: {
 		type: String,
-		default: '0.3.4-beta.13'
+		default: '0.3.4-beta.14'
 	}
 })
 

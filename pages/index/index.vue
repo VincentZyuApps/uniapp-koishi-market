@@ -4,7 +4,7 @@
 			<!-- 顶部搜索栏和信息栏 -->
 			<view class="top-section">
 				<view class="search-row">
-					<market-brand-logo version="0.3.4-beta.13" />
+					<market-brand-logo version="0.3.4-beta.14" />
 					<search-header
 						:model-value="searchWords"
 						@update:model-value="searchWords = $event"
