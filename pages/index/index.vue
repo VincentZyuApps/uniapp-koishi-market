@@ -4,7 +4,7 @@
 			<!-- 顶部搜索栏和信息栏 -->
 			<view class="top-section">
 				<view class="search-row">
-					<market-brand-logo version="0.3.4-beta.14" />
+					<market-brand-logo @click="isBrandModalVisible = true" />
 					<search-header
 						:model-value="searchWords"
 						@update:model-value="searchWords = $event"
@@ -208,6 +208,13 @@
 
 		<!-- 隐私政策弹窗 -->
 		<privacy-modal v-model:visible="isPrivacyModalVisible" />
+
+		<!-- 品牌徽标大图模态预览弹窗 (根节点挂载，不受顶部栏层级限制) -->
+		<brand-modal
+			v-model:visible="isBrandModalVisible"
+			@close="isBrandModalVisible = false"
+			version="0.3.4-beta.15"
+		/>
 	</view>
 </template>
 
@@ -222,6 +229,7 @@ import SearchHeader from '@/components/search-header/search-header.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
 import MarketBrandLogo from '@/components/market-brand-logo/market-brand-logo.vue'
+import BrandModal from '@/components/brand-modal/brand-modal.vue'
 import { useMotionPreferences } from '@/utils/motion.js'
 import { createHoverIconMotion } from '@/utils/hover-icon-motion.js'
 import { usePageLayout } from '@/utils/layout.js'
@@ -233,6 +241,9 @@ const { start: startIconMotion, settle: settleIconMotion, clear: clearHoverIconM
 
 // 隐私弹窗可见性
 const isPrivacyModalVisible = ref(false)
+
+// 品牌徽标大图弹窗可见性
+const isBrandModalVisible = ref(false)
 
 // 搜索相关
 const searchWords = ref([])
@@ -831,65 +842,7 @@ function onShareTimeline() {
 	z-index: 999;
 }
 
-.github-link {
-	min-height: 60rpx;
-	padding: 3rpx 14rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10rpx;
-	background: rgba(255, 255, 255, 0.08);
-	backdrop-filter: blur(10rpx) saturate(180%);
-	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
-	border: 2rpx solid rgba(255, 255, 255, 0.1);
-	border-radius: 32rpx;
-	cursor: pointer;
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	overflow: hidden;
-}
-
-.github-link::before {
-	content: '';
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-	opacity: 0;
-	transition: opacity 0.3s ease;
-}
-
-.github-link:hover::before {
-	opacity: 1;
-}
-
-.github-link:hover {
-	transform: translateY(-3rpx);
-	background: rgba(255, 255, 255, 0.2);
-	border-color: rgba(255, 255, 255, 0.3);
-	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
-}
-
-.github-link:active {
-	transform: scale(0.97);
-}
-
-.github-icon {
-	width: 40rpx;
-	height: 40rpx;
-	transition: transform 0.3s ease;
-}
-
-.github-link:hover .github-icon {
-	animation: market-github-icon-spin 0.6s ease;
-}
-
-@keyframes market-github-icon-spin {
-	from { transform: rotate(0) scale(1); }
-	60% { transform: rotate(300deg) scale(1.12); }
-	to { transform: rotate(360deg) scale(1); }
-}
-
-/* 顶部隐私与主题按钮 */
+.github-link,
 .top-privacy-btn,
 .top-theme-btn {
 	min-height: 60rpx;
@@ -902,12 +855,29 @@ function onShareTimeline() {
 	backdrop-filter: blur(10rpx) saturate(180%);
 	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
 	border: 2rpx solid rgba(255, 255, 255, 0.1);
-	border-radius: 32rpx;
+	border-radius: 16rpx;
 	cursor: pointer;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	overflow: hidden;
 }
 
+.github-link::before,
+.top-theme-btn::before {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.github-link:hover::before,
+.top-theme-btn:hover::before {
+	opacity: 1;
+}
+
+.github-link:hover,
 .top-privacy-btn:hover,
 .top-theme-btn:hover {
 	transform: translateY(-3rpx);
@@ -916,9 +886,26 @@ function onShareTimeline() {
 	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
 }
 
+.github-link:active,
 .top-privacy-btn:active,
 .top-theme-btn:active {
-	transform: scale(1.05);
+	transform: scale(0.97);
+}
+
+.github-icon {
+	width: 36rpx;
+	height: 36rpx;
+	transition: transform 0.3s ease;
+}
+
+.github-link:hover .github-icon {
+	animation: market-github-icon-spin 0.6s ease;
+}
+
+@keyframes market-github-icon-spin {
+	from { transform: rotate(0) scale(1); }
+	60% { transform: rotate(300deg) scale(1.12); }
+	to { transform: rotate(360deg) scale(1); }
 }
 
 .top-privacy-icon {
@@ -1735,7 +1722,7 @@ function onShareTimeline() {
 	gap: 6px;
 	z-index: auto;
 }
-.github-link, .top-theme-btn {
+.github-link, .top-privacy-btn, .top-theme-btn {
 	min-height: 36px;
 	padding: 0 10px;
 	gap: 6px;
