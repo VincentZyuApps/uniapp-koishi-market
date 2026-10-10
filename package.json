@@ -22,7 +22,7 @@
 		"vue": "^3.4.21"
 	},
 	"scripts": {
-		"dev:h5": "cross-env UNI_INPUT_DIR=. uni --type h5 --watch",
+		"dev:h5": "cross-env UNI_INPUT_DIR=. uni -p h5 --port 65140",
 		"build:h5": "cross-env UNI_INPUT_DIR=. UNI_OUTPUT_DIR=unpackage/dist/build/web uni build -p h5"
 	},
 	"devDependencies": {
