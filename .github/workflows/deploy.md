@@ -13,6 +13,9 @@
 | **`[pub-page]`** | **本地预构建直传**（本地已有 `unpackage/dist/build/web`）<br>*(注：不加连字符的 `[pub page]` 完全等价)* | ✅ 验证现有产物并上传<br>✅ 部署到 GitHub Pages (main)<br>✅ 部署到 Cloudflare Pages |
 | **`[build-page]`** | **云端 CI 在线构建**（纯源码提交，本地无需构建）<br>*(注：不加连字符的 `[build page]` 完全等价)* | ✅ 在线安装依赖并执行 `npm run build:h5`<br>✅ 自动生成 `_redirects`<br>✅ 部署到 GitHub Pages (main)<br>✅ 部署到 Cloudflare Pages |
 
+> [!TIP]
+> 在 `[build-page]` 模式下，构建产物由云端自动在线编译并输出，推荐检查并避免将 `unpackage` 目录中的构建产物提交到 Git，以保持代码仓库精简轻量（此项为建议，非强制要求）。
+
 ### 🚨 严格互斥规则
 单次提交的 HEAD Commit Message **只能包含其中一种标记**。
 若同时检测到 `[pub-page]` 与 `[build-page]`，CI 将在最第一步抛出 `Deployment Tag Conflict` 致命错误并**直接中断打出红叉 ❌**。

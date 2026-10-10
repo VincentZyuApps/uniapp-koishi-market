@@ -114,6 +114,10 @@ jobs:
       - name: Install dependencies & Build H5 (build 模式)
         if: steps.check.outputs.should_run == 'true' && steps.check.outputs.mode == 'build'
         run: |
+          # 建议提示：CI 在线构建模式下，推荐无需将 unpackage 产物纳入 git（仅为建议，非强制）
+          if git ls-files unpackage/dist/build/web/ | grep -q 'index.html'; then
+            echo "::notice title=Git 仓库轻量建议::检测到提交中包含了 unpackage 本地构建内容。在 [build-page] CI 在线构建模式下，建议后续仅提交源码，无需将 unpackage 产物纳入 git，以保持仓库体积精简（此条仅为建议，不影响本次正常构建发布）。"
+          fi
           npm ci
           npm run build:h5
           python scripts/generate_cf_redirects.py

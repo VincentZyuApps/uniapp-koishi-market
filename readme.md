@@ -116,7 +116,7 @@ git push codeberg main
 # 1. 更新版本号
 python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
 
-# 2. 仅暂存源码与配置文件（无需在本地执行 build，不污染 git 仓库）
+# 2. 仅暂存源码与配置文件（建议检查不要把 unpackage 文件夹中构建内容加入 git，保持仓库纯净轻量）
 git add -A
 
 # 3. 提交并携带 [build-page] 标记（不加连字符等价）
