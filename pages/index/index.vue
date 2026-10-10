@@ -4,6 +4,13 @@
 			<!-- 顶部搜索栏和信息栏 -->
 			<view class="top-section">
 				<view class="search-row">
+					<view class="market-brand" title="Koishi 插件市场">
+						<image
+							class="market-brand-logo"
+							src="/static/koishi_market_transparent.png"
+							mode="aspectFit"
+						/>
+					</view>
 					<search-header
 						:model-value="searchWords"
 						@update:model-value="searchWords = $event"
@@ -796,6 +803,28 @@ function onShareTimeline() {
 </script>
 
 <style scoped>
+/* 品牌 Logo 徽标 */
+.market-brand {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding-right: 4rpx;
+	transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	cursor: pointer;
+}
+
+.market-brand:hover {
+	transform: scale(1.08) rotate(3deg);
+}
+
+.market-brand-logo {
+	width: 54rpx;
+	height: 54rpx;
+	display: block;
+	filter: drop-shadow(0 2rpx 8rpx rgba(85, 70, 163, 0.35));
+}
+
 /* 顶部右侧按钮组 */
 .top-actions {
 	position: fixed;
@@ -1683,9 +1712,22 @@ function onShareTimeline() {
 }
 .search-row {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 10px;
 	padding: 8px 16px 0;
+}
+.market-brand {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding-right: 2px;
+	height: 38px;
+}
+.market-brand-logo {
+	width: 34px;
+	height: 34px;
+	object-fit: contain;
 }
 .search-row :deep(.search-header) {
 	flex: 1;
