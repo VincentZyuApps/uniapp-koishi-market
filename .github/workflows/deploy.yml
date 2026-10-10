@@ -56,17 +56,29 @@ jobs:
 
           PUB_PAGE=false
           BUILD_PAGE=false
+          TITLE=$(echo "$COMMIT_MSG" | head -n 1)
 
-          if echo "$COMMIT_MSG" | grep -Eqi '\[pub[- ]page\]'; then
+          # 优先检测标题（Subject）中的显式标记
+          if echo "$TITLE" | grep -Eqi '\[pub[- ]page\]'; then
             PUB_PAGE=true
           fi
-          if echo "$COMMIT_MSG" | grep -Eqi '\[build[- ]page\]'; then
+          if echo "$TITLE" | grep -Eqi '\[build[- ]page\]'; then
             BUILD_PAGE=true
+          fi
+
+          # 若标题中未指定任何标记，再检测完整提交说明
+          if [ "$PUB_PAGE" = false ] && [ "$BUILD_PAGE" = false ]; then
+            if echo "$COMMIT_MSG" | grep -Eqi '\[pub[- ]page\]'; then
+              PUB_PAGE=true
+            fi
+            if echo "$COMMIT_MSG" | grep -Eqi '\[build[- ]page\]'; then
+              BUILD_PAGE=true
+            fi
           fi
 
           # 互斥检查：如果同时包含两个标记，直接抛出红叉异常
           if [ "$PUB_PAGE" = true ] && [ "$BUILD_PAGE" = true ]; then
-            echo "::error title=Deployment Tag Conflict::[pub-page] 与 [build-page] 部署标记互斥，不能在同一个提交中同时出现！"
+            echo "::error title=Deployment Tag Conflict::[pub-page] 与 [build-page] 部署标记互斥，不能同时指定！"
             exit 1
           fi
 
