@@ -1,12 +1,12 @@
 ![uniapp-koishi-market](https://socialify.git.ci/VincentZyuApps/uniapp-koishi-market/image?custom_description=%F0%9F%93%A6+%E5%9F%BA%E4%BA%8E+uni-app+%2B+Vue+3+%E7%9A%84+Koishi+%E6%8F%92%E4%BB%B6%E5%B8%82%E5%9C%BA%E7%BD%91%E9%A1%B5%EF%BC%8C%E6%94%AF%E6%8C%81%E5%A4%9A%E9%95%9C%E5%83%8F%E6%BA%90%E5%88%87%E6%8D%A2%E3%80%81%E6%8F%92%E4%BB%B6%E6%90%9C%E7%B4%A2%2F%E7%AD%9B%E9%80%89%2F%E6%8E%92%E5%BA%8F%EF%BC%8C%E5%B7%B2%E9%83%A8%E7%BD%B2%E5%88%B0+%F0%9F%94%97+GitHub+Pages+%26+%F0%9F%8C%90+CloudFlare+Pages++%26+%F0%9F%90%A7+QQ+%E5%B0%8F%E7%A8%8B%E5%BA%8F%E3%80%82+&description=1&font=KoHo&forks=1&issues=1&language=1&name=1&owner=1&pulls=1&stargazers=1&theme=Auto&logo=https%3A%2F%2Fraw.githubusercontent.com%2FVincentZyuApps%2Funiapp-koishi-market%2Frefs%2Fheads%2Fmain%2Fdoc%2Funiapp-logo.svg)
 
+# uniapp-koishi-market
+
 <p align="center">
   <a href="https://vincentzyuapps.github.io/uniapp-koishi-market/">
-    <img src="static/logo_roundedrectangle_bg.png" width="120" height="120" alt="Koishi Market Logo" style="border-radius: 26px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);">
+    <img src="static/logo_transparent_bg.png" alt="Koishi Market Logo">
   </a>
 </p>
-
-# uniapp-koishi-market
 
 [![Version](https://img.shields.io/badge/version-0.3.4--beta.14%2B20261010-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
