@@ -14,7 +14,7 @@
 				<text class="header-subtitle">生成提示词，交给你的 AI 助手检索 Koishi 插件</text>
 			</view>
 			<view class="theme-toggle" @click="toggleTheme">
-				<text class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</text>
+				<text class="theme-icon">{{ themeEmoji }}</text>
 				<text class="theme-label">{{ themeLabel }}</text>
 			</view>
 		</view>
@@ -146,8 +146,9 @@ const outputOptions = [
 	{ key: 'evidence', label: '检索依据与排除理由', description: '说明检索字段、匹配原因和未推荐原因' }
 ]
 
-const isDarkMode = ref(true)
-const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
+import { useTheme } from '@/utils/theme.js'
+
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
 const { motionClass } = useMotionPreferences()
 const { pageStyle } = usePageLayout()
 const docPresetIndex = ref(0)
@@ -265,13 +266,13 @@ function resetPreferences() {
 	})
 }
 
-function toggleTheme() {
-	isDarkMode.value = !isDarkMode.value
-	uni.setStorageSync('theme', isDarkMode.value ? 'dark' : 'light')
-}
-
 function returnToMarket() {
-	uni.reLaunch({ url: '/pages/index/index' })
+	const pages = getCurrentPages?.() || []
+	if (pages.length > 1) {
+		uni.navigateBack({ delta: 1 })
+	} else {
+		uni.reLaunch({ url: '/pages/index/index' })
+	}
 }
 
 function openAgentWiki() {
@@ -288,10 +289,6 @@ function openAgentWiki() {
 }
 
 onMounted(() => {
-
-	const savedTheme = uni.getStorageSync('theme')
-	if (savedTheme) isDarkMode.value = savedTheme === 'dark'
-
 	const savedDocPreset = Number(uni.getStorageSync(`${STORAGE_PREFIX}doc_preset_index`))
 	if (Number.isInteger(savedDocPreset) && savedDocPreset >= 0 && savedDocPreset < docPresets.length) docPresetIndex.value = savedDocPreset
 
@@ -321,8 +318,12 @@ onMounted(() => {
 .agent-page {
 	width: 100vw;
 	height: 100vh;
+	height: 100dvh;
 	box-sizing: border-box;
-	padding: 40rpx 48rpx 0;
+	padding: 40rpx 48rpx max(24rpx, var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 	background: var(--bg-secondary);
 	color: var(--text-primary);
 }
@@ -473,8 +474,11 @@ onMounted(() => {
 }
 
 .agent-content {
-	height: calc(100vh - 150rpx);
+	flex: 1;
+	min-height: 0;
+	height: 0;
 	box-sizing: border-box;
+	--scroll-padding: 0 0 48rpx 0;
 }
 
 .tool-section,

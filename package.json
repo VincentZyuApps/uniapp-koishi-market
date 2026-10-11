@@ -23,7 +23,13 @@
 	},
 	"scripts": {
 		"dev:h5": "cross-env UNI_INPUT_DIR=. uni -p h5 --port 65140",
-		"build:h5": "cross-env UNI_INPUT_DIR=. UNI_OUTPUT_DIR=unpackage/dist/build/web uni build -p h5"
+		"build:h5": "cross-env UNI_INPUT_DIR=. UNI_OUTPUT_DIR=unpackage/dist/build/web uni build -p h5",
+		"dev:mp-weixin": "cross-env UNI_INPUT_DIR=. uni -p mp-weixin",
+		"build:mp-weixin": "cross-env UNI_INPUT_DIR=. uni build -p mp-weixin",
+		"dev:mp-qq": "cross-env UNI_INPUT_DIR=. uni -p mp-qq",
+		"build:mp-qq": "cross-env UNI_INPUT_DIR=. uni build -p mp-qq",
+		"dev:mp-alipay": "cross-env UNI_INPUT_DIR=. uni -p mp-alipay",
+		"build:mp-alipay": "cross-env UNI_INPUT_DIR=. uni build -p mp-alipay"
 	},
 	"devDependencies": {
 		"@dcloudio/types": "^3.4.8",

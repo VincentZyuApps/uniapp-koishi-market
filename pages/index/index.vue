@@ -256,54 +256,10 @@ const drawerOpen = ref(false)
 const pageVisible = ref(true)
 const instance = getCurrentInstance()
 
-// 主题模式（默认跟随系统）
-const themeMode = ref('system')
-let _cleanupSystemTheme = null
+import { useTheme } from '@/utils/theme.js'
 
-const getSystemIsDark = () => {
-	// #ifdef WEB
-	return window.matchMedia('(prefers-color-scheme: dark)').matches
-	// #endif
-	// #ifdef MP-WEIXIN || MP-QQ
-	return (uni.getSystemInfoSync().theme || 'light') === 'dark'
-	// #endif
-	return true
-}
-
-const _systemChangeKey = ref(0)
-
-const setupSystemThemeListener = () => {
-	// #ifdef WEB
-	const mq = window.matchMedia('(prefers-color-scheme: dark)')
-	const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
-	mq.addEventListener('change', handler)
-	_cleanupSystemTheme = () => mq.removeEventListener('change', handler)
-	// #endif
-	// #ifdef MP-WEIXIN || MP-QQ
-	if (uni.onThemeChange) {
-		const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
-		uni.onThemeChange(handler)
-		_cleanupSystemTheme = () => { if (uni.offThemeChange) uni.offThemeChange(handler) }
-	}
-	// #endif
-}
-
-const isDarkMode = computed(() => {
-	void _systemChangeKey.value
-	if (themeMode.value === 'dark') return true
-	if (themeMode.value === 'light') return false
-	return getSystemIsDark()
-})
-
-const themeEmoji = computed(() => {
-	const map = { system: '🖥️', light: '☀️', dark: '🌙' }
-	return map[themeMode.value]
-})
-
-const themeLabel = computed(() => {
-	const map = { system: '跟随系统', light: '浅色模式', dark: '深色模式' }
-	return map[themeMode.value]
-})
+// 主题模式（统一由 useTheme 管理）
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, refreshTheme } = useTheme()
 
 // 加载状态
 const isLoading = ref(false)
@@ -451,13 +407,6 @@ onHide(() => {
 	drawerOpen.value = false
 	pageVisible.value = false
 })
-
-const toggleTheme = () => {
-	const modes = ['system', 'light', 'dark']
-	const idx = modes.indexOf(themeMode.value)
-	themeMode.value = modes[(idx + 1) % 3]
-	uni.setStorageSync('theme', themeMode.value)
-}
 
 const resetScrollTop = () => {
 	nextTick(() => {
@@ -734,6 +683,7 @@ const calculatePageSize = () => {
 onResize(calculatePageSize)
 onShow(() => {
 	pageVisible.value = true
+	refreshTheme()
 	calculatePageSize()
 })
 
@@ -749,15 +699,9 @@ onMounted(() => {
 	calculatePageSize()
 
 	// #ifdef WEB
-	
-	
 	// 添加键盘事件监听
 	window.addEventListener('keydown', handleKeyDown)
-
 	// #endif
-	
-	// 系统主题变化监听（全平台）
-	setupSystemThemeListener()
 	
 	loadPlugins()
 })
@@ -769,7 +713,6 @@ onUnmounted(() => {
 	// #ifdef WEB
 	window.removeEventListener('keydown', handleKeyDown)
 	// #endif
-	_cleanupSystemTheme?.()
 })
 
 onLoad(()=>{
@@ -1051,29 +994,36 @@ function onShareTimeline() {
 }
 
 .info-tag:first-child .info-value {
-	font-size: 20rpx;
-	max-width: min(400rpx, calc(100vw - 600rpx));
+	font-size: 11px;
+	font-weight: 500;
+	max-width: min(520rpx, calc(100vw - 420rpx));
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-/* 响应式调整当前源 URL 显示宽度 */
+/* 响应式调整当前源 URL 显示宽度，尽量展示更长完整 URL */
+@media (min-width: 768px) {
+	.info-tag:first-child .info-value {
+		max-width: min(720px, calc(100vw - 360px));
+	}
+}
+
 @media (min-width: 1200px) {
 	.info-tag:first-child .info-value {
-		max-width: min(800rpx, calc(100vw - 800rpx));
+		max-width: min(1000px, calc(100vw - 480px));
 	}
 }
 
 @media (min-width: 1600px) {
 	.info-tag:first-child .info-value {
-		max-width: min(1200rpx, calc(100vw - 1000rpx));
+		max-width: min(1400px, calc(100vw - 600px));
 	}
 }
 
 @media (min-width: 2000px) {
 	.info-tag:first-child .info-value {
-		max-width: 1600rpx;
+		max-width: 1800px;
 	}
 }
 
@@ -1754,10 +1704,14 @@ function onShareTimeline() {
 	border-radius: 8px;
 }
 .info-tag:first-child {
-	max-width: min(100%, 360px);
+	max-width: min(100%, 540px);
+}
+.info-tag:first-child .info-value {
+	font-size: 11px;
 }
 .info-value {
 	min-width: 0;
+	font-size: var(--font-caption, 13px);
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
@@ -1820,9 +1774,11 @@ function onShareTimeline() {
 }
 .settings-icon, .refresh-icon, .page-nav-icon {
 	font-size: 16px;
+	pointer-events: none;
 }
 .settings-text, .refresh-text, .page-nav-text {
 	font-size: var(--font-caption);
+	pointer-events: none;
 }
 .filter-count {
 	min-width: 16px;

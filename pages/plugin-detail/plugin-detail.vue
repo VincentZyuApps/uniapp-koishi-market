@@ -286,54 +286,10 @@ import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view
 import { useMotionPreferences } from '@/utils/motion.js';
 import { usePageLayout } from '@/utils/layout.js'
 
-// 主题模式（默认跟随系统）
-const themeMode = ref('system')
-let _cleanupSystemTheme = null
+import { useTheme } from '@/utils/theme.js'
 
-const getSystemIsDark = () => {
-	// #ifdef WEB
-	return window.matchMedia('(prefers-color-scheme: dark)').matches
-	// #endif
-	// #ifdef MP-WEIXIN || MP-QQ
-	return (uni.getSystemInfoSync().theme || 'light') === 'dark'
-	// #endif
-	return true
-}
-
-const _systemChangeKey = ref(0)
-
-const setupSystemThemeListener = () => {
-	// #ifdef WEB
-	const mq = window.matchMedia('(prefers-color-scheme: dark)')
-	const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
-	mq.addEventListener('change', handler)
-	_cleanupSystemTheme = () => mq.removeEventListener('change', handler)
-	// #endif
-	// #ifdef MP-WEIXIN || MP-QQ
-	if (uni.onThemeChange) {
-		const handler = () => { if (themeMode.value === 'system') _systemChangeKey.value++ }
-		uni.onThemeChange(handler)
-		_cleanupSystemTheme = () => { if (uni.offThemeChange) uni.offThemeChange(handler) }
-	}
-	// #endif
-}
-
-const isDarkMode = computed(() => {
-	void _systemChangeKey.value
-	if (themeMode.value === 'dark') return true
-	if (themeMode.value === 'light') return false
-	return getSystemIsDark()
-})
-
-const themeEmoji = computed(() => {
-	const map = { system: '🖥️', light: '☀️', dark: '🌙' }
-	return map[themeMode.value]
-})
-
-const themeLabel = computed(() => {
-	const map = { system: '跟随系统', light: '浅色模式', dark: '深色模式' }
-	return map[themeMode.value]
-})
+// 主题模式（统一由 useTheme 管理）
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
 const isLoading = ref(true);
 const plugin = ref({});
 const avatarError = ref(false);
@@ -410,14 +366,6 @@ onLoad((options) => {
 // 返回上一页
 const goBack = () => {
 	uni.navigateBack();
-};
-
-// 切换主题（三元循环：系统 → 白天 → 黑夜）
-const toggleTheme = () => {
-	const modes = ['system', 'light', 'dark']
-	const idx = modes.indexOf(themeMode.value)
-	themeMode.value = modes[(idx + 1) % 3]
-	uni.setStorageSync('theme', themeMode.value)
 };
 
 // 获取描述文本（中文优先）
@@ -612,12 +560,10 @@ onLoad(()=>{
 	// #endif
 })
 
-onMounted(() => {
-	setupSystemThemeListener()
-})
+
 
 onUnmounted(() => {
-	_cleanupSystemTheme?.()
+	
 })
 </script>
 
