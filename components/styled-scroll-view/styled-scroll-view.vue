@@ -86,24 +86,50 @@ onMounted(async () => {
 	}
 	// #endif
 })
+
 onUnmounted(() => {
 	disposed = true
 	observer?.disconnect()
 	uni.offWindowResize?.(refresh)
 })
+
 defineExpose({ refresh })
 </script>
 
+<script>
+export default {
+	options: {
+		virtualHost: true
+	}
+}
+</script>
+
 <style scoped>
+:host {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
 .styled-scroll-view {
 	position: relative;
 	display: flex;
 	flex-direction: column;
+	flex: 1 1 auto;
+	width: 100%;
+	height: 100%;
 	min-width: 0;
 	min-height: 0;
 	box-sizing: border-box;
 	overflow: hidden;
 }
+
 .scroll-native {
 	display: block;
 	width: 100%;
@@ -112,7 +138,9 @@ defineExpose({ refresh })
 	min-height: 0;
 	min-width: 0;
 	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
 }
+
 .scroll-content {
 	padding: var(--scroll-padding, 0);
 	display: flow-root;
@@ -120,6 +148,7 @@ defineExpose({ refresh })
 	width: 100%;
 	box-sizing: border-box;
 }
+
 .scrollbar-track {
 	position: absolute;
 	top: 6px;
@@ -131,6 +160,7 @@ defineExpose({ refresh })
 	background: var(--scrollbar-track, rgba(85, 70, 163, 0.12));
 	overflow: hidden;
 }
+
 .scrollbar-thumb {
 	width: 100%;
 	border-radius: inherit;

@@ -44,7 +44,7 @@
 					<image
 						class="preview-img"
 						:class="currentTab"
-						:src="currentTab === 'transparent' ? '/static/logo_transparent_bg.png' : '/static/logo_roundedrectangle_bg.png'"
+						:src="currentLogoSrc"
 						mode="aspectFit"
 					/>
 				</div>
@@ -64,7 +64,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import logoTransparent from '@/static/logo_transparent_bg.png'
+import logoSquircle from '@/static/logo_roundedrectangle_bg.png'
 
 const props = defineProps({
 	visible: {
@@ -81,6 +83,10 @@ const emit = defineEmits(['update:visible', 'close'])
 
 const currentTab = ref('transparent') // 'transparent' | 'squircle'
 const isClosing = ref(false)
+
+const currentLogoSrc = computed(() => {
+	return currentTab.value === 'transparent' ? logoTransparent : logoSquircle
+})
 
 watch(
 	() => props.visible,

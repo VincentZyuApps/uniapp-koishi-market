@@ -1,5 +1,5 @@
 <script>
-	const APP_VERSION = '0.3.5-beta.17'
+	const APP_VERSION = '0.3.5-beta.18'
 
 	import { useTheme } from '@/utils/theme.js'
 

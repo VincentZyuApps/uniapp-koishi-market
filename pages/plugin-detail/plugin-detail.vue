@@ -720,7 +720,9 @@ onUnmounted(() => {
 /* 内容区域 */
 .detail-content {
 	flex: 1;
-	overflow-y: auto;
+	height: 0;
+	min-height: 0;
+	box-sizing: border-box;
 }
 
 .content-wrapper {

@@ -213,7 +213,7 @@
 		<brand-modal
 			v-model:visible="isBrandModalVisible"
 			@close="isBrandModalVisible = false"
-			version="0.3.5-beta.17"
+			version="0.3.5-beta.18"
 		/>
 	</view>
 </template>
@@ -1496,13 +1496,6 @@ function onShareTimeline() {
 	50% { opacity: 1; }
 }
 
-.plugin-scroll {
-	flex: 1;
-	padding: 100rpx 30rpx 30rpx 30rpx;
-	overflow-x: hidden;
-	width: 100%;
-	box-sizing: border-box;
-}
 
 .plugin-grid {
 	display: grid;

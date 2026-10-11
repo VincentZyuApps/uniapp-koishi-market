@@ -6,7 +6,7 @@
 				<text id="filter-heading" class="drawer-title">筛选与排序</text>
 				<button tabindex="0" role="button" class="drawer-close" aria-label="关闭筛选面板" @click="close">✕</button>
 			</view>
-			<styled-scroll-view class="sidebar-content" :scroll-enabled="open">
+			<styled-scroll-view ref="sidebarScrollRef" class="sidebar-content" :scroll-enabled="open">
 				<view class="filter-group">
 					<view class="filter-title">排序方式</view>
 					<button tabindex="0" role="button" v-for="sort in sortOptions" :key="sort.key" class="filter-item" :class="{ active: activeSort === sort.key }" :aria-pressed="activeSort === sort.key" @click="handleSortClick(sort.key)">
@@ -37,9 +37,11 @@
 	</view>
 </template>
 <script setup>
-import { toRef } from 'vue'
+import { toRef, ref, watch, nextTick } from 'vue'
 import { useDrawerFocus } from '@/utils/layout.js'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
+
+const sidebarScrollRef = ref(null)
 
 const props = defineProps({
 	open: {
@@ -84,6 +86,20 @@ const emit = defineEmits(['close', 'sort-change', 'badge-change', 'category-chan
 
 const close = () => emit('close')
 useDrawerFocus(toRef(props, 'open'), 'market-filter-dialog', close)
+
+watch(() => props.open, (isOpen) => {
+	if (isOpen) {
+		nextTick(() => {
+			sidebarScrollRef.value?.refresh?.()
+			setTimeout(() => {
+				sidebarScrollRef.value?.refresh?.()
+			}, 100)
+			setTimeout(() => {
+				sidebarScrollRef.value?.refresh?.()
+			}, 300)
+		})
+	}
+})
 
 const handleSortClick = (key) => {
 	emit('sort-change', key)

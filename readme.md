@@ -8,7 +8,7 @@
   </a>
 </p>
 
-[![Version](https://img.shields.io/badge/version-0.3.5--beta.17%2B20261011-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.5--beta.18%2B20261011-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
