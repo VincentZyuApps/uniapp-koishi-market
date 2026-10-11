@@ -1,6 +1,13 @@
 <template>
-	<view v-if="visible" class="privacy-modal-overlay" @click="handleOverlayClick">
-		<view class="privacy-modal-card" @click.stop>
+	<view
+		v-if="visible"
+		class="privacy-modal-overlay"
+		@click="handleOverlayClick"
+	>
+		<view
+			class="privacy-modal-card"
+			@click.stop
+		>
 			<!-- 头部 -->
 			<view class="privacy-modal-header">
 				<view class="header-title-box">
@@ -12,12 +19,12 @@
 				</button>
 			</view>
 
-			<!-- 可滑动主体内容 -->
-			<scroll-view class="privacy-modal-body" scroll-y>
+			<!-- 可滑动主体内容 (采用与 Agent 页面一致的 styled-scroll-view 自定义紫色滚动条) -->
+			<styled-scroll-view class="privacy-modal-body">
 				<view class="markdown-wrapper">
 					<rich-text :nodes="privacyHtml" @itemclick="handleRichTextClick" />
 				</view>
-			</scroll-view>
+			</styled-scroll-view>
 
 			<!-- 底部操作区 -->
 			<view class="privacy-modal-footer">
@@ -30,9 +37,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { marked } from 'marked'
 import { PRIVACY_MARKDOWN } from '@/utils/privacy-content.js'
+import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 
 const props = defineProps({
 	visible: {
@@ -90,12 +98,13 @@ const handleRichTextClick = (e) => {
 	justify-content: center;
 	padding: 30rpx;
 	box-sizing: border-box;
-	animation: modalFadeIn 0.2s ease-out;
+	animation: modalFadeIn 0.2s ease-out forwards;
 }
 
 .privacy-modal-card {
 	width: 100%;
 	max-width: 680px;
+	height: min(78vh, 680px);
 	max-height: 82vh;
 	background-color: var(--surface, #ffffff);
 	border: 2rpx solid var(--border, #d0d7de);
@@ -104,7 +113,7 @@ const handleRichTextClick = (e) => {
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
-	animation: modalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+	animation: modalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .privacy-modal-header {
@@ -161,15 +170,14 @@ const handleRichTextClick = (e) => {
 }
 
 .privacy-modal-body {
-	flex: 1;
-	min-height: 200rpx;
-	max-height: 62vh;
-	padding: 24rpx 28rpx;
+	flex: 1 1 0%;
+	min-height: 0;
+	height: 100%;
 	box-sizing: border-box;
-	overflow-y: auto;
 }
 
 .markdown-wrapper {
+	padding: 24rpx 28rpx;
 	font-size: 26rpx;
 	line-height: 1.65;
 	color: var(--text-primary, #1f2328);

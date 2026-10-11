@@ -1,5 +1,5 @@
 <script>
-	const APP_VERSION = '0.3.4-beta.15'
+	const APP_VERSION = '0.3.4-beta.16'
 
 	export default {
 		onLaunch: function() {
@@ -35,6 +35,34 @@
 
 	code, kbd, samp, pre {
 		font-family: 'Cascadia Mono', 'LXGW WenKai', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+	}
+
+	/* 全局自定义滚动条（优雅紫色主题胶囊条） */
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: var(--scrollbar-track, rgba(85, 70, 163, 0.14));
+		border-radius: 999px;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: var(--scrollbar-thumb, #6d5bd0);
+		border-radius: 999px;
+		border: 1px solid transparent;
+		background-clip: padding-box;
+		transition: background-color 0.2s ease;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--primary-color, #5546a3);
+	}
+
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--scrollbar-thumb, #6d5bd0) var(--scrollbar-track, rgba(85, 70, 163, 0.14));
 	}
 	/*  #endif  */
 

@@ -213,7 +213,7 @@
 		<brand-modal
 			v-model:visible="isBrandModalVisible"
 			@close="isBrandModalVisible = false"
-			version="0.3.4-beta.15"
+			version="0.3.4-beta.16"
 		/>
 	</view>
 </template>
@@ -1919,9 +1919,11 @@ function onShareTimeline() {
 	padding: 6px 4px;
 	gap: 4px;
 }
+/* 2026年10月11日 2026年10月11日17:44:22， 希望所有平台都显示
 .filter-trigger .settings-icon {
 	display: none;
 }
+*/
 .plugin-scroll {
 	--scroll-padding: 10px 12px;
 }

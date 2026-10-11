@@ -13,7 +13,7 @@
 				</view>
 			</view>
 
-			<view class="settings-content">
+			<styled-scroll-view class="settings-content">
 			<!-- 插件市场源设置 -->
 			<view class="setting-section" :class="{ 'select-open': isPresetSelectOpen }">
 				<view class="section-title">
@@ -137,7 +137,7 @@
 					<text>← 返回插件市场</text>
 				</button>
 			</view>
-			</view>
+			</styled-scroll-view>
 		</view>
 
 		<!-- 隐私政策弹窗 -->
@@ -150,6 +150,7 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import FormSelect from '@/components/form-select/form-select.vue'
 import FormToggle from '@/components/form-toggle/form-toggle.vue'
 import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
+import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 import { MOTION_OPTIONS, useMotionPreferences } from '@/utils/motion.js'
 import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
@@ -470,15 +471,16 @@ onLoad(()=>{
 <style scoped>
 .settings-page {
 	width: 100vw;
-	min-height: 100vh;
+	height: 100vh;
+	height: 100dvh;
 	background-color: var(--bg-primary, #ffffff);
 	color: var(--text-primary, #1f2328);
-	padding: 40rpx 48rpx 0;
 	box-sizing: border-box;
-	
+	overflow: hidden;
 }
 
 .settings-header {
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	gap: 24rpx;
@@ -487,8 +489,14 @@ onLoad(()=>{
 
 .settings-shell {
 	width: 100%;
-	max-width: 999px;
+	max-width: 960px;
+	height: 100%;
 	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	padding: 0 24px max(20px, var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+	box-sizing: border-box;
 }
 
 .market-back-button {
@@ -586,7 +594,12 @@ onLoad(()=>{
 }
 
 .settings-content {
-	padding-bottom: 48rpx;
+	flex: 1;
+	min-height: 0;
+	height: calc(100vh - 120px);
+	height: calc(100dvh - 120px);
+	box-sizing: border-box;
+	--scroll-padding: 0 0 48rpx 0;
 }
 
 .setting-section {
@@ -1104,13 +1117,15 @@ onLoad(()=>{
 
 .settings-page {
 	width: 100%;
-	min-height: 100vh;
-	min-height: 100dvh;
-	padding: 0 24px max(20px, var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
+	height: 100vh;
+	height: 100dvh;
+	overflow: hidden;
 }
 .settings-shell {
 	max-width: 960px;
+	height: 100%;
 	min-width: 0;
+	padding: 0 24px max(20px, var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
 }
 .settings-header {
 	gap: 16px;
@@ -1237,7 +1252,7 @@ onLoad(()=>{
 	padding: 0 0 16px;
 }
 @media (max-width: 600px) {
-.settings-page {
+.settings-shell {
 	padding-left: 16px;
 	padding-right: 16px;
 }

@@ -8,7 +8,7 @@
   </a>
 </p>
 
-[![Version](https://img.shields.io/badge/version-0.3.4--beta.15%2B20261010-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.4--beta.16%2B20261011-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
@@ -114,7 +114,7 @@ git --no-pager status --short
 git --no-pager diff HEAD --stat
 
 # 5. 提交并携带 [pub-page] 标记（不加连字符等价）
-git commit -m "chore(release): 发布 vX.Y.Z Web H5 [pub-page]"
+git commit -m "chore(release): 构建并发布 Web H5 vX.Y.Z [pub-page]"
 git push github main
 git push gitee main
 git push gitlab main
@@ -134,7 +134,7 @@ python scripts/bump.py -v x.y.z-beta.w -c yyyymmdd
 git add -A
 
 # 3. 提交并携带 [build-page] 标记（不加连字符等价）
-git commit -m "feat: 更新业务功能并发布 [build-page]"
+git commit -m "chore(release): 源码提交并触发自动构建 vX.Y.Z [build-page]"
 git push github main
 git push gitee main
 git push gitlab main
