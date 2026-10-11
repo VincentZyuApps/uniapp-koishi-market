@@ -14,11 +14,33 @@ function getSystemIsDark() {
 
 	// #ifdef MP-WEIXIN || MP-QQ
 	try {
-		const appBase = typeof uni.getAppBaseInfo === 'function' ? uni.getAppBaseInfo() : null
-		if (appBase && appBase.theme) {
-			return appBase.theme === 'dark'
+		// 1. 首选：微信/QQ 现代系统设置 API (基础库推荐)
+		const wxObj = typeof wx !== 'undefined' ? wx : (typeof qq !== 'undefined' ? qq : null)
+		if (wxObj && typeof wxObj.getSystemSetting === 'function') {
+			const setting = wxObj.getSystemSetting()
+			if (setting && setting.theme) {
+				return setting.theme === 'dark'
+			}
 		}
-		const sys = uni.getSystemInfoSync()
+
+		// 2. 次选：App 基础信息 API
+		if (wxObj && typeof wxObj.getAppBaseInfo === 'function') {
+			const appBase = wxObj.getAppBaseInfo()
+			if (appBase && appBase.theme) {
+				return appBase.theme === 'dark'
+			}
+		}
+		if (typeof uni.getAppBaseInfo === 'function') {
+			const appBase = uni.getAppBaseInfo()
+			if (appBase && appBase.theme) {
+				return appBase.theme === 'dark'
+			}
+		}
+
+		// 3. 兜底：传统系统信息同步 API
+		const sys = (wxObj && typeof wxObj.getSystemInfoSync === 'function')
+			? wxObj.getSystemInfoSync()
+			: uni.getSystemInfoSync()
 		if (sys && sys.theme) {
 			return sys.theme === 'dark'
 		}
@@ -28,6 +50,10 @@ function getSystemIsDark() {
 	// #endif
 
 	return false
+}
+
+function refreshTheme() {
+	_systemChangeKey.value++
 }
 
 function initThemeFromStorage() {
@@ -108,6 +134,26 @@ export function useTheme() {
 		}
 	}
 
+	const getThemeDiagnostics = () => {
+		const diag = {
+			themeMode: themeMode.value,
+			isDarkMode: isDarkMode.value
+		}
+		// #ifdef MP-WEIXIN || MP-QQ
+		try {
+			const wxObj = typeof wx !== 'undefined' ? wx : (typeof qq !== 'undefined' ? qq : null)
+			if (wxObj) {
+				diag.systemSettingTheme = wxObj.getSystemSetting ? wxObj.getSystemSetting()?.theme : 'N/A'
+				diag.appBaseInfoTheme = wxObj.getAppBaseInfo ? wxObj.getAppBaseInfo()?.theme : 'N/A'
+				diag.systemInfoTheme = wxObj.getSystemInfoSync ? wxObj.getSystemInfoSync()?.theme : 'N/A'
+			}
+		} catch (e) {
+			diag.error = String(e)
+		}
+		// #endif
+		return diag
+	}
+
 	return {
 		themeMode,
 		isDarkMode,
@@ -115,6 +161,8 @@ export function useTheme() {
 		themeLabel,
 		toggleTheme,
 		setThemeMode,
-		getSystemIsDark
+		getSystemIsDark,
+		refreshTheme,
+		getThemeDiagnostics
 	}
 }
