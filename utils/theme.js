@@ -12,41 +12,13 @@ function getSystemIsDark() {
 	}
 	// #endif
 
-	// #ifdef MP-WEIXIN || MP-QQ
+	// #ifdef MP
 	try {
-		// 1. 首选：微信/QQ 现代系统设置 API (基础库推荐)
-		const wxObj = typeof wx !== 'undefined' ? wx : (typeof qq !== 'undefined' ? qq : null)
-		if (wxObj && typeof wxObj.getSystemSetting === 'function') {
-			const setting = wxObj.getSystemSetting()
-			if (setting && setting.theme) {
-				return setting.theme === 'dark'
-			}
-		}
-
-		// 2. 次选：App 基础信息 API
-		if (wxObj && typeof wxObj.getAppBaseInfo === 'function') {
-			const appBase = wxObj.getAppBaseInfo()
-			if (appBase && appBase.theme) {
-				return appBase.theme === 'dark'
-			}
-		}
-		if (typeof uni.getAppBaseInfo === 'function') {
-			const appBase = uni.getAppBaseInfo()
-			if (appBase && appBase.theme) {
-				return appBase.theme === 'dark'
-			}
-		}
-
-		// 3. 兜底：传统系统信息同步 API
-		const sys = (wxObj && typeof wxObj.getSystemInfoSync === 'function')
-			? wxObj.getSystemInfoSync()
-			: uni.getSystemInfoSync()
+		const sys = uni.getSystemInfoSync()
 		if (sys && sys.theme) {
 			return sys.theme === 'dark'
 		}
-	} catch (e) {
-		console.warn('获取系统主题失败:', e)
-	}
+	} catch (e) {}
 	// #endif
 
 	return false
@@ -59,9 +31,22 @@ function refreshTheme() {
 function initThemeFromStorage() {
 	try {
 		const saved = uni.getStorageSync('theme')
+		// #ifdef MP
+		// 小程序端只在 'light' 和 'dark' 两种模式之间明确切换，避免因系统未上报 theme 导致卡在 false
+		if (saved === 'light' || saved === 'dark') {
+			themeMode.value = saved
+		} else {
+			// 若从未设置过或初次进入，尝试读取一次环境主题，默认选 light 或 dark
+			const initialDark = getSystemIsDark()
+			themeMode.value = initialDark ? 'dark' : 'light'
+		}
+		// #endif
+
+		// #ifndef MP
 		if (['system', 'light', 'dark'].includes(saved)) {
 			themeMode.value = saved
 		}
+		// #endif
 	} catch (e) {}
 }
 
@@ -80,12 +65,17 @@ function setupGlobalThemeListener() {
 	}
 	// #endif
 
-	// #ifdef MP-WEIXIN || MP-QQ
+	// #ifdef MP
 	if (uni.onThemeChange) {
 		uni.onThemeChange((res) => {
-			if (themeMode.value === 'system') {
-				_systemChangeKey.value++
+			if (res && res.theme) {
+				// 当微信端产生真实系统切换事件时，同步当前的主题状态
+				themeMode.value = res.theme === 'dark' ? 'dark' : 'light'
+				try {
+					uni.setStorageSync('theme', themeMode.value)
+				} catch (e) {}
 			}
+			_systemChangeKey.value++
 		})
 	}
 	// #endif
@@ -96,33 +86,65 @@ initThemeFromStorage()
 setupGlobalThemeListener()
 
 export function useTheme() {
-	// 每次调用尝试从缓存同步一次（保证多端/页面加载时不漏掉最新值）
 	initThemeFromStorage()
 
 	const isDarkMode = computed(() => {
 		void _systemChangeKey.value
+		// #ifdef MP
+		// 小程序端直接按确定的 dark / light 生效，彻底杜绝系统 undefined 导致的无法变黑
+		return themeMode.value === 'dark'
+		// #endif
+
+		// #ifndef MP
 		if (themeMode.value === 'dark') return true
 		if (themeMode.value === 'light') return false
 		return getSystemIsDark()
+		// #endif
 	})
 
 	const themeEmoji = computed(() => {
+		// #ifdef MP
+		return isDarkMode.value ? '🌙' : '☀️'
+		// #endif
+
+		// #ifndef MP
 		const map = { system: '🖥️', light: '☀️', dark: '🌙' }
 		return map[themeMode.value] || '🖥️'
+		// #endif
 	})
 
 	const themeLabel = computed(() => {
+		// #ifdef MP
+		return isDarkMode.value ? '深色模式' : '浅色模式'
+		// #endif
+
+		// #ifndef MP
 		const map = { system: '跟随系统', light: '浅色模式', dark: '深色模式' }
 		return map[themeMode.value] || '跟随系统'
+		// #endif
 	})
 
 	const toggleTheme = () => {
+		// #ifdef MP
+		// 小程序端两态切换：白天 ⇋ 黑夜
+		const nextMode = isDarkMode.value ? 'light' : 'dark'
+		themeMode.value = nextMode
+		try {
+			uni.setStorageSync('theme', nextMode)
+		} catch (e) {}
+		_systemChangeKey.value++
+		// #endif
+
+		// #ifndef MP
+		// Web 端维持三态切换：跟随系统 ➔ 浅色 ➔ 深色
 		const modes = ['system', 'light', 'dark']
 		const idx = modes.indexOf(themeMode.value)
 		themeMode.value = modes[(idx + 1) % 3]
 		try {
 			uni.setStorageSync('theme', themeMode.value)
 		} catch (e) {}
+		_systemChangeKey.value++
+		// #endif
 	}
 
 	const setThemeMode = (mode) => {
@@ -131,27 +153,8 @@ export function useTheme() {
 			try {
 				uni.setStorageSync('theme', mode)
 			} catch (e) {}
+			_systemChangeKey.value++
 		}
-	}
-
-	const getThemeDiagnostics = () => {
-		const diag = {
-			themeMode: themeMode.value,
-			isDarkMode: isDarkMode.value
-		}
-		// #ifdef MP-WEIXIN || MP-QQ
-		try {
-			const wxObj = typeof wx !== 'undefined' ? wx : (typeof qq !== 'undefined' ? qq : null)
-			if (wxObj) {
-				diag.systemSettingTheme = wxObj.getSystemSetting ? wxObj.getSystemSetting()?.theme : 'N/A'
-				diag.appBaseInfoTheme = wxObj.getAppBaseInfo ? wxObj.getAppBaseInfo()?.theme : 'N/A'
-				diag.systemInfoTheme = wxObj.getSystemInfoSync ? wxObj.getSystemInfoSync()?.theme : 'N/A'
-			}
-		} catch (e) {
-			diag.error = String(e)
-		}
-		// #endif
-		return diag
 	}
 
 	return {
@@ -162,7 +165,6 @@ export function useTheme() {
 		toggleTheme,
 		setThemeMode,
 		getSystemIsDark,
-		refreshTheme,
-		getThemeDiagnostics
+		refreshTheme
 	}
 }
