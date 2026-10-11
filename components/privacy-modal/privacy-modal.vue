@@ -19,8 +19,8 @@
 				</button>
 			</view>
 
-			<!-- 可滑动主体内容 (采用与 Agent 页面一致的 styled-scroll-view 自定义紫色滚动条) -->
-			<styled-scroll-view class="privacy-modal-body">
+			<!-- 可滑动主体内容 (采用 styled-scroll-view 自定义滚动条) -->
+			<styled-scroll-view ref="scrollViewRef" class="privacy-modal-body">
 				<view class="markdown-wrapper">
 					<rich-text :nodes="privacyHtml" @itemclick="handleRichTextClick" />
 				</view>
@@ -37,10 +37,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { marked } from 'marked'
 import { PRIVACY_MARKDOWN } from '@/utils/privacy-content.js'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
+
+const scrollViewRef = ref(null)
 
 const props = defineProps({
 	visible: {
@@ -63,6 +65,20 @@ const close = () => {
 	emit('update:visible', false)
 	emit('close')
 }
+
+watch(() => props.visible, (val) => {
+	if (val) {
+		nextTick(() => {
+			scrollViewRef.value?.refresh?.()
+			setTimeout(() => {
+				scrollViewRef.value?.refresh?.()
+			}, 100)
+			setTimeout(() => {
+				scrollViewRef.value?.refresh?.()
+			}, 300)
+		})
+	}
+})
 
 const handleOverlayClick = () => {
 	close()
@@ -170,9 +186,9 @@ const handleRichTextClick = (e) => {
 }
 
 .privacy-modal-body {
-	flex: 1 1 0%;
+	flex: 1;
 	min-height: 0;
-	height: 100%;
+	height: 0;
 	box-sizing: border-box;
 }
 
