@@ -213,7 +213,7 @@
 		<brand-modal
 			v-model:visible="isBrandModalVisible"
 			@close="isBrandModalVisible = false"
-			version="0.3.4-beta.16"
+			version="0.3.5-beta.17"
 		/>
 	</view>
 </template>

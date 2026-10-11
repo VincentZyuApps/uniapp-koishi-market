@@ -4,11 +4,11 @@
 
 <p align="center">
   <a href="https://vincentzyuapps.github.io/uniapp-koishi-market/">
-    <img src="doc/image/logo/logo_roundedrectangle_bg.png" width="140" alt="Koishi Market Logo" style="max-width: 140px; border-radius: 30px;">
+    <img src="doc/image/logo/logo_roundedrectangle_bg.png" width="308" alt="Koishi Market Logo" style="max-width: 308px; border-radius: 60px;">
   </a>
 </p>
 
-[![Version](https://img.shields.io/badge/version-0.3.4--beta.16%2B20261011-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.5--beta.17%2B20261011-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
