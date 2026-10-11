@@ -6,9 +6,8 @@
 	export default {
 		onLaunch: function() {
 			console.log(`App Launch. 欢迎来到 UniAppKoishiMarket! version: ${APP_VERSION}`)
-			const { refreshTheme, getThemeDiagnostics } = useTheme()
+			const { refreshTheme } = useTheme()
 			refreshTheme()
-			console.log('🌓 [Theme] 初始主题诊断:', JSON.stringify(getThemeDiagnostics()))
 
 			// #ifndef WEB
 			// 动态加载 Cascadia Mono 等宽字体 (约 16KB，极速异步下载，不占小程序包体积)
@@ -40,9 +39,8 @@
 		},
 		onShow: function() {
 			console.log(`App Show. 欢迎回到 UniAppKoishiMarket! version: ${APP_VERSION}`)
-			const { refreshTheme, getThemeDiagnostics } = useTheme()
+			const { refreshTheme } = useTheme()
 			refreshTheme()
-			console.log('🌓 [Theme] 唤醒主题诊断:', JSON.stringify(getThemeDiagnostics()))
 		},
 		onHide: function() {
 			console.log(`App Hide. 欢迎离开 UniAppKoishiMarket! version: ${APP_VERSION}`)
