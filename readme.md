@@ -10,7 +10,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.3.5--beta.19%2B20261012-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
-📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
+📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ / 微信 / 支付宝小程序。 
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/uniapp-koishi-market)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/uniapp-koishi-market)
@@ -34,6 +34,7 @@
 | [![GitLab Pages](https://img.shields.io/badge/GitLab%20Pages-online-FC6D26?style=for-the-badge&logo=gitlab)](https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/) | 浏览器打开：<https://vincentzyu233.gitlab.io/uniapp-koishi-market/#/> |
 | [![QQ 小程序](https://img.shields.io/badge/QQ%20%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-12B7F5?style=for-the-badge&logo=qq)](https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16) | QQ搜索 **koishi的npm插件**，或者浏览器打开：<br><https://m.q.qq.com/a/s/780e4930897b10f165367ddcd6b46c16><br>或者qq扫码体验:<br><img src="doc/image/qrcode/qrcode-qq-miniprogram.png" width="150" alt="qrcode-qq-miniprogram"> |
 | ![微信小程序](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-07C160?style=for-the-badge&logo=wechat&logoColor=white) | 微信搜索 **koishi的npm插件1**，或者微信扫码体验：<br><img src="doc/image/qrcode/qrcode-wechat-miniprogram.png" width="150" alt="qrcode-wechat-miniprogram"> |
+| ![支付宝小程序](https://img.shields.io/badge/%E6%94%AF%E4%BB%98%E5%AE%9D%E5%B0%8F%E7%A8%8B%E5%BA%8F-online-1677FF?style=for-the-badge&logo=alipay&logoColor=white) | 支付宝搜索 **koishi的npm插件2**，或者支付宝扫码体验：<br><img src="doc/image/qrcode/qrcode-alipay-miniprogram.png" width="150" alt="qrcode-alipay-miniprogram"> |
 
 ## 📸 预览
 

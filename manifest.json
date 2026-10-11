@@ -103,7 +103,7 @@
         "uniStatistics" : {
             "enable" : false
         },
-        "appid" : ""
+        "appid" : "2021007106681116"
     },
     "mp-baidu" : {
         "usingComponents" : true,
