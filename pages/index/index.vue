@@ -259,7 +259,7 @@ const instance = getCurrentInstance()
 import { useTheme } from '@/utils/theme.js'
 
 // 主题模式（统一由 useTheme 管理）
-const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, refreshTheme } = useTheme()
 
 // 加载状态
 const isLoading = ref(false)
@@ -683,6 +683,7 @@ const calculatePageSize = () => {
 onResize(calculatePageSize)
 onShow(() => {
 	pageVisible.value = true
+	refreshTheme()
 	calculatePageSize()
 })
 
