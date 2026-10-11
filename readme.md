@@ -37,13 +37,35 @@
 
 ## 📸 预览
 
-| 平台 | 截图 |
-| :---: | :---: |
-| 首页 | ![preview-index](doc/image/preview-index.png) |
-| 设置页 | ![preview-settings](doc/image/preview-settings.png) |
-| Agent 找插件 | ![preview-agent-plugin-search](doc/image/preview-agent-plugin-search.png) |
-| 插件详情页 | ![preview-plugin-detail](doc/image/preview-plugin-detail.png) |
-| QQ 小程序 | ![qq-miniapp](doc/image/preview-分享到qq群里的效果.png) |
+### 首页
+> ↓ 插件市场首页，支持检索、分类筛选与排序
+
+![preview-index](doc/image/preview/preview-index.png)
+
+### 设置页
+> ↓ 设置数据源、动画效果与外观选项
+
+![preview-settings](doc/image/preview/preview-settings.png)
+
+### Agent 找插件
+> ↓ 生成提示词交给 AI Agent 检索
+
+![preview-agent-plugin-search](doc/image/preview/preview-agent-plugin-search.png)
+
+### 插件详情页
+> ↓ 插件详细信息、README 与依赖分析
+
+![preview-plugin-detail](doc/image/preview/preview-plugin-detail.png)
+
+### 微信小程序真机调试
+> ↓ 微信小程序真机调试效果与暗黑模式适配
+
+![preview-wechat-mp](doc/image/preview/preview-微信小程序的真机调试效果.png)
+
+### QQ 小程序分享
+> ↓ QQ 群聊卡片分享效果
+
+![qq-miniapp](doc/image/preview/preview-分享到qq群里的效果.png)
 
 ## 🛠️ 技术栈
 
