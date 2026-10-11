@@ -17,7 +17,7 @@
 						<view class="github-link" @click="openGithub">
 							<image
 								class="github-icon"
-								:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
+								:src="isDarkMode ? githubMarkDark : githubMarkLight"
 								mode="aspectFit"
 							/>
 							<text class="top-action-label">GitHub</text>
@@ -230,6 +230,8 @@ import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view
 import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
 import MarketBrandLogo from '@/components/market-brand-logo/market-brand-logo.vue'
 import BrandModal from '@/components/brand-modal/brand-modal.vue'
+import githubMarkDark from '@/static/github-mark-white.png'
+import githubMarkLight from '@/static/github-mark.png'
 import { useMotionPreferences } from '@/utils/motion.js'
 import { createHoverIconMotion } from '@/utils/hover-icon-motion.js'
 import { usePageLayout } from '@/utils/layout.js'

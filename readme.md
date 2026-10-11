@@ -8,7 +8,7 @@
   </a>
 </p>
 
-[![Version](https://img.shields.io/badge/version-0.3.5--beta.18%2B20261011-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.5--beta.19%2B20261012-2B9939?labelColor=F7DF1E&logo=vuedotjs)](manifest.json)
 
 📦 基于 uni-app + Vue 3 的 Koishi 插件市场网页，支持多镜像源切换、插件搜索/筛选/排序，已部署为 GitHub Pages 网页端 & QQ 小程序。 
 
@@ -117,6 +117,9 @@
 ## 📟 Git 命令行操作
 
 ### 方式一：本地构建并提交发布（传统双轨模式）
+
+> [!NOTE]
+> 由于 `unpackage/` 默认已被 `.gitignore` 忽略以保持仓库轻量纯净，若选择在本地构建并直接发布产物，必须使用 `git add -f` 强制将 `unpackage/dist/build/web/` 添加暂存。
 
 ```shell
 # 0. 若修改了隐私政策，先同步隐私文案至前端

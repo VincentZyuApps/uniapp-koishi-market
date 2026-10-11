@@ -9,13 +9,15 @@
 	>
 		<image
 			class="badge-logo"
-			src="/static/logo_transparent_bg.png"
+			:src="logoTransparent"
 			mode="aspectFit"
 		/>
 	</view>
 </template>
 
 <script setup>
+import logoTransparent from '@/static/logo_transparent_bg.png'
+
 const emit = defineEmits(['click'])
 
 const handleBadgeClick = () => {

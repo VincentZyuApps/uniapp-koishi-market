@@ -27,12 +27,44 @@ def write_file(path, content):
         f.write(content)
 
 
+import subprocess
+
+
+def markdown_to_html(md_text):
+    """通过 node 运行 marked 将 Markdown 预编译为纯净 HTML，避免小程序运行时依赖与兼容性问题。"""
+    try:
+        res = subprocess.run(
+            ["node", "-e", "const fs=require('fs');const {marked}=require('marked');console.log(marked.parse(process.argv[1]));", md_text],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+            cwd=ROOT,
+        )
+        return res.stdout.strip()
+    except Exception as e:
+        print(f"⚠️ 调用 node marked 失败: {e}，使用轻量回退转换", file=sys.stderr)
+        # 兜底：基础正则转换
+        import re
+        html = md_text
+        html = re.sub(r"^### (.*)$", r"<h3>\1</h3>", html, flags=re.M)
+        html = re.sub(r"^## (.*)$", r"<h2>\1</h2>", html, flags=re.M)
+        html = re.sub(r"^# (.*)$", r"<h1>\1</h1>", html, flags=re.M)
+        html = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", html)
+        html = re.sub(r"`(.*?)`", r"<code>\1</code>", html)
+        html = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', html)
+        return html
+
+
 def generate_js_content(md_text):
-    escaped_json_str = json.dumps(md_text, ensure_ascii=False)
+    html_text = markdown_to_html(md_text)
+    escaped_md = json.dumps(md_text, ensure_ascii=False)
+    escaped_html = json.dumps(html_text, ensure_ascii=False)
     return (
         "// ⚠️ 本文件由 scripts/sync_privacy.py 自动生成，请勿手动编辑！\n"
         "// 📄 文案唯一事实来源 (Single Source of Truth) 为根目录的 privacy.md\n"
-        f"export const PRIVACY_MARKDOWN = {escaped_json_str};\n"
+        f"export const PRIVACY_MARKDOWN = {escaped_md};\n"
+        f"export const PRIVACY_HTML = {escaped_html};\n"
     )
 
 

@@ -157,6 +157,7 @@ import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/req
 import { usePageLayout } from '@/utils/layout.js'
 
 import { useTheme } from '@/utils/theme.js'
+import { loadFonts } from '@/utils/fonts.js'
 
 // 主题模式（统一由 useTheme 管理）
 const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
@@ -266,6 +267,9 @@ const currentEndpoint = computed(() => {
 
 // 加载保存的设置
 onMounted(() => {
+	// #ifdef MP-QQ
+	loadFonts()
+	// #endif
 	
 	// 加载端点设置
 	const savedEndpoint = uni.getStorageSync('market_endpoint')

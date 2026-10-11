@@ -12,7 +12,7 @@
 				<view class="github-link" @click="openGithub">
 					<image 
 						class="github-icon" 
-					:src="isDarkMode ? '/static/github-mark-white.png' : '/static/github-mark.png'"
+					:src="isDarkMode ? githubMarkDark : githubMarkLight"
 					mode="aspectFit"
 				/>
 					<text class="header-action-label">GitHub</text>
@@ -287,6 +287,9 @@ import { useMotionPreferences } from '@/utils/motion.js';
 import { usePageLayout } from '@/utils/layout.js'
 
 import { useTheme } from '@/utils/theme.js'
+import { loadFonts } from '@/utils/fonts.js'
+import githubMarkDark from '@/static/github-mark-white.png'
+import githubMarkLight from '@/static/github-mark.png'
 
 // 主题模式（统一由 useTheme 管理）
 const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
@@ -298,6 +301,9 @@ const { motionClass } = useMotionPreferences();
 
 // 从上一页接收插件数据
 onLoad((options) => {
+	// #ifdef MP-QQ
+	loadFonts()
+	// #endif
 	try {
 		
 		// 从localStorage读取主题设置

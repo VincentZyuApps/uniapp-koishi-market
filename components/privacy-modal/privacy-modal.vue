@@ -37,9 +37,8 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
-import { marked } from 'marked'
-import { PRIVACY_MARKDOWN } from '@/utils/privacy-content.js'
+import { ref, watch, nextTick } from 'vue'
+import { PRIVACY_HTML } from '@/utils/privacy-content.js'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 
 const scrollViewRef = ref(null)
@@ -53,13 +52,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'close'])
 
-const privacyHtml = computed(() => {
-	try {
-		return marked.parse(PRIVACY_MARKDOWN)
-	} catch (e) {
-		return PRIVACY_MARKDOWN
-	}
-})
+const privacyHtml = PRIVACY_HTML
 
 const close = () => {
 	emit('update:visible', false)
