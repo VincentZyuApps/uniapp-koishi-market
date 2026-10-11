@@ -8,7 +8,7 @@
 					<text class="header-subtitle">管理插件市场数据源与连接状态</text>
 				</view>
 				<view class="theme-toggle" @click="toggleTheme">
-					<text class="theme-icon">{{ isDarkMode ? '🌙' : '☀️' }}</text>
+					<text class="theme-icon">{{ themeEmoji }}</text>
 					<text class="theme-label">{{ themeLabel }}</text>
 				</view>
 			</view>
@@ -156,15 +156,15 @@ import { onLoad } from "@dcloudio/uni-app";
 import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
 import { usePageLayout } from '@/utils/layout.js'
 
-// 主题模式
-const isDarkMode = ref(true)
-const isPrivacyModalVisible = ref(false)
+import { useTheme } from '@/utils/theme.js'
 
+// 主题模式（统一由 useTheme 管理）
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
+const isPrivacyModalVisible = ref(false)
 const openPrivacyModal = () => {
 	isPrivacyModalVisible.value = true
 }
 const { pageStyle } = usePageLayout()
-const themeLabel = computed(() => isDarkMode.value ? '深色模式' : '浅色模式')
 const {
 	motionMode,
 	respectSystemMotion,
@@ -267,12 +267,6 @@ const currentEndpoint = computed(() => {
 // 加载保存的设置
 onMounted(() => {
 	
-	// 加载主题
-	const savedTheme = uni.getStorageSync('theme')
-	if (savedTheme) {
-		isDarkMode.value = savedTheme === 'dark'
-	}
-	
 	// 加载端点设置
 	const savedEndpoint = uni.getStorageSync('market_endpoint')
 	const savedPresetIndex = uni.getStorageSync('market_preset_index')
@@ -290,12 +284,6 @@ onMounted(() => {
 		customEndpoint.value = savedEndpoint
 	}
 })
-
-// 切换主题
-const toggleTheme = () => {
-	isDarkMode.value = !isDarkMode.value
-	uni.setStorageSync('theme', isDarkMode.value ? 'dark' : 'light')
-}
 
 // 预设源变化
 const onPresetChange = (value) => {
@@ -448,7 +436,12 @@ const resetToDefault = () => {
 
 // 无论入口来自哪里，都回到插件市场首页。
 const returnToMarket = () => {
-	uni.reLaunch({ url: '/pages/index/index' })
+	const pages = getCurrentPages?.() || []
+	if (pages.length > 1) {
+		uni.navigateBack({ delta: 1 })
+	} else {
+		uni.reLaunch({ url: '/pages/index/index' })
+	}
 }
 
 onLoad(()=>{
@@ -596,8 +589,7 @@ onLoad(()=>{
 .settings-content {
 	flex: 1;
 	min-height: 0;
-	height: calc(100vh - 120px);
-	height: calc(100dvh - 120px);
+	height: 0;
 	box-sizing: border-box;
 	--scroll-padding: 0 0 48rpx 0;
 }

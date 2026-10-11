@@ -9,6 +9,7 @@
 				type="text" 
 				v-model="inputValue"
 				:placeholder="placeholder"
+				placeholder-class="search-input-placeholder"
 				confirm-type="search"
 				@confirm="handleSearch"
 			/>
@@ -44,7 +45,7 @@ const props = defineProps({
 	},
 	placeholder: {
 		type: String,
-		default: '搜索插件...'
+		default: '搜索插件 for koishi...'
 	}
 })
 
@@ -259,6 +260,11 @@ const handleRemoveTag = (index) => {
 	height: 24px;
 	font-size: var(--font-body, 16px);
 	line-height: 24px;
+	font-family: 'Cascadia Mono', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans CN', 'MiSans', 'OPPOSans', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+}
+.search-input-placeholder {
+	font-family: 'Cascadia Mono', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans CN', 'MiSans', 'OPPOSans', 'HarmonyOS Sans SC', 'Microsoft YaHei', sans-serif;
+	color: var(--text-tertiary);
 }
 .clear-icon {
 	font-size: 16px;

@@ -91,6 +91,7 @@
         "setting" : {
             "urlCheck" : false
         },
+        "darkmode" : true,
         "usingComponents" : true,
         "uniStatistics" : {
             "enable" : false
