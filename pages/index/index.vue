@@ -139,7 +139,7 @@
 						@resize="calculatePageSize"
 						class="plugin-scroll"
 						:scroll-top="scrollTop"
-						v-show="!isLoading || plugins.length > 0"
+						v-if="!isLoading || plugins.length > 0"
 			>
 						<view v-if="loadError" class="load-error-banner">
 							<text class="load-error-message">加载失败：{{ loadError }}</text>
@@ -161,7 +161,7 @@
 							/>
 						</view>
 						<!-- 空状态 -->
-						<view v-if="filteredPlugins.length === 0" class="empty-state">
+						<view v-if="!isLoading && filteredPlugins.length === 0" class="empty-state">
 							<text class="empty-icon">📦</text>
 							<text class="empty-text">没有找到相关插件</text>
 						</view>
@@ -213,7 +213,7 @@
 		<brand-modal
 			v-model:visible="isBrandModalVisible"
 			@close="isBrandModalVisible = false"
-			version="0.3.5-beta.18"
+			version="0.3.6-beta.20"
 		/>
 	</view>
 </template>
@@ -264,7 +264,7 @@ import { useTheme } from '@/utils/theme.js'
 const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, refreshTheme } = useTheme()
 
 // 加载状态
-const isLoading = ref(false)
+const isLoading = ref(true)
 const loadError = ref(null)
 let activeMarketRequest = null
 let loadRequestId = 0
