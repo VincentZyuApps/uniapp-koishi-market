@@ -1,4 +1,4 @@
-export const DEFAULT_MARKET_SEARCH_ENDPOINT = 'https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market'
+export const DEFAULT_MARKET_SEARCH_ENDPOINT = 'https://storeluna-cf.vincentzyu233.cn/storeluna/index.json'
 
 /**
  * 获取当前设置的 endpoint
@@ -259,63 +259,3 @@ function isNewborn(createdAt) {
 	const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 	return (now - created) < thirtyDays;
 }
-
-// export const BASE_URL = 'https://bluerosion.vincentzyu233.cn/'
-
-// export function qwq_request(config = {}) {
-//     let { 
-// 		url, endpoint,
-// 		method = 'GET', header = {}, data = {}, 
-// 		isConsoleOutput = true, isShowToast = false, 
-// 		loadingText = '加载中', completeText = '完成' 
-// 	} = config; // unpackage
-
-//     let finalUrl = BASE_URL + url;
-	
-// 	if (isConsoleOutput){
-// 		console.log("-------[config]-------"); console.log("utils/request: requesting... config:"); console.log(config); console.log("-------[config]-------");
-// 		// console.log("request.js: BASE_URL = ", BASE_URL);
-// 	}
-	
-//     return new Promise((resolve, reject) => {
-// 		if ( isShowToast ) uni.showLoading({
-// 			title: loadingText
-// 		});
-
-//         uni.request({
-//             url: finalUrl,
-//             data: data,
-//             method: method,
-//             header: header,
-
-//             success: res => {
-// 				if ( isConsoleOutput ){
-// 					console.log("-------[success]-------"); console.log("utils/request: success: res: "); console.log(res); console.log("-------[success]-------");
-// 				}
-// 				if ( isShowToast ) uni.hideLoading();
-// 				if ( isShowToast ) uni.showToast({
-// 					title: completeText,
-// 				    icon: 'success',
-// 				    duration: 777 // Set a longer duration to ensure it stays visible
-// 				});
-// 				resolve(res);
-//             },
-//             fail: err => {
-// 				if ( isConsoleOutput ){
-// 					console.log("-------[fail]-------"); console.log("utils/request: err: "); console.log(err); console.log("-------[fail]-------");
-// 				}
-// 				// uni.hideToast();
-// 				if ( isShowToast ) uni.hideLoading();
-//                 uni.showModal({
-//                     title: "[网络请求发生错误] 请联系开发人员VincentZyu",
-//                     content: "error.detail: " + err,
-//                     showCancel: false
-//                 });
-//                 reject(err);
-//             },
-//             complete: () => {
-
-//             }
-//         })
-//     });
-// }

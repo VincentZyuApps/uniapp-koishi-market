@@ -103,7 +103,7 @@ import { useMotionPreferences } from '@/utils/motion.js'
 import { usePageLayout } from '@/utils/layout.js'
 import { loadFonts } from '@/utils/fonts.js'
 
-const DEFAULT_MARKET_ENDPOINT = 'https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market'
+const DEFAULT_MARKET_ENDPOINT = 'https://storeluna-cf.vincentzyu233.cn/storeluna/index.json'
 const DEFAULT_PROXY_URL = 'http://127.0.0.1:7890'
 const STORAGE_PREFIX = 'agent_plugin_'
 

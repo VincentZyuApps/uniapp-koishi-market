@@ -60,7 +60,7 @@
 - H5 路由基础路径保持为 `/uniapp-koishi-market/`，改动时必须同步考虑 GitHub Pages 与 Cloudflare Pages 喵。
 - 用户完成 HBuilderX 构建后，发布前必须运行 `python scripts/generate_cf_redirects.py` 并确认 `_redirects` 规则正确喵。
 - 由于构建目录的忽略规则，新生成文件可能需要在获得授权后使用 `git add -f unpackage/dist/build/web/` 喵。
-- 当前默认市场代理为 `https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market` 喵。
+- 当前默认市场代理为 `https://storeluna-cf.vincentzyu233.cn/storeluna/index.json` 喵。
 - 修改市场端点、预设内容或预设顺序时，必须兼容历史 `market_endpoint` 与 `market_preset_index` 本地存储值喵。
 - 删除预设后必须校验旧索引边界，避免历史用户进入设置页时越界喵。
 

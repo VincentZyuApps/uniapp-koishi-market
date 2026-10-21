@@ -181,10 +181,16 @@ const isMotionSelectOpen = ref(false)
 // 预设源列表
 const presetSources = ref([
 	{
-		name: 'VincentZyu FastAPI代理（推荐）',
-		url: 'https://bluerosion.vincentzyu233.cn/koishi-market-proxy/market',
+		name: 'VincentZyu StoreLuna（CF CDN 推荐）',
+		url: 'https://storeluna-cf.vincentzyu233.cn/storeluna/index.json',
 		region: '全球',
-		description: '自建 FastAPI 代理源，解决跨域问题'
+		description: '自建 Cloudflare Anycast CDN 镜像源，全球加速防刷'
+	},
+	{
+		name: 'VincentZyu StoreLuna（大陆直连）',
+		url: 'https://storeluna.vincentzyu233.cn/storeluna/index.json',
+		region: '中国大陆',
+		description: '自建深圳阿里云直连镜像源，大陆秒级低延迟'
 	},
 	{
 		name: 'NyanZone',
@@ -274,6 +280,11 @@ onMounted(() => {
 	// 加载端点设置
 	const savedEndpoint = uni.getStorageSync('market_endpoint')
 	const savedPresetIndex = uni.getStorageSync('market_preset_index')
+
+	// 兼容迁移：若历史保存的端点为已失效的旧 bluerosion 代理，自动无感更新为最新推荐端点
+	if (savedEndpoint && savedEndpoint.includes('bluerosion.vincentzyu233.cn')) {
+		uni.setStorageSync('market_endpoint', DEFAULT_MARKET_SEARCH_ENDPOINT)
+	}
 	
 	const savedIndex = Number(savedPresetIndex)
 	if (Number.isInteger(savedIndex) && savedIndex >= 0 && savedIndex < presetSources.value.length) {
