@@ -213,7 +213,7 @@
 		<brand-modal
 			v-model:visible="isBrandModalVisible"
 			@close="isBrandModalVisible = false"
-			version="0.3.6-rc.1"
+			version="0.3.6-rc.2"
 		/>
 	</view>
 </template>
@@ -535,7 +535,7 @@ const handleKeyDown = (e) => {
 
 // 加载插件数据
 const loadPlugins = async () => {
-	if (isLoading.value) return
+	if (activeMarketRequest) return
 
 	const requestId = ++loadRequestId
 	isLoading.value = true
@@ -600,14 +600,14 @@ const copyMarketValue = (value, label) => {
 }
 
 function cancelPluginLoad(showFeedback = true) {
-	if (!isLoading.value || !activeMarketRequest) return
+	if (!isLoading.value && !activeMarketRequest) return
 
 	const request = activeMarketRequest
 	activeMarketRequest = null
 	loadRequestId++
 	isLoading.value = false
 	loadError.value = null
-	request.abort?.()
+	request?.abort?.()
 
 	if (showFeedback) {
 		uni.showToast({
@@ -687,6 +687,9 @@ onShow(() => {
 	pageVisible.value = true
 	refreshTheme()
 	calculatePageSize()
+	if (plugins.value.length === 0 && !activeMarketRequest) {
+		loadPlugins()
+	}
 })
 
 onMounted(() => {

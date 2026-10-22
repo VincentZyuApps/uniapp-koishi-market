@@ -55,13 +55,11 @@
 					<text class="footer-text">{{ plugin.version }}</text>
 				</view>
 				
-				<view class="author-avatar" v-if="authorEmail" :class="{ 'avatar-loading': avatarLoading }">
+				<view class="author-avatar" v-if="authorEmail">
 					<image 
 						class="avatar-img" 
-						:class="{ 'avatar-loaded': !avatarLoading }"
-						:src="getAvatarUrl(authorEmail)"
+						:src="getAvatarUrl(authorEmail, currentMirrorIndex)"
 						mode="aspectFill"
-						@load="onAvatarLoad"
 						@error="handleAvatarError"
 					/>
 				</view>
@@ -72,8 +70,8 @@
 		</view>
 </view>
 </template><script setup>
-import { computed, ref, watch } from 'vue'
-import { simpleMd5 } from '@/utils/md5.js'
+import { computed, ref, watch, onUnmounted } from 'vue'
+import { AVATAR_MIRRORS, getAvatarUrl, getAvatarText } from '@/utils/avatar.js'
 
 const props = defineProps({
 	plugin: {
@@ -86,6 +84,22 @@ const emit = defineEmits(['click'])
 
 const avatarError = ref(false)
 const avatarLoading = ref(true)
+const currentMirrorIndex = ref(0)
+let avatarTimeoutTimer = null
+
+const clearAvatarTimeout = () => {
+	if (avatarTimeoutTimer) {
+		clearTimeout(avatarTimeoutTimer)
+		avatarTimeoutTimer = null
+	}
+}
+
+const startAvatarTimeout = () => {
+	clearAvatarTimeout()
+	avatarTimeoutTimer = setTimeout(() => {
+		handleAvatarError()
+	}, 2500)
+}
 
 // 获取作者邮箱
 const authorEmail = computed(() => {
@@ -112,28 +126,39 @@ const authorEmail = computed(() => {
 	return null
 })
 
-watch(authorEmail, () => {
-	avatarLoading.value = true
-})
+watch(authorEmail, (newEmail) => {
+	currentMirrorIndex.value = 0
+	avatarError.value = false
+	if (newEmail) {
+		avatarLoading.value = true
+		startAvatarTimeout()
+	} else {
+		clearAvatarTimeout()
+		avatarLoading.value = false
+	}
+}, { immediate: true })
 
-// 获取 Gravatar 头像 URL
-const getAvatarUrl = (email) => {
-	if (!email) return ''
-	// 使用 Gravatar 服务
-	// d=identicon 会生成几何图案作为默认头像
-	// s=48 指定大小为 48x48 像素
-	const hash = simpleMd5(email.toLowerCase().trim())
-	return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=96`
-}
+onUnmounted(() => {
+	clearAvatarTimeout()
+})
 
 // 处理头像加载成功
 const onAvatarLoad = () => {
+	clearAvatarTimeout()
 	avatarLoading.value = false
 }
 
-// 处理头像加载错误
+// 处理头像加载错误 / 超时，按优先级 fallback
 const handleAvatarError = () => {
-	avatarError.value = true
+	clearAvatarTimeout()
+	if (currentMirrorIndex.value < AVATAR_MIRRORS.length - 1) {
+		currentMirrorIndex.value++
+		avatarLoading.value = true
+		startAvatarTimeout()
+	} else {
+		avatarError.value = true
+		avatarLoading.value = false
+	}
 }
 
 // 获取插件徽章
@@ -211,11 +236,7 @@ const formatSize = (bytes) => {
 	}
 }
 
-// 获取作者头像文字
-const getAvatarText = (author) => {
-	if (!author) return '?'
-	return author.charAt(0).toUpperCase()
-}
+// getAvatarText 已由 @/utils/avatar.js 统一提供
 
 const handleClick = () => {
 	emit('click', props.plugin)
@@ -568,24 +589,7 @@ const handleClick = () => {
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
-	opacity: 0;
-	transition: opacity 0.3s ease;
-}
-
-.avatar-loaded {
-	opacity: 1;
-}
-
-/* 加载中旋转动画 */
-.avatar-loading {
-	background: transparent !important;
-	border: 4rpx solid transparent;
-	border-top-color: var(--primary-color, #5546a3);
-	animation: avatarSpin 0.8s linear infinite;
-}
-
-@keyframes avatarSpin {
-	to { transform: rotate(360deg); }
+	display: block;
 }
 
 .avatar-text {

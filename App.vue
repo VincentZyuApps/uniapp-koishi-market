@@ -1,5 +1,5 @@
 <script>
-	const APP_VERSION = '0.3.6-rc.1'
+	const APP_VERSION = '0.3.6-rc.2'
 
 	import { useTheme } from '@/utils/theme.js'
 	import { loadFonts } from '@/utils/fonts.js'

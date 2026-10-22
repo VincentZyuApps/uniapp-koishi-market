@@ -41,7 +41,7 @@
 						<image 
 							v-if="authorEmail" 
 							class="author-avatar"
-							:src="getAvatarUrl(authorEmail)" 
+							:src="getAvatarUrl(authorEmail, currentMirrorIndex)"
 							mode="aspectFill"
 							@error="handleAvatarError"
 						/>
@@ -296,6 +296,7 @@ const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme(
 const isLoading = ref(true);
 const plugin = ref({});
 const avatarError = ref(false);
+const currentMirrorIndex = ref(0);
 const { pageStyle } = usePageLayout()
 const { motionClass } = useMotionPreferences();
 
@@ -402,16 +403,13 @@ const authorEmail = computed(() => {
 	return null
 });
 
-// 获取 Gravatar 头像 URL
-const getAvatarUrl = (email) => {
-	if (!email) return ''
-	const hash = simpleMd5(email.toLowerCase().trim())
-	return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=96`
-};
-
-// 头像加载失败处理
+// 头像加载失败/错误处理（三级 Fallback）
 const handleAvatarError = () => {
-	avatarError.value = true
+	if (currentMirrorIndex.value < AVATAR_MIRRORS.length - 1) {
+		currentMirrorIndex.value++;
+	} else {
+		avatarError.value = true;
+	}
 };
 
 // 获取分类图标
