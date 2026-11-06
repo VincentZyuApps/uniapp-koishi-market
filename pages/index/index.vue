@@ -722,7 +722,25 @@ onUnmounted(() => {
 
 onLoad((options) => {
 	// 接收从公众号直达或外部链接传递进来的搜索词
-	const targetKeyword = options?.search || options?.keyword
+	let targetKeyword = options?.search || options?.keyword
+
+	// #ifdef H5
+	if (!targetKeyword && typeof window !== 'undefined') {
+		// 兜底支持 H5 全模式传参：
+		// 1. 普通查询参数：https://domain/?search=xxx#/
+		// 2. Hash 查询参数：https://domain/#/?search=xxx 或 https://domain/#/pages/index/index?search=xxx
+		if (window.location.search) {
+			const searchParams = new URLSearchParams(window.location.search)
+			targetKeyword = searchParams.get('search') || searchParams.get('keyword')
+		}
+		if (!targetKeyword && window.location.hash.includes('?')) {
+			const hashQuery = window.location.hash.slice(window.location.hash.indexOf('?') + 1)
+			const hashParams = new URLSearchParams(hashQuery)
+			targetKeyword = hashParams.get('search') || hashParams.get('keyword')
+		}
+	}
+	// #endif
+
 	if (targetKeyword) {
 		searchWords.value = [decodeURIComponent(targetKeyword)]
 	}
