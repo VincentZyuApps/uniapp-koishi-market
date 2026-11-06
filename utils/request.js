@@ -35,7 +35,8 @@ export function fetchMarketData(config = {}) {
 		endpoint = getCurrentEndpoint(),
 		isConsoleOutput = true,
 		isShowToast = false,
-		loadingText = '加载插件数据中...'
+		loadingText = '加载插件数据中...',
+		retryCount = 1
 	} = config;
 	
 	if (isConsoleOutput) {
@@ -48,85 +49,105 @@ export function fetchMarketData(config = {}) {
 	let settled = false
 
 	const request = new Promise((resolve, reject) => {
-		if (isShowToast) {
-			uni.showLoading({
-				title: loadingText,
-				mask: false
-			});
-		}
-		
-		requestTask = uni.request({
-			url: endpoint,
-			method: 'GET',
-			timeout: 30000, // 30秒超时
-			header: {
-				'Content-Type': 'application/json'
-			},
+		const doRequest = (attemptsLeft) => {
+			if (isShowToast && attemptsLeft === retryCount) {
+				uni.showLoading({
+					title: loadingText,
+					mask: false
+				});
+			}
 			
-			success: (res) => {
-				if (isShowToast) {
-					uni.hideLoading()
-				}
-
-				if (isConsoleOutput) {
-					console.log('-------[success]-------');
-					console.log('插件市场数据请求成功');
-					console.log('状态码:', res.statusCode);
-					console.log('数据大小:', JSON.stringify(res.data).length, 'bytes');
-					console.log('插件数量:', res.data?.objects?.length || 0);
-					console.log('-------[success]-------');
-				}
+			requestTask = uni.request({
+				url: endpoint,
+				method: 'GET',
+				timeout: 30000, // 30秒超时
+				header: {
+					'Content-Type': 'application/json'
+				},
 				
-				if (res.statusCode !== 200) {
-					settled = true
-					reject(new Error(`HTTP ${res.statusCode}: 请求失败`))
-					return
-				}
-
-				try {
-					const marketData = parseMarketData(res.data)
-					settled = true
-
+				success: (res) => {
 					if (isShowToast) {
-						uni.showToast({
-							title: '加载完成',
-							icon: 'success',
-							duration: 1500
-						})
+						uni.hideLoading()
 					}
 
-					resolve(marketData)
-				} catch (error) {
-					settled = true
-					reject(error)
-				}
-			},
-			
-			fail: (err) => {
-				const aborted = isAbortError(err)
-				if (isShowToast) {
-					uni.hideLoading()
-				}
+					if (isConsoleOutput) {
+						console.log('-------[success]-------');
+						console.log('插件市场数据请求成功');
+						console.log('状态码:', res.statusCode);
+						console.log('数据大小:', JSON.stringify(res.data).length, 'bytes');
+						console.log('插件数量:', res.data?.objects?.length || 0);
+						console.log('-------[success]-------');
+					}
+					
+					if (res.statusCode !== 200) {
+						if (attemptsLeft > 0) {
+							if (isConsoleOutput) console.log(`HTTP ${res.statusCode}，准备自动重试，剩余次数: ${attemptsLeft}`);
+							setTimeout(() => doRequest(attemptsLeft - 1), 600);
+							return;
+						}
+						settled = true
+						reject(new Error(`HTTP ${res.statusCode}: 请求失败`));
+						return;
+					}
 
-				if (isConsoleOutput && !aborted) {
-					console.log('-------[fail]-------');
-					console.log('插件市场数据请求失败:', err);
-					console.log('-------[fail]-------');
-				}
+					try {
+						const marketData = parseMarketData(res.data);
+						settled = true;
 
-				settled = true
-				reject(aborted ? createAbortError(err) : err)
-			}
-		});
+						if (isShowToast) {
+							uni.showToast({
+								title: '加载完成',
+								icon: 'success',
+								duration: 1500
+							});
+						}
+
+						resolve(marketData);
+					} catch (error) {
+						settled = true;
+						reject(error);
+					}
+				},
+				
+				fail: (err) => {
+					const aborted = isAbortError(err);
+					if (!aborted && attemptsLeft > 0) {
+						if (isConsoleOutput) {
+							console.log('-------[retry]-------');
+							console.log(`请求遇到网络异常，500ms 后自动重试，剩余次数: ${attemptsLeft}`);
+							console.log('异常详情:', err);
+							console.log('-------[retry]-------');
+						}
+						setTimeout(() => doRequest(attemptsLeft - 1), 500);
+						return;
+					}
+
+					if (isShowToast) {
+						uni.hideLoading();
+					}
+
+					if (isConsoleOutput && !aborted) {
+						console.log('-------[fail]-------');
+						console.log('插件市场数据请求失败:', err);
+						console.log('-------[fail]-------');
+					}
+
+					settled = true;
+					reject(aborted ? createAbortError(err) : err);
+				}
+			});
+		};
+
+		doRequest(retryCount);
 	});
 
 	request.abort = () => {
-		if (settled || !requestTask?.abort) return false
-		requestTask.abort()
-		return true
-	}
+		if (settled || !requestTask?.abort) return false;
+		requestTask.abort();
+		return true;
+	};
 
-	return request
+	return request;
 }
 
 /**
