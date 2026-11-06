@@ -580,7 +580,7 @@ const loadPlugins = async () => {
 		if (requestId !== loadRequestId || error?.name === 'AbortError') return
 
 		console.error('加载插件数据失败:', error)
-		loadError.value = error.message || '加载失败'
+		loadError.value = error?.errMsg || error?.message || '网络连接异常'
 		
 	} finally {
 		if (requestId === loadRequestId) {
@@ -720,7 +720,13 @@ onUnmounted(() => {
 	// #endif
 })
 
-onLoad(()=>{
+onLoad((options) => {
+	// 接收从公众号直达或外部链接传递进来的搜索词
+	const targetKeyword = options?.search || options?.keyword
+	if (targetKeyword) {
+		searchWords.value = [decodeURIComponent(targetKeyword)]
+	}
+
 	// #ifdef MP-QQ
 	console.log("qq小程序的神秘要求捏");
 	console.log("set qq.showShareMenu in index.vue");
