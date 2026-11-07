@@ -1,87 +1,56 @@
-import os
+"""Render the orbit mark to PNG and ICO. Editable masters live in static/*.svg."""
+from pathlib import Path
 from PIL import Image, ImageDraw
 
-STATIC_DIR = 'static'
-SRC_GPT = 'tmp/image/try-imagen/gpt自己二次处理过的-霓虹轨道紫色星球图标.png'
+ROOT = Path(__file__).resolve().parent.parent
+STATIC = ROOT / 'static'
+DOC = ROOT / 'doc' / 'image' / 'logo'
+SCALE = 16
+SIZE = 200 * SCALE
 
-# 仅保留这 4 张标准命名的资产
-OUT_TRANS_PNG = os.path.join(STATIC_DIR, 'logo_transparent_bg.png')
-OUT_TRANS_ICO = os.path.join(STATIC_DIR, 'logo_transparent_bg.ico')
-OUT_ROUND_PNG = os.path.join(STATIC_DIR, 'logo_roundedrectangle_bg.png')
-OUT_ROUND_ICO = os.path.join(STATIC_DIR, 'logo_roundedrectangle_bg.ico')
+
+def cubic(a, b, c, d, steps=60):
+    points = []
+    for i in range(steps + 1):
+        t = i / steps
+        x = (1-t)**3*a[0] + 3*(1-t)**2*t*b[0] + 3*(1-t)*t*t*c[0] + t**3*d[0]
+        y = (1-t)**3*a[1] + 3*(1-t)**2*t*b[1] + 3*(1-t)*t*t*c[1] + t**3*d[1]
+        points.append((round(x*SCALE), round(y*SCALE)))
+    return points
+
+
+def render(app=False, opaque=False, layers=('orbit', 'core', 'star')):
+    image = Image.new('RGBA', (SIZE, SIZE), '#171527' if opaque else (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    if app and not opaque:
+        draw.rounded_rectangle((0, 0, SIZE-1, SIZE-1), radius=44*SCALE, fill='#171527')
+    orbit, core, star = ('#45d9e5', '#8c75e5', '#5ce3ae') if app else ('#29c7d7', '#7158c5', '#32c893')
+    points = (cubic((41,115), (18,100), (52,65), (94,51)) +
+              cubic((94,51), (136,37), (172,41), (171,61)) +
+              cubic((171,61), (170,72), (158,83), (140,93)))
+    if 'orbit' in layers:
+        draw.line(points, fill=orbit, width=11*SCALE, joint='curve')
+        for x, y in [(41, 115), (140, 93)]:
+            draw.ellipse(((x-5.5)*SCALE, (y-5.5)*SCALE, (x+5.5)*SCALE, (y+5.5)*SCALE), fill=orbit)
+    if 'core' in layers:
+        draw.ellipse((57*SCALE, 57*SCALE, 143*SCALE, 143*SCALE), fill=core)
+    if 'star' in layers:
+        draw.polygon([(x*SCALE,y*SCALE) for x,y in [(153,102),(159,113),(171,116),(159,119),(153,130),(150,119),(139,116),(150,113)]], fill=star)
+    return image.resize((1024, 1024), Image.Resampling.LANCZOS)
+
 
 def main():
-    print("1. 读取并净化 GPT 真透明图片底噪...")
-    im = Image.open(SRC_GPT).convert('RGBA')
-    r, g, b, a = im.split()
-    
-    # 过滤微弱底噪: Alpha <= 5 设为 0
-    a = a.point(lambda p: 0 if p <= 5 else p)
-    im.putalpha(a)
-    
-    # 紧凑裁剪主体
-    bbox = im.getbbox()
-    print(f"主体实际 bbox: {bbox}")
-    cropped = im.crop(bbox)
-    cw, ch = cropped.size
+    transparent, app, apple = render(), render(app=True), render(app=True, opaque=True)
+    for image, name in [(transparent, 'logo_transparent_bg'), (app, 'logo_roundedrectangle_bg')]:
+        image.save(STATIC / f'{name}.png')
+        image.save(STATIC / f'{name}.ico', sizes=[(16,16), (24,24), (32,32), (48,48), (64,64), (128,128), (256,256)])
+        image.save(DOC / f'{name}.png')
+    for size in (192, 512):
+        app.resize((size, size), Image.Resampling.LANCZOS).save(STATIC / f'icon-{size}.png')
+    for layer, name in [('orbit', 'orbit'), ('core', 'planet'), ('star', 'star')]:
+        render(layers=(layer,)).resize((288, 288), Image.Resampling.LANCZOS).save(STATIC / f'loading-logo-{name}.png')
+    apple.resize((180, 180), Image.Resampling.LANCZOS).convert('RGB').save(STATIC / 'apple-touch-icon.png')
 
-    # 规范化到 1024x1024 正方形透明画布，主体占比 92%（四周留 4% 呼吸边距）
-    target_size = 1024
-    scale = (target_size * 0.92) / max(cw, ch)
-    nw = int(cw * scale)
-    nh = int(ch * scale)
-    resized_trans = cropped.resize((nw, nh), Image.Resampling.LANCZOS)
-
-    canvas_trans = Image.new('RGBA', (target_size, target_size), (0, 0, 0, 0))
-    ox = (target_size - nw) // 2
-    oy = (target_size - nh) // 2
-    canvas_trans.paste(resized_trans, (ox, oy), resized_trans)
-
-    # 导出 logo_transparent_bg.png
-    canvas_trans.save(OUT_TRANS_PNG, 'PNG')
-    print(f"已生成: {OUT_TRANS_PNG}")
-
-    # 导出 logo_transparent_bg.ico (多尺寸 16, 24, 32, 48, 64, 128, 256)
-    ico_sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
-    canvas_trans.save(OUT_TRANS_ICO, format='ICO', sizes=ico_sizes)
-    print(f"已生成: {OUT_TRANS_ICO}")
-
-    print("2. 生成纯净深色圆角矩形背景的 Logo (无额外紫色圆圈/光晕)...")
-    # 纯净深色卡片背景 (#161426, RGB: 22, 20, 38)
-    bg = Image.new('RGBA', (target_size, target_size), (22, 20, 38, 255))
-    
-    # 主体在卡片中占比 84% 居中贴合
-    bg_scale = (target_size * 0.84) / max(cw, ch)
-    bnw = int(cw * bg_scale)
-    bnh = int(ch * bg_scale)
-    bg_resized = cropped.resize((bnw, bnh), Image.Resampling.LANCZOS)
-    box = (target_size - bnw) // 2
-    boy = (target_size - bnh) // 2
-    bg.paste(bg_resized, (box, boy), bg_resized)
-
-    # 4x 超采样绘制平滑圆角矩形蒙版 (radius 220px)
-    supersample = 4
-    ss = target_size * supersample
-    mask_super = Image.new('L', (ss, ss), 0)
-    draw_super = ImageDraw.Draw(mask_super)
-    draw_super.rounded_rectangle(
-        [0, 0, ss - 1, ss - 1],
-        radius=int(220 * supersample),
-        fill=255
-    )
-    mask = mask_super.resize((target_size, target_size), Image.Resampling.LANCZOS)
-
-    canvas_round = Image.new('RGBA', (target_size, target_size), (0, 0, 0, 0))
-    canvas_round.paste(bg, (0, 0))
-    canvas_round.putalpha(mask)
-
-    # 导出 logo_roundedrectangle_bg.png
-    canvas_round.save(OUT_ROUND_PNG, 'PNG')
-    print(f"已生成: {OUT_ROUND_PNG}")
-
-    # 导出 logo_roundedrectangle_bg.ico
-    canvas_round.save(OUT_ROUND_ICO, format='ICO', sizes=ico_sizes)
-    print(f"已生成: {OUT_ROUND_ICO}")
 
 if __name__ == '__main__':
     main()

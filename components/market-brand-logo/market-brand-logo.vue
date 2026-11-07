@@ -6,12 +6,17 @@
 		role="button"
 		tabindex="0"
 		@click="handleBadgeClick"
+		@keydown.enter.prevent="handleBadgeClick"
+		@keydown.space.prevent="handleBadgeClick"
 	>
 		<image
 			class="badge-logo"
 			:src="logoTransparent"
 			mode="aspectFit"
 		/>
+		<view class="brand-copy">
+			<text class="brand-name">Koishi 插件市场</text>
+		</view>
 	</view>
 </template>
 
@@ -30,31 +35,29 @@ const handleBadgeClick = () => {
 .brand-badge {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	width: 38px;
-	height: 38px;
+	justify-content: flex-start;
+	gap: 10px;
+	height: 44px;
 	border-radius: 10px;
 	cursor: pointer;
-	transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+	transition: background-color 0.18s ease;
 	background: transparent;
 	padding: 2px;
 	box-sizing: border-box;
 	flex-shrink: 0;
 }
 
-.brand-badge:hover {
-	transform: scale(1.1) rotate(4deg);
-	background: rgba(85, 70, 163, 0.15);
-}
-
 .brand-badge:active {
-	transform: scale(0.95);
+	opacity: 0.8;
 }
 
 .badge-logo {
 	width: 32px;
 	height: 32px;
 	display: block;
-	filter: drop-shadow(0 2px 6px rgba(85, 70, 163, 0.35));
 }
+.brand-copy { min-width: 0; }
+.brand-name { color: var(--text-primary); font-size: 15px; font-weight: 700; white-space: nowrap; }
+.brand-badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 600px) { .brand-name { font-size: 14px; } }
 </style>

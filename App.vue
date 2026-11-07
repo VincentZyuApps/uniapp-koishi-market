@@ -3,6 +3,9 @@
 
 	import { useTheme } from '@/utils/theme.js'
 	import { loadFonts } from '@/utils/fonts.js'
+	// #ifdef WEB
+	import { setupNativeScrollbarHover } from '@/utils/native-scrollbar-hover.js'
+	// #endif
 
 	export default {
 		onLaunch: function() {
@@ -10,6 +13,9 @@
 			const { refreshTheme } = useTheme()
 			refreshTheme()
 			loadFonts()
+			// #ifdef WEB
+			setupNativeScrollbarHover()
+			// #endif
 		},
 		onShow: function() {
 			console.log(`App Show. 欢迎回到 UniAppKoishiMarket! version: ${APP_VERSION}`)
@@ -32,7 +38,7 @@
 	
 	/* 全局应用字体 */
 	page {
-		font-family: 'LXGW WenKai', 'PingFang SC', 'Source Han Sans SC', 'Noto Sans CJK SC', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans GB', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 	}
 
 	/*  #ifdef WEB  */
@@ -72,12 +78,24 @@
 		scrollbar-width: thin;
 		scrollbar-color: var(--scrollbar-thumb, #6d5bd0) var(--scrollbar-track, rgba(85, 70, 163, 0.14));
 	}
+
+	/* 原生滚动容器在桌面端仅靠近对应边缘时显示滚动条。 */
+	@media (hover: hover) and (min-width: 601px) {
+		*:not(.native-scrollbar-edge-visible) {
+			scrollbar-color: transparent transparent !important;
+		}
+		*:not(.native-scrollbar-edge-visible)::-webkit-scrollbar-thumb,
+		*:not(.native-scrollbar-edge-visible)::-webkit-scrollbar-track {
+			background-color: transparent !important;
+			border-color: transparent !important;
+		}
+	}
 	/*  #endif  */
 
 	/*  #ifndef WEB  */
 	/* 小程序端普通元素优先采用 霞鹜文楷，回退思源黑体、苹方及现代无衬线字体 */
 	page, view, text, button, input, textarea {
-	    font-family: 'LXGW WenKai', 'PingFang SC', 'Source Han Sans SC', 'Noto Sans CJK SC', 'Noto Sans SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans GB', sans-serif;
+	    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 	}
 
 	/* 小程序端代码、等宽容器和代码类优先采用 Cascadia Mono + 霞鹜文楷 + 思源黑体 */

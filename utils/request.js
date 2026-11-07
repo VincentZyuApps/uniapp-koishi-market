@@ -1,12 +1,23 @@
+import { MARKET_PRESETS } from './market-presets.js'
+
 export const DEFAULT_MARKET_SEARCH_ENDPOINT = 'https://storeluna-cf.vincentzyu233.cn/storeluna/index.json'
 
 /**
  * 获取当前设置的 endpoint
  * @returns {string} 当前 endpoint
  */
-export function getCurrentEndpoint() {
+export function getManualMarketEndpoint() {
 	const savedEndpoint = uni.getStorageSync('market_endpoint')
-	return savedEndpoint || DEFAULT_MARKET_SEARCH_ENDPOINT
+	if (savedEndpoint) return savedEndpoint
+	const savedValue = uni.getStorageSync('market_preset_index')
+	if (savedValue === '' || savedValue == null) return ''
+	const index = Number(savedValue)
+	if (!Number.isInteger(index) || index < 0 || index >= MARKET_PRESETS.length) return ''
+	return MARKET_PRESETS[index].url || (index === MARKET_PRESETS.length - 1 ? uni.getStorageSync('market_custom_endpoint') || '' : '')
+}
+
+export function getCurrentEndpoint() {
+	return getManualMarketEndpoint() || uni.getStorageSync('market_auto_endpoint') || DEFAULT_MARKET_SEARCH_ENDPOINT
 }
 
 function isAbortError(error) {
@@ -35,7 +46,8 @@ export function fetchMarketData(config = {}) {
 		endpoint = getCurrentEndpoint(),
 		isConsoleOutput = true,
 		isShowToast = false,
-		loadingText = '加载插件数据中...'
+		loadingText = '加载插件数据中...',
+		timeout = 60000
 	} = config;
 	
 	if (isConsoleOutput) {
@@ -58,10 +70,8 @@ export function fetchMarketData(config = {}) {
 		requestTask = uni.request({
 			url: endpoint,
 			method: 'GET',
-			timeout: 30000, // 30秒超时
-			header: {
-				'Content-Type': 'application/json'
-			},
+			// Large registries can take longer to download on slower connections.
+			timeout,
 			
 			success: (res) => {
 				if (isShowToast) {
@@ -115,7 +125,16 @@ export function fetchMarketData(config = {}) {
 				}
 
 				settled = true
-				reject(aborted ? createAbortError(err) : err)
+				if (aborted) {
+					reject(createAbortError(err))
+				} else {
+					const detail = err?.errMsg || err?.message || ''
+					const error = new Error(/timeout/i.test(detail)
+						? '请求超时，请检查网络后重试'
+						: '网络请求失败，请检查网络或数据源的跨域设置')
+					error.originalError = err
+					reject(error)
+				}
 			}
 		});
 	});
@@ -135,14 +154,8 @@ export function fetchMarketData(config = {}) {
  * @returns {Object} 格式化后的数据
  */
 function parseMarketData(rawData) {
-	if (!rawData || !rawData.objects) {
-		return {
-			forceTime: 0,
-			mirror: '',
-			plugins: [],
-			categories: {},
-			badges: {}
-		};
+	if (!rawData || !Array.isArray(rawData.objects)) {
+		throw new Error('数据源返回的市场数据格式无效')
 	}
 	
 	const plugins = rawData.objects.map((item, index) => {

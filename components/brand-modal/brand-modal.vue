@@ -26,7 +26,7 @@
 					:class="{ active: currentTab === 'transparent' }"
 					@click.stop="setTab('transparent')"
 				>
-					<span class="tab-icon">✨</span>
+					<image class="ui-lucide tab-icon" :src="uiIcons['sparkles']" mode="aspectFit" />
 					<span class="tab-label">透明矢量</span>
 				</div>
 				<div
@@ -34,7 +34,7 @@
 					:class="{ active: currentTab === 'squircle' }"
 					@click.stop="setTab('squircle')"
 				>
-					<span class="tab-icon">📱</span>
+					<image class="ui-lucide tab-icon" :src="uiIcons['smartphone']" mode="aspectFit" />
 					<span class="tab-label">应用徽标</span>
 				</div>
 			</div>
@@ -55,8 +55,8 @@
 
 			<div class="modal-footer">
 				<div class="switch-toggle-btn" role="button" @click.stop="toggleTab">
-					<span class="toggle-icon">🔄</span>
-					<span class="toggle-text">切换至 {{ currentTab === 'transparent' ? '应用徽标 (圆角)' : '透明矢量 (光晕)' }}</span>
+					<image class="ui-lucide toggle-icon" :src="uiIcons['refresh-cw']" mode="aspectFit" />
+					<span class="toggle-text">切换至 {{ currentTab === 'transparent' ? '应用徽标 (圆角)' : '透明徽标' }}</span>
 				</div>
 			</div>
 		</div>
@@ -64,6 +64,7 @@
 </template>
 
 <script setup>
+import { uiIcons } from '@/utils/ui-icons.js'
 import { ref, watch, computed } from 'vue'
 import logoTransparent from '@/static/logo_transparent_bg.png'
 import logoSquircle from '@/static/logo_roundedrectangle_bg.png'
@@ -396,4 +397,7 @@ const toggleTab = () => {
 .toggle-icon {
 	font-size: 14px;
 }
+
+.ui-lucide { width:18px; height:18px; flex-shrink:0; vertical-align:middle; }
+.detail-fallback-icon { width:32px; height:32px; }
 </style>

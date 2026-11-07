@@ -1,0 +1,11 @@
+{
+  "name": "Koishi 插件市场",
+  "short_name": "Koishi 市场",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#6850b3",
+  "background_color": "#171527",
+  "display": "standalone"
+}

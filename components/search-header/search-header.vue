@@ -1,11 +1,12 @@
 <template>
-	<view class="search-header">
+	<view ref="searchRoot" class="search-header">
 		<view class="search-bar">
 			<view class="search-icon">
-				<text class="iconfont">🔍</text>
+				<image class="search-image" :src="searchIcon" mode="aspectFit" />
 			</view>
 			<input 
 				class="search-input" 
+				aria-label="搜索插件"
 				type="text" 
 				v-model="inputValue"
 				:placeholder="placeholder"
@@ -13,8 +14,8 @@
 				confirm-type="search"
 				@confirm="handleSearch"
 			/>
-			<view v-if="inputValue" class="clear-icon" @click="handleClear">
-				<text class="iconfont">✕</text>
+			<view v-if="inputValue || searchWords.length" class="clear-icon" role="button" tabindex="0" aria-label="清除搜索" @click="handleClear" @keydown.enter.prevent="handleClear" @keydown.space.prevent="handleClear">
+				<image class="clear-image" :src="closeIcon" mode="aspectFit" />
 			</view>
 		</view>
 		
@@ -25,10 +26,10 @@
 					v-for="(word, index) in searchWords" 
 					:key="index" 
 					class="search-tag"
-					@click="handleRemoveTag(index)"
+					role="button" tabindex="0" :aria-label="'移除搜索词 '+word" @click="handleRemoveTag(index)" @keydown.enter.prevent="handleRemoveTag(index)" @keydown.space.prevent="handleRemoveTag(index)"
 				>
 					{{ word }}
-					<text class="tag-close">✕</text>
+					<image class="clear-image tag-close" :src="closeIcon" mode="aspectFit" />
 				</view>
 			</view>
 		</scroll-view>
@@ -36,7 +37,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import searchIcon from '@/static/icons/search.png'
+import closeIcon from '@/static/icons/x.png'
 
 const props = defineProps({
 	modelValue: {
@@ -53,32 +56,86 @@ const emit = defineEmits(['update:modelValue', 'search', 'clear'])
 
 const inputValue = ref('')
 const searchWords = ref([...props.modelValue])
+const searchRoot = ref(null)
+let lastPublished = JSON.stringify(props.modelValue)
+let syncingExternalValue = false
+
+const publishSearch = () => {
+	if (syncingExternalValue) return
+	const draft = inputValue.value.trim()
+	const words = draft ? [...searchWords.value, draft] : [...searchWords.value]
+	const serialized = JSON.stringify(words)
+	if (serialized === lastPublished) return
+	lastPublished = serialized
+	emit('update:modelValue', words)
+	emit('search', draft)
+}
 
 watch(() => props.modelValue, (newVal) => {
+	const serialized = JSON.stringify(newVal)
+	if (serialized === lastPublished) return
+	syncingExternalValue = true
 	searchWords.value = [...newVal]
+	inputValue.value = ''
+	lastPublished = serialized
+	syncingExternalValue = false
 }, { deep: true })
+
+watch(inputValue, publishSearch, { flush: 'sync' })
 
 const handleSearch = () => {
 	if (inputValue.value.trim()) {
-		const newWords = [...searchWords.value, inputValue.value.trim()]
-		searchWords.value = newWords
-		emit('update:modelValue', newWords)
-		emit('search', inputValue.value.trim())
+		searchWords.value = [...searchWords.value, inputValue.value.trim()]
 		inputValue.value = ''
+		publishSearch()
 	}
 }
 
 const handleClear = () => {
-	inputValue.value = ''
 	searchWords.value = []
-	emit('update:modelValue', [])
+	inputValue.value = ''
+	publishSearch()
 	emit('clear')
 }
 
 const handleRemoveTag = (index) => {
 	searchWords.value.splice(index, 1)
-	emit('update:modelValue', [...searchWords.value])
+	publishSearch()
 }
+
+// #ifdef H5
+let wheelRoot = null
+let searchDisposed = false
+const handleTagWheel = (event) => {
+	if (!event.cancelable || event.defaultPrevented || event.ctrlKey || event.metaKey) return
+	const tags = event.target?.closest?.('.search-tags')
+	if (!tags) return
+	const scroller = Array.from(tags.querySelectorAll('.uni-scroll-view'))
+		.find(element => element.scrollWidth > element.clientWidth + 1 && getComputedStyle(element).overflowX !== 'visible')
+	if (!scroller) return
+	const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX
+	if (!delta) return
+	const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scroller.clientWidth : 1
+	const next = Math.max(0, Math.min(scroller.scrollWidth - scroller.clientWidth, scroller.scrollLeft + delta * scale))
+	if (next === scroller.scrollLeft) return
+	event.preventDefault()
+	scroller.scrollLeft = next
+}
+
+onMounted(async () => {
+	await nextTick()
+	if (searchDisposed) return
+	wheelRoot = searchRoot.value?.$el || searchRoot.value
+	wheelRoot?.addEventListener('wheel', handleTagWheel, { passive: false })
+})
+
+onUnmounted(() => {
+	searchDisposed = true
+	wheelRoot?.removeEventListener('wheel', handleTagWheel)
+})
+// #endif
+
+defineExpose({ handleSearch })
 </script>
 
 <style scoped>
@@ -297,4 +354,24 @@ const handleRemoveTag = (index) => {
 	margin-left: 4px;
 	font-size: 14px;
 }
+.search-bar {
+	min-height: 48px;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	box-shadow: none;
+}
+.search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.search-icon { opacity: 1; display: flex; align-items: center; }
+.search-image { width: 20px; height: 20px; }
+.search-bar:focus-within .search-icon, .clear-icon:hover, .search-tag:hover, .search-tag:hover .tag-close { transform: none; box-shadow: none; }
+.search-input, .search-input-placeholder { font-family: inherit; }
+.search-tag { background: var(--accent-soft); color: var(--accent); }
+.clear-image { width: 16px; height: 16px; vertical-align: middle; }
+.search-bar { max-width: none; }
+.search-header { max-width: none; }
+/* Keep committed search terms anchored below the input without resizing the header. */
+.search-header { position: relative; }
+.search-tags { position: absolute; top: 100%; left: -8px; z-index: 1; width: calc(100% + 16px); max-width: none; }
+/* The scroll viewport clips overflow, so leave room for each tag's shadow. */
+.tag-list { box-sizing: border-box; padding: 6px 8px 12px; }
 </style>

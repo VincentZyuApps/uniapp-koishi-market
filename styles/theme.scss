@@ -1,24 +1,25 @@
 /* Koishi 插件市场的跨页面主题令牌。页面根节点继承这些变量，子组件无需感知主题实现。 */
 $theme-transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-$light-accent: #5546a3;
-$dark-accent: #7c6bce;
+$light-accent: #6850b3;
+$dark-accent: #c7b8ff;
 
 @mixin theme-tokens($dark: false) {
 	@if $dark {
-		--bg-primary: #0d1117;
-		--bg-secondary: #161b22;
-		--bg-tertiary: #21262d;
-		--surface: #161b22;
-		--surface-subtle: #0d1117;
-		--text-primary: #e6edf3;
-		--text-secondary: #8b949e;
-		--text-tertiary: #6e7681;
-		--border-color: #30363d;
-		--border: #30363d;
+		--bg-primary: #11101e;
+		--bg-secondary: #19182a;
+		--bg-tertiary: #24203b;
+		--surface: #19182a;
+		--surface-subtle: #11101e;
+		--text-primary: #f5f3ff;
+		--text-secondary: #c5c1d6;
+		--text-tertiary: #aaa5bc;
+		--border-color: #343247;
+		--border: #343247;
 		--primary-color: #{$dark-accent};
 		--accent: #{$dark-accent};
-		--accent-soft: #282342;
-		--accent-ring: rgba(124, 107, 206, 0.24);
+		--accent-soft: #312b4b;
+		--accent-ring: rgba(199, 184, 255, 0.24);
+		--brand-signal: #69d7d1;
 		--success-color: #2ea043;
 		--warning-color: #e3b341;
 		--danger-color: #f85149;
@@ -31,22 +32,23 @@ $dark-accent: #7c6bce;
 		--scrollbar-thumb: #a99cff;
 		--scrollbar-shadow: rgba(124, 107, 206, 0.42);
 		--overlay-backdrop: rgba(0, 0, 0, 0.6);
-		--on-accent: #ffffff;
+		--on-accent: #211a38;
 	} @else {
-		--bg-primary: #ffffff;
-		--bg-secondary: #f8f8f9;
-		--bg-tertiary: #f0f0f0;
+		--bg-primary: #f8f7fb;
+		--bg-secondary: #ffffff;
+		--bg-tertiary: #f0edf7;
 		--surface: #ffffff;
-		--surface-subtle: #f8f8f9;
-		--text-primary: #1f2328;
-		--text-secondary: #656d76;
-		--text-tertiary: #8c959f;
-		--border-color: #d0d7de;
-		--border: #d0d7de;
+		--surface-subtle: #f8f7fb;
+		--text-primary: #252333;
+		--text-secondary: #625e70;
+		--text-tertiary: #746f82;
+		--border-color: #e3e0ec;
+		--border: #e3e0ec;
 		--primary-color: #{$light-accent};
 		--accent: #{$light-accent};
-		--accent-soft: #edeafa;
+		--accent-soft: #f0edfa;
 		--accent-ring: rgba(85, 70, 163, 0.18);
+		--brand-signal: #238c8e;
 		--success-color: #1a7f37;
 		--warning-color: #bf8700;
 		--danger-color: #d1242f;
@@ -68,10 +70,10 @@ $dark-accent: #7c6bce;
 .plugin-detail-page,
 .agent-page {
 	@include theme-tokens;
-	--font-body: 14px;
+	--font-body: 15px;
 	--font-caption: 13px;
 	--font-section: 18px;
-	--font-page: 23px;
+	--font-page: 26px;
 	--font-card: 16px;
 	font-size: var(--font-body);
 	line-height: 1.5;
@@ -94,6 +96,145 @@ $dark-accent: #7c6bce;
 .agent-page.dark-mode {
 	@include theme-tokens(true);
 }
+
+
+// 调色板只覆盖颜色令牌；Koishi 保持原有配色，所有页面使用同一份定义。
+.palette-preview-koishi { --preview-base: #f8f7fb; --preview-soft: #f0edfa; --preview-accent: #6850b3; }
+.palette-preview-microsoft { --preview-base: #f5f8fc; --preview-soft: #e7f1fb; --preview-accent: #2563a6; }
+.theme-microsoft {
+	--bg-primary: #f5f8fc; --bg-secondary: #ffffff; --bg-tertiary: #e9f0f8;
+	--surface: #ffffff; --surface-subtle: #f5f8fc;
+	--text-primary: #1b2a3a; --text-secondary: #55697b; --text-tertiary: #64798c;
+	--border: #d8e3ee; --border-color: #d8e3ee;
+	--primary-color: #2563a6; --accent: #2563a6; --accent-soft: #e7f1fb;
+	--accent-ring: rgba(37, 99, 166, 0.25); --brand-signal: #1d6684; --k-text-active: #2563a6;
+	--scrollbar-track: #e7f1fb; --scrollbar-thumb: #2563a6; --scrollbar-shadow: rgba(37, 99, 166, 0.4);
+	--on-accent: #ffffff;
+}
+.theme-microsoft.dark-mode {
+	--bg-primary: #101b28; --bg-secondary: #182637; --bg-tertiary: #22364a;
+	--surface: #182637; --surface-subtle: #101b28;
+	--text-primary: #edf5ff; --text-secondary: #b5c6d8; --text-tertiary: #aabfd0;
+	--border: #30475c; --border-color: #30475c;
+	--primary-color: #91c5f4; --accent: #91c5f4; --accent-soft: #253c53;
+	--accent-ring: rgba(145, 197, 244, 0.25); --brand-signal: #79cbd2; --k-text-active: #91c5f4;
+	--scrollbar-track: #253c53; --scrollbar-thumb: #91c5f4; --scrollbar-shadow: rgba(145, 197, 244, 0.4);
+	--on-accent: #172029;
+}
+.palette-preview-apple { --preview-base: #f6f7f9; --preview-soft: #eaf1fa; --preview-accent: #3568a8; }
+.theme-apple {
+	--bg-primary: #f6f7f9; --bg-secondary: #ffffff; --bg-tertiary: #eceff3;
+	--surface: #ffffff; --surface-subtle: #f6f7f9;
+	--text-primary: #252a31; --text-secondary: #5f6873; --text-tertiary: #6b7480;
+	--border: #dfe3e9; --border-color: #dfe3e9;
+	--primary-color: #3568a8; --accent: #3568a8; --accent-soft: #eaf1fa;
+	--accent-ring: rgba(53, 104, 168, 0.25); --brand-signal: #287b89; --k-text-active: #3568a8;
+	--scrollbar-track: #eaf1fa; --scrollbar-thumb: #3568a8; --scrollbar-shadow: rgba(53, 104, 168, 0.4);
+	--on-accent: #ffffff;
+}
+.theme-apple.dark-mode {
+	--bg-primary: #181b21; --bg-secondary: #22262e; --bg-tertiary: #303641;
+	--surface: #22262e; --surface-subtle: #181b21;
+	--text-primary: #f2f4f8; --text-secondary: #bbc2cc; --text-tertiary: #afb8c5;
+	--border: #3b424c; --border-color: #3b424c;
+	--primary-color: #a9c9ee; --accent: #a9c9ee; --accent-soft: #303d4e;
+	--accent-ring: rgba(169, 201, 238, 0.25); --brand-signal: #8ac9cc; --k-text-active: #a9c9ee;
+	--scrollbar-track: #303d4e; --scrollbar-thumb: #a9c9ee; --scrollbar-shadow: rgba(169, 201, 238, 0.4);
+	--on-accent: #172029;
+}
+.palette-preview-claude { --preview-base: #faf7f4; --preview-soft: #f7eae3; --preview-accent: #a34f36; }
+.theme-claude {
+	--bg-primary: #faf7f4; --bg-secondary: #ffffff; --bg-tertiary: #f3ede8;
+	--surface: #ffffff; --surface-subtle: #faf7f4;
+	--text-primary: #342923; --text-secondary: #79645a; --text-tertiary: #7c6a61;
+	--border: #e9ddd5; --border-color: #e9ddd5;
+	--primary-color: #a34f36; --accent: #a34f36; --accent-soft: #f7eae3;
+	--accent-ring: rgba(163, 79, 54, 0.25); --brand-signal: #397a70; --k-text-active: #a34f36;
+	--scrollbar-track: #f7eae3; --scrollbar-thumb: #a34f36; --scrollbar-shadow: rgba(163, 79, 54, 0.4);
+	--on-accent: #ffffff;
+}
+.theme-claude.dark-mode {
+	--bg-primary: #211b19; --bg-secondary: #2c2420; --bg-tertiary: #3b2f29;
+	--surface: #2c2420; --surface-subtle: #211b19;
+	--text-primary: #f8eee9; --text-secondary: #d2bbb0; --text-tertiary: #c9b5ac;
+	--border: #514039; --border-color: #514039;
+	--primary-color: #e6aa92; --accent: #e6aa92; --accent-soft: #49332c;
+	--accent-ring: rgba(230, 170, 146, 0.25); --brand-signal: #8dcabd; --k-text-active: #e6aa92;
+	--scrollbar-track: #49332c; --scrollbar-thumb: #e6aa92; --scrollbar-shadow: rgba(230, 170, 146, 0.4);
+	--on-accent: #172029;
+}
+.palette-preview-openai { --preview-base: #f5f8f6; --preview-soft: #e4f2eb; --preview-accent: #26765e; }
+.theme-openai {
+	--bg-primary: #f5f8f6; --bg-secondary: #ffffff; --bg-tertiary: #e9f0eb;
+	--surface: #ffffff; --surface-subtle: #f5f8f6;
+	--text-primary: #1e3029; --text-secondary: #596f65; --text-tertiary: #687b70;
+	--border: #d9e6dd; --border-color: #d9e6dd;
+	--primary-color: #26765e; --accent: #26765e; --accent-soft: #e4f2eb;
+	--accent-ring: rgba(38, 118, 94, 0.25); --brand-signal: #26765e; --k-text-active: #26765e;
+	--scrollbar-track: #e4f2eb; --scrollbar-thumb: #26765e; --scrollbar-shadow: rgba(38, 118, 94, 0.4);
+	--on-accent: #ffffff;
+}
+.theme-openai.dark-mode {
+	--bg-primary: #14201c; --bg-secondary: #1b2a24; --bg-tertiary: #253a30;
+	--surface: #1b2a24; --surface-subtle: #14201c;
+	--text-primary: #edf7f0; --text-secondary: #b7cfc0; --text-tertiary: #afc7b8;
+	--border: #354b3d; --border-color: #354b3d;
+	--primary-color: #8bcdb3; --accent: #8bcdb3; --accent-soft: #294436;
+	--accent-ring: rgba(139, 205, 179, 0.25); --brand-signal: #8bcdb3; --k-text-active: #8bcdb3;
+	--scrollbar-track: #294436; --scrollbar-thumb: #8bcdb3; --scrollbar-shadow: rgba(139, 205, 179, 0.4);
+	--on-accent: #172029;
+}
+.palette-preview-sky { --preview-base: #f4f9fb; --preview-soft: #e4f3f7; --preview-accent: #28758d; }
+.theme-sky {
+	--bg-primary: #f4f9fb; --bg-secondary: #ffffff; --bg-tertiary: #e9f2f6;
+	--surface: #ffffff; --surface-subtle: #f4f9fb;
+	--text-primary: #203039; --text-secondary: #58717c; --text-tertiary: #627984;
+	--border: #d9e8ee; --border-color: #d9e8ee;
+	--primary-color: #28758d; --accent: #28758d; --accent-soft: #e4f3f7;
+	--accent-ring: rgba(40, 117, 141, 0.25); --brand-signal: #28758d; --k-text-active: #28758d;
+	--scrollbar-track: #e4f3f7; --scrollbar-thumb: #28758d; --scrollbar-shadow: rgba(40, 117, 141, 0.4);
+	--on-accent: #ffffff;
+}
+.theme-sky.dark-mode {
+	--bg-primary: #132028; --bg-secondary: #1a2c35; --bg-tertiary: #253d48;
+	--surface: #1a2c35; --surface-subtle: #132028;
+	--text-primary: #ecf7fa; --text-secondary: #b8cfd5; --text-tertiary: #adc5cc;
+	--border: #35505c; --border-color: #35505c;
+	--primary-color: #8acadf; --accent: #8acadf; --accent-soft: #294752;
+	--accent-ring: rgba(138, 202, 223, 0.25); --brand-signal: #8acadf; --k-text-active: #8acadf;
+	--scrollbar-track: #294752; --scrollbar-thumb: #8acadf; --scrollbar-shadow: rgba(138, 202, 223, 0.4);
+	--on-accent: #172029;
+}
+.palette-preview-forest { --preview-base: #f5f9f5; --preview-soft: #e8f3e9; --preview-accent: #397551; }
+.theme-forest {
+	--bg-primary: #f5f9f5; --bg-secondary: #ffffff; --bg-tertiary: #ebf1ea;
+	--surface: #ffffff; --surface-subtle: #f5f9f5;
+	--text-primary: #233229; --text-secondary: #607164; --text-tertiary: #687b6c;
+	--border: #dce8dd; --border-color: #dce8dd;
+	--primary-color: #397551; --accent: #397551; --accent-soft: #e8f3e9;
+	--accent-ring: rgba(57, 117, 81, 0.25); --brand-signal: #397551; --k-text-active: #397551;
+	--scrollbar-track: #e8f3e9; --scrollbar-thumb: #397551; --scrollbar-shadow: rgba(57, 117, 81, 0.4);
+	--on-accent: #ffffff;
+}
+.theme-forest.dark-mode {
+	--bg-primary: #18211b; --bg-secondary: #212c24; --bg-tertiary: #2c3b30;
+	--surface: #212c24; --surface-subtle: #18211b;
+	--text-primary: #eff7ef; --text-secondary: #becfc0; --text-tertiary: #b4c7b7;
+	--border: #3c5040; --border-color: #3c5040;
+	--primary-color: #98ccaa; --accent: #98ccaa; --accent-soft: #314a37;
+	--accent-ring: rgba(152, 204, 170, 0.25); --brand-signal: #98ccaa; --k-text-active: #98ccaa;
+	--scrollbar-track: #314a37; --scrollbar-thumb: #98ccaa; --scrollbar-shadow: rgba(152, 204, 170, 0.4);
+	--on-accent: #172029;
+}
+
+// 预览色阶跟随当前亮暗模式。
+.dark-mode .palette-preview-koishi { --preview-base: #11101e; --preview-soft: #312b4b; --preview-accent: #c7b8ff; }
+.dark-mode .palette-preview-microsoft { --preview-base: #101b28; --preview-soft: #253c53; --preview-accent: #91c5f4; }
+.dark-mode .palette-preview-apple { --preview-base: #181b21; --preview-soft: #303d4e; --preview-accent: #a9c9ee; }
+.dark-mode .palette-preview-claude { --preview-base: #211b19; --preview-soft: #49332c; --preview-accent: #e6aa92; }
+.dark-mode .palette-preview-openai { --preview-base: #14201c; --preview-soft: #294436; --preview-accent: #8bcdb3; }
+.dark-mode .palette-preview-sky { --preview-base: #132028; --preview-soft: #294752; --preview-accent: #8acadf; }
+.dark-mode .palette-preview-forest { --preview-base: #18211b; --preview-soft: #314a37; --preview-accent: #98ccaa; }
 
 // 动画档位由页面根节点继承，组件内的 scoped 样式也会被这些规则覆盖。
 /* #ifndef MP-WEIXIN */
