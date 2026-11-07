@@ -121,4 +121,5 @@ function toggle() {
 	font-size: var(--font-caption, 13px);
 	line-height: 1.5;
 }
+.form-toggle:active { transform: scale(var(--interaction-press-scale, 0.99)); }
 </style>

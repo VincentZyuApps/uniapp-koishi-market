@@ -4,7 +4,10 @@
 			<view class="settings-header">
 				<button v-if="!embedded" class="market-back-button" @click="returnToMarket">← 返回插件市场</button>
 				<view class="header-copy">
-					<text class="header-title">设置</text>
+					<!-- #ifdef WEB -->
+					<h1 v-if="!embedded" class="header-title">设置</h1><text v-else class="header-title">设置</text>
+					<!-- #endif -->
+					<!-- #ifndef WEB --><text class="header-title">设置</text><!-- #endif -->
 					<text class="header-subtitle">管理插件市场数据源与连接状态</text>
 				</view>
 				<view v-if="!embedded" class="theme-toggle" role="button" tabindex="0" :aria-label="'切换主题，当前' + themeLabel" @click="toggleTheme" @keydown.enter.prevent="toggleTheme" @keydown.space.prevent="toggleTheme">
@@ -559,6 +562,7 @@ onLoad(()=>{
 }
 
 .header-title {
+	margin: 0;
 	display: block;
 	font-size: 48rpx;
 	font-weight: 600;
@@ -1391,5 +1395,11 @@ onLoad(()=>{
 .display-mode-label, .display-mode-description { display:block; }
 .display-mode-label { font-size:var(--font-body, 14px); font-weight:600; }
 .display-mode-description { margin-top:3px; color:var(--text-secondary); font-size:var(--font-caption, 12px); }
+.palette-option, .display-mode-option, .copy-btn, .test-btn, .reset-btn { transition:transform .18s ease, border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease; }
+@media (hover: hover) {
+ .palette-option:hover, .display-mode-option:hover { border-color:var(--accent); }
+}
+.palette-option:active, .display-mode-option:active, .copy-btn:active:not(:disabled), .test-btn:active:not(:disabled), .reset-btn:active { transform:scale(var(--interaction-press-scale, .99)); }
+.copy-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 @media (max-width:400px) { .palette-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 </style>

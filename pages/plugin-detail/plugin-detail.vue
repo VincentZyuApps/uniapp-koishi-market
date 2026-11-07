@@ -13,10 +13,13 @@
   </view>
  </view></view>
  <view v-if="isLoading" class="loading-container"><view class="loading-spinner"></view><text class="loading-text">加载中…</text></view>
+ <view v-else-if="loadError" class="loading-container" role="alert"><text class="loading-text">{{ loadError }}</text><button @click="goBack">返回市场</button></view>
  <styled-scroll-view v-else class="detail-content"><view class="content-wrapper">
   <view class="plugin-header">
    <view class="plugin-icon"><image v-if="authorEmail" class="author-avatar" :src="getAvatarUrl(authorEmail, currentMirrorIndex)" mode="aspectFill" @error="handleAvatarError" /><view v-else class="icon-fallback"><image class="detail-fallback-icon" :src="uiIcons.package" mode="aspectFit" /></view></view>
-   <view class="plugin-basic-info"><view class="identity-title"><view class="plugin-name">{{ plugin.shortname || plugin.name }}</view>
+   <view class="plugin-basic-info"><view class="identity-title">
+<!-- #ifdef WEB --><h1 class="plugin-name">{{ plugin.shortname || plugin.name }}</h1><!-- #endif -->
+<!-- #ifndef WEB --><view class="plugin-name">{{ plugin.shortname || plugin.name }}</view><!-- #endif -->
 <!-- 徽章信息 -->
 				<view class="identity-badges" v-if="plugin.insecure || plugin.verified || plugin.portable">
 
@@ -135,6 +138,7 @@
 					<view class="publisher-card clickable" role="button" tabindex="0" aria-label="复制发布者链接" @click="copyNpmAuthorLink(plugin._raw.package.publisher.username)" @keydown.enter.prevent="copyNpmAuthorLink(plugin._raw.package.publisher.username)" @keydown.space.prevent="copyNpmAuthorLink(plugin._raw.package.publisher.username)">
 						<image
 							class="publisher-avatar"
+							:alt="(plugin._raw.package.publisher.username || '发布者') + '的头像'"
 							:src="getAvatarUrl(plugin._raw.package.publisher.email)"
 							mode="aspectFill"
 						/>
@@ -153,6 +157,7 @@
 						<view class="maintainer-card clickable" v-for="(maintainer, index) in plugin._raw.package.maintainers" :key="index" role="button" tabindex="0" aria-label="复制维护者链接" @click="copyNpmAuthorLink(maintainer.username)" @keydown.enter.prevent="copyNpmAuthorLink(maintainer.username)" @keydown.space.prevent="copyNpmAuthorLink(maintainer.username)">
 							<image
 								class="maintainer-avatar"
+								:alt="(maintainer.username || '维护者') + '的头像'"
 								:src="getAvatarUrl(maintainer.email)"
 								mode="aspectFill"
 							/>
@@ -238,8 +243,12 @@
 <script setup>
 import { uiIcons } from '@/utils/ui-icons.js'
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { onLoad } from '@dcloudio/uni-app';
+import { onLoad, onShow, onHide } from '@dcloudio/uni-app';
+// #ifdef WEB
+import { setPluginSeo, resetHomepageSeo } from '@/utils/seo.js'
+// #endif
 import { getPlugin } from '@/utils/plugin-store.js';
+import { fetchMarketData } from '@/utils/request.js';
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
 import { AVATAR_MIRRORS, getAvatarUrl } from '@/utils/avatar.js';
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue';
@@ -254,85 +263,67 @@ import githubMarkLight from '@/static/github-mark.png'
 // 主题模式（统一由 useTheme 管理）
 const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, paletteClass } = useTheme()
 const isLoading = ref(true);
+const loadError = ref('');
 const plugin = ref({});
 const avatarError = ref(false);
 const currentMirrorIndex = ref(0);
 const { pageStyle } = usePageLayout()
 const { motionClass } = useMotionPreferences();
+// #ifdef WEB
+let detailVisible = true
+// #endif
 
-// 从上一页接收插件数据
-onLoad((options) => {
+// Support both in-app navigation and a fresh visit to a shared detail URL.
+onLoad(async (options) => {
 	// #ifdef MP-QQ
 	loadFonts()
 	// #endif
 	try {
-		
-		// 从localStorage读取主题设置
-		const savedTheme = uni.getStorageSync('theme');
-		if (['system', 'light', 'dark'].includes(savedTheme)) {
-			themeMode.value = savedTheme;
-		}
-		
-		// 接收插件数据
-		const pluginName = options.name
-		const pluginRaw = options.plugin
-
-		if (pluginName) {
-			const name = decodeURIComponent(pluginName)
-			const data = getPlugin(name)
-			
-			if (data) {
-				plugin.value = data
-			} else {
-				console.error('插件数据未找到:', name)
-				uni.showToast({
-					title: '插件数据丢失，请返回重试',
-					icon: 'error',
-					duration: 2000
-				})
-				setTimeout(() => {
-					uni.navigateBack()
-				}, 2000)
-				return
+		const savedTheme = uni.getStorageSync('theme')
+		if (['system', 'light', 'dark'].includes(savedTheme)) themeMode.value = savedTheme
+		if (options.name) {
+			let name = options.name
+			try { name = decodeURIComponent(name) } catch (_) { /* Already decoded. */ }
+			// #ifdef WEB
+			if (detailVisible) setPluginSeo({ name })
+			// #endif
+			let data = getPlugin(name)
+			if (!data) {
+				const market = await fetchMarketData({ isConsoleOutput: false })
+				data = market.plugins.find(item => item.name === name || item.shortname === name)
 			}
-			
-			// 调试：打印当前插件的完整数据结构
-			console.log('=== 插件详情页 - 当前插件数据结构 ===')
-			console.log('插件名称:', plugin.value.shortname || plugin.value.name)
-			console.log('=======================================')
-			
-			isLoading.value = false;
-		} else if (pluginRaw) {
-			// 兼容旧版 URL 格式（直接传递 JSON）
-			plugin.value = JSON.parse(decodeURIComponent(pluginRaw))
-			isLoading.value = false
+			if (!data) throw new Error('当前数据源中未找到该插件')
+			plugin.value = data
+		} else if (options.plugin) {
+			plugin.value = JSON.parse(decodeURIComponent(options.plugin))
 		} else {
-			// 如果没有数据，显示错误并返回
-			uni.showToast({
-				title: '插件数据错误',
-				icon: 'error',
-				duration: 2000
-			});
-			setTimeout(() => {
-				uni.navigateBack();
-			}, 2000);
+			throw new Error('缺少插件信息')
 		}
+		// #ifdef WEB
+		if (detailVisible) setPluginSeo(plugin.value)
+		// #endif
 	} catch (error) {
-		console.error('加载插件详情失败:', error);
-		uni.showToast({
-			title: '加载失败',
-			icon: 'error',
-			duration: 2000
-		});
-		setTimeout(() => {
-			uni.navigateBack();
-		}, 2000);
+		loadError.value = error.message || '加载插件详情失败，请检查网络或数据源'
+	} finally {
+		isLoading.value = false
 	}
-});
+})
+
+// #ifdef WEB
+onShow(() => {
+	detailVisible = true
+	if (plugin.value.name || plugin.value.shortname) setPluginSeo(plugin.value)
+})
+onHide(() => {
+	detailVisible = false
+	resetHomepageSeo()
+})
+// #endif
 
 // 返回上一页
 const goBack = () => {
-	uni.navigateBack();
+	if (getCurrentPages().length > 1) uni.navigateBack()
+	else uni.reLaunch({ url: '/pages/index/index' })
 };
 
 // 获取描述文本（中文优先）
@@ -532,6 +523,8 @@ onUnmounted(() => {
 .back-btn, .github-link, .theme-toggle { display:flex; align-items:center; justify-content:center; gap:7px; box-sizing:border-box; min-height:38px; padding:8px 11px; border:1px solid var(--border); border-radius:10px; color:var(--text-secondary); background:var(--surface); cursor:pointer; font-size:13px; }
 .back-btn:hover, .github-link:hover, .theme-toggle:hover, .plugin-package:hover, .publisher-card:hover, .maintainer-card:hover, .link-item:hover { color:var(--accent); background:var(--accent-soft); }
 .back-btn:focus-visible, .github-link:focus-visible, .theme-toggle:focus-visible, .plugin-package:focus-visible, .publisher-card:focus-visible, .maintainer-card:focus-visible, .link-item:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.back-btn, .github-link, .theme-toggle, .plugin-package, .publisher-card, .maintainer-card, .link-item { transition:transform .18s ease, color .18s ease, background-color .18s ease, border-color .18s ease; }
+.back-btn:active, .github-link:active, .theme-toggle:active, .plugin-package:active, .publisher-card:active, .maintainer-card:active, .link-item:active { transform:scale(var(--interaction-press-scale, .99)); }
 .ui-lucide, .github-icon { width:17px; height:17px; flex-shrink:0; }
 .detail-content { flex:1; height:0; min-height:0; overflow:hidden; }
 .content-wrapper { box-sizing:border-box; width:100%; max-width:1180px; margin:0 auto; padding:36px 28px 72px; }
@@ -542,7 +535,7 @@ onUnmounted(() => {
 .detail-fallback-icon { width:32px; height:32px; }
 .plugin-basic-info { flex:1; min-width:0; }
 .identity-title { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; }
-.plugin-name { min-width:0; font-size:30px; line-height:1.2; font-weight:700; overflow-wrap:anywhere; }
+.plugin-name { margin:0; min-width:0; font-size:30px; line-height:1.2; font-weight:700; overflow-wrap:anywhere; }
 .plugin-package { display:inline-flex; align-items:center; gap:8px; max-width:100%; box-sizing:border-box; margin:8px 0 0 -6px; padding:4px 6px; border-radius:7px; color:var(--text-secondary); font-size:14px; cursor:pointer; }
 .plugin-package text { min-width:0; overflow-wrap:anywhere; }
 .copy-hint { width:15px; height:15px; opacity:.7; }

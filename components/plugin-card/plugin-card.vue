@@ -2,7 +2,7 @@
 	<view class="plugin-card" role="button" tabindex="0" @click="handleClick" @keydown.enter.prevent="handleClick" @keydown.space.prevent="handleClick">
 		<view class="card-header">
 			<view class="category-icon"><image class="category-image" :src="packageIcon" mode="aspectFit" /></view>
-			<view class="header-main"><view class="title-row"><text class="plugin-name">{{ plugin.shortname || plugin.name }}</text><image v-if="badge" class="badge-image" :src="badgeIcon" mode="aspectFit" /><image class="card-arrow" :src="uiIcons['arrow-right']" mode="aspectFit" /></view><text class="category-label">{{ categoryLabel }}</text></view>
+			<view class="header-main"><view class="title-row"><text class="plugin-name">{{ plugin.shortname || plugin.name }}</text><image v-if="badge" class="badge-image" :alt="badgeLabel" :src="badgeIcon" mode="aspectFit" /><image class="card-arrow" :src="uiIcons['arrow-right']" mode="aspectFit" /></view><text class="category-label">{{ categoryLabel }}</text></view>
 		</view>
 		<view class="card-description"><text class="description-text">{{ previewDescription }}</text></view>
 		<view class="card-metrics"><view class="metric" :aria-label="'评分 ' + (plugin.rating || 0).toFixed(1)"><image :src="uiIcons.star" mode="aspectFit" /><text>{{ (plugin.rating || 0).toFixed(1) }}</text></view><view class="metric" :aria-label="'下载量 ' + (plugin.downloads || 0)"><image :src="uiIcons.download" mode="aspectFit" /><text>{{ plugin.downloads || 0 }}</text></view><view class="metric" :aria-label="'大小 ' + (formatSize(plugin.installSize) || '未知')"><image :src="uiIcons.box" mode="aspectFit" /><text>{{ formatSize(plugin.installSize) || '—' }}</text></view></view>
@@ -208,6 +208,7 @@ const categoryLabel = computed(() => {
 	return labels[props.plugin.category] || props.plugin.category || '其他'
 })
 
+const badgeLabel = computed(() => ({ verified: '官方认证', preview: '预览版', insecure: '不安全', portable: '可移植', newborn: '新发布' })[badge.value?.type] || '')
 const badgeIcon = computed(() => uiIcons[({ verified: 'shield-check', preview: 'eye', insecure: 'triangle-alert', portable: 'box', newborn: 'sparkles' })[badge.value?.type]] || uiIcons.box)
 
 // 格式化大小
@@ -757,4 +758,8 @@ const handleClick = () => {
 .metric text { overflow:hidden; text-overflow:ellipsis; }
 .card-header { min-height:42px; }
 .card-footer { margin-top:auto; }
+
+/* Only the card being operated receives press feedback. */
+.plugin-card { transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+.plugin-card:active { transform: scale(var(--interaction-press-scale, 0.99)); }
 </style>

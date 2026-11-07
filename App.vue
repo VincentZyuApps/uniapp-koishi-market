@@ -1,10 +1,11 @@
 <script>
-	const APP_VERSION = '0.3.6-rc.2'
+	const APP_VERSION = '0.3.7-rc.4'
 
 	import { useTheme } from '@/utils/theme.js'
 	import { loadFonts } from '@/utils/fonts.js'
 	// #ifdef WEB
 	import { setupNativeScrollbarHover } from '@/utils/native-scrollbar-hover.js'
+	import { setupH5ImageAlt } from '@/utils/h5-image-alt.js'
 	// #endif
 
 	export default {
@@ -15,6 +16,7 @@
 			loadFonts()
 			// #ifdef WEB
 			setupNativeScrollbarHover()
+			setupH5ImageAlt()
 			// #endif
 		},
 		onShow: function() {

@@ -237,6 +237,13 @@ $dark-accent: #c7b8ff;
 .dark-mode .palette-preview-forest { --preview-base: #18211b; --preview-soft: #314a37; --preview-accent: #98ccaa; }
 
 // 动画档位由页面根节点继承，组件内的 scoped 样式也会被这些规则覆盖。
+// 按压反馈只在操作期间生效；超低档保持控件静止。
+.motion-ultra-low { --interaction-press-scale: 1; }
+.motion-low { --interaction-press-scale: 0.995; }
+.motion-medium { --interaction-press-scale: 0.99; }
+.motion-high { --interaction-press-scale: 0.985; }
+.motion-ultra-high { --interaction-press-scale: 0.98; }
+
 /* #ifndef MP-WEIXIN */
 .motion-ultra-low,
 .motion-ultra-low *,

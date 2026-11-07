@@ -374,4 +374,8 @@ defineExpose({ handleSearch })
 .search-tags { position: absolute; top: 100%; left: -8px; z-index: 1; width: calc(100% + 16px); max-width: none; }
 /* The scroll viewport clips overflow, so leave room for each tag's shadow. */
 .tag-list { box-sizing: border-box; padding: 6px 8px 12px; }
+.search-bar { transition:border-color .18s ease, background-color .18s ease, box-shadow .18s ease; }
+.clear-icon, .search-tag { transition:transform .18s ease, color .18s ease, background-color .18s ease; }
+.clear-icon:active, .search-tag:active { transform:scale(var(--interaction-press-scale, .99)); }
+.clear-icon:focus-visible, .search-tag:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 </style>

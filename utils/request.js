@@ -47,104 +47,81 @@ export function fetchMarketData(config = {}) {
 		isConsoleOutput = true,
 		isShowToast = false,
 		loadingText = '加载插件数据中...',
-		timeout = 60000
-	} = config;
-	
-	if (isConsoleOutput) {
-		console.log('-------[fetchMarketData]-------');
-		console.log('正在请求插件市场数据:', endpoint);
-		console.log('-------[fetchMarketData]-------');
-	}
-	
+		timeout = 60000,
+		retryCount = 1
+	} = config
+	const retries = Number.isFinite(Number(retryCount)) ? Math.max(0, Math.floor(Number(retryCount))) : 0
 	let requestTask = null
+	let retryTimer = null
 	let settled = false
+	let rejectRequest
+
+	if (isConsoleOutput) console.log('正在请求插件市场数据:', endpoint)
+	if (isShowToast) uni.showLoading({ title: loadingText, mask: false })
 
 	const request = new Promise((resolve, reject) => {
-		if (isShowToast) {
-			uni.showLoading({
-				title: loadingText,
-				mask: false
-			});
+		rejectRequest = reject
+		const finish = (error, result) => {
+			if (settled) return
+			settled = true
+			requestTask = null
+			if (retryTimer !== null) clearTimeout(retryTimer)
+			retryTimer = null
+			if (isShowToast) uni.hideLoading()
+			if (error) reject(error)
+			else {
+				if (isShowToast) uni.showToast({ title: '加载完成', icon: 'success', duration: 1500 })
+				resolve(result)
+			}
 		}
-		
-		requestTask = uni.request({
-			url: endpoint,
-			method: 'GET',
-			// Large registries can take longer to download on slower connections.
-			timeout,
-			
-			success: (res) => {
-				if (isShowToast) {
-					uni.hideLoading()
-				}
-
-				if (isConsoleOutput) {
-					console.log('-------[success]-------');
-					console.log('插件市场数据请求成功');
-					console.log('状态码:', res.statusCode);
-					console.log('数据大小:', JSON.stringify(res.data).length, 'bytes');
-					console.log('插件数量:', res.data?.objects?.length || 0);
-					console.log('-------[success]-------');
-				}
-				
-				if (res.statusCode !== 200) {
-					settled = true
-					reject(new Error(`HTTP ${res.statusCode}: 请求失败`))
-					return
-				}
-
-				try {
-					const marketData = parseMarketData(res.data)
-					settled = true
-
-					if (isShowToast) {
-						uni.showToast({
-							title: '加载完成',
-							icon: 'success',
-							duration: 1500
-						})
+		const run = (remaining) => {
+			if (settled) return
+			requestTask = uni.request({
+				url: endpoint,
+				method: 'GET',
+				timeout,
+				success: (res) => {
+					if (settled) return
+					if (res.statusCode !== 200) {
+						if (remaining > 0) {
+							requestTask = null
+							retryTimer = setTimeout(() => { retryTimer = null; run(remaining - 1) }, 600)
+						} else finish(new Error(`HTTP ${res.statusCode}: 请求失败`))
+						return
 					}
-
-					resolve(marketData)
-				} catch (error) {
-					settled = true
-					reject(error)
-				}
-			},
-			
-			fail: (err) => {
-				const aborted = isAbortError(err)
-				if (isShowToast) {
-					uni.hideLoading()
-				}
-
-				if (isConsoleOutput && !aborted) {
-					console.log('-------[fail]-------');
-					console.log('插件市场数据请求失败:', err);
-					console.log('-------[fail]-------');
-				}
-
-				settled = true
-				if (aborted) {
-					reject(createAbortError(err))
-				} else {
+					try { finish(null, parseMarketData(res.data)) }
+					catch (error) { finish(error) }
+				},
+				fail: (err) => {
+					if (settled) return
+					if (isAbortError(err)) return finish(createAbortError(err))
+					if (remaining > 0) {
+						requestTask = null
+						retryTimer = setTimeout(() => { retryTimer = null; run(remaining - 1) }, 500)
+						return
+					}
+					if (isConsoleOutput) console.log('插件市场数据请求失败:', err)
 					const detail = err?.errMsg || err?.message || ''
 					const error = new Error(/timeout/i.test(detail)
 						? '请求超时，请检查网络后重试'
 						: '网络请求失败，请检查网络或数据源的跨域设置')
 					error.originalError = err
-					reject(error)
+					finish(error)
 				}
-			}
-		});
-	});
+			})
+		}
+		run(retries)
+	})
 
 	request.abort = () => {
-		if (settled || !requestTask?.abort) return false
-		requestTask.abort()
+		if (settled) return false
+		settled = true
+		if (retryTimer !== null) clearTimeout(retryTimer)
+		if (isShowToast) uni.hideLoading()
+		requestTask?.abort?.()
+		rejectRequest(createAbortError())
 		return true
 	}
-
 	return request
 }
 

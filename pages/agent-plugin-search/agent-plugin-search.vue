@@ -6,11 +6,20 @@
 				<text class="home-label">返回插件市场</text>
 			</button>
 			<view class="header-copy">
+				<!-- #ifdef WEB -->
+				<component :is="embedded ? 'div' : 'h1'" class="header-title">
+					<image class="ui-lucide" :src="uiIcons['bot']" mode="aspectFit" />
+					<text class="agent-wiki-link" @click="openAgentWiki">Agent</text>
+					<text> 找插件</text>
+				</component>
+				<!-- #endif -->
+				<!-- #ifndef WEB -->
 				<view class="header-title">
 					<image class="ui-lucide" :src="uiIcons['bot']" mode="aspectFit" />
 					<text class="agent-wiki-link" @click="openAgentWiki">Agent</text>
 					<text> 找插件</text>
 				</view>
+				<!-- #endif -->
 				<text class="header-subtitle">生成提示词，交给你的 AI 助手检索 Koishi 插件</text>
 			</view>
 			<view v-if="!embedded" class="theme-toggle" role="button" tabindex="0" :aria-label="'切换主题，当前' + themeLabel" @click="toggleTheme" @keydown.enter.prevent="toggleTheme" @keydown.space.prevent="toggleTheme">
@@ -407,6 +416,7 @@ onMounted(() => {
 }
 
 .header-title {
+	margin: 0;
 	font-size: 44rpx;
 	font-weight: 700;
 	color: var(--text-primary);
@@ -935,4 +945,6 @@ onMounted(() => {
 	.agent-page.embedded .agent-header { display:flex; padding-right:68px; }
 	.agent-content { --scroll-padding:0 16px 24px; }
 }
+.url-copy-button:active:not(:disabled), .copy-button:active:not(:disabled), .reset-button:active, .back-button:active { transform:scale(var(--interaction-press-scale, .99)); }
+.url-copy-button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 </style>

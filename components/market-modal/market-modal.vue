@@ -29,5 +29,8 @@ useDrawerFocus(toRef(props, 'open'), 'market-workspace-dialog', close, () => pro
 .modal-close::after { border:0; }
 .modal-close image { width:18px; height:18px; }
 .modal-close:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.modal-close { transition:transform .18s ease, border-color .18s ease, background-color .18s ease; }
+@media (hover:hover) { .modal-close:hover { border-color:var(--accent); background:var(--accent-soft); } }
+.modal-close:active { transform:scale(var(--interaction-press-scale, .99)); }
 @media (max-width:600px) { .modal-layer { padding:0; } .modal-dialog { width:100%; height:100%; border:0; border-radius:0; } .modal-dialog.drawer { width:calc(100% - 24px); } .modal-dialog.compact { width:calc(100% - 32px); height:auto; max-height:calc(100% - 32px); border:1px solid var(--border); border-radius:16px; } .modal-close { top:12px; right:16px; } .drawer .modal-close { top:calc(12px + max(var(--safe-top, 0px), env(safe-area-inset-top, 0px))); } }
 </style>

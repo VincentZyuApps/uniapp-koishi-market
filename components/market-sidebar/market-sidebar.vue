@@ -286,4 +286,6 @@ const handleCategoryClick = (key) => {
 }
 
 .filter-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.filter-item, .drawer-close, .drawer-done { transition:transform .18s ease, color .18s ease, background-color .18s ease; }
+.filter-item:active, .drawer-close:active, .drawer-done:active { transform:scale(var(--interaction-press-scale, .99)); }
 </style>

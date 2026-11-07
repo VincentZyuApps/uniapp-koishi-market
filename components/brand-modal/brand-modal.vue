@@ -43,6 +43,7 @@
 				<div class="image-wrapper">
 					<image
 						class="preview-img"
+						:alt="currentTab === 'transparent' ? 'Koishi 插件市场透明徽标' : 'Koishi 插件市场应用徽标'"
 						:class="currentTab"
 						:src="currentLogoSrc"
 						mode="aspectFit"

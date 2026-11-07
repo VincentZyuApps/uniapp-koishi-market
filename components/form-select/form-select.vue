@@ -302,4 +302,5 @@ function selectOption(option) {
 }
 
 .select-trigger:focus-visible, .option-row:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.select-trigger:active, .option-row:active { transform:scale(var(--interaction-press-scale, .99)); }
 </style>

@@ -30,7 +30,11 @@
 				</scroll-view>
 				<!-- 插件列表 -->
 				<view class="plugin-list">
-					<view class="catalogue-heading"><text class="catalogue-title">插件列表</text><text class="catalogue-meta">{{ filteredPlugins.length }} 个结果</text></view>
+					<view class="catalogue-heading">
+						<!-- #ifdef WEB --><h1 class="catalogue-title">插件列表</h1><!-- #endif -->
+						<!-- #ifndef WEB --><text class="catalogue-title">插件列表</text><!-- #endif -->
+						<text class="catalogue-meta">{{ filteredPlugins.length }} 个结果</text>
+					</view>
 					<!-- 操作按钮 -->
 					<view class="result-header">
 						<view class="header-actions">
@@ -159,7 +163,7 @@
 						<view class="market-footer">
 							<text class="footer-brand">Koishi 插件市场</text>
 							<view class="footer-links">
-								<!-- #ifdef WEB --><button class="footer-link" tabindex="0" role="button" @click="openGithub"><image class="footer-icon" :src="isDarkMode ? githubMarkDark : githubMarkLight" mode="aspectFit" /><text>GitHub</text></button><!-- #endif -->
+								<!-- #ifdef WEB --><a class="footer-link" href="./seo-generated/index-1.html">插件目录</a><button class="footer-link" tabindex="0" role="button" @click="openGithub"><image class="footer-icon" :src="isDarkMode ? githubMarkDark : githubMarkLight" mode="aspectFit" /><text>GitHub</text></button><!-- #endif -->
 								<button class="footer-link" tabindex="0" role="button" @click="isPrivacyModalVisible = true"><image class="footer-icon" :src="uiIcons['file-text']" mode="aspectFit" /><text>隐私政策</text></button>
 							</view>
 						</view>
@@ -216,6 +220,9 @@ import 'vue-sonner/style.css'
 import { useDisplayPreferences } from '@/utils/display-preferences.js'
 import { onLoad, onResize, onHide, onShow } from "@dcloudio/uni-app";
 import { fetchMarketData, getCurrentEndpoint, getManualMarketEndpoint } from '@/utils/request.js'
+// #ifdef WEB
+import { resetHomepageSeo } from '@/utils/seo.js'
+// #endif
 import { setPlugin } from '@/utils/plugin-store.js'
 import PluginCard from '@/components/plugin-card/plugin-card.vue'
 import MarketSidebar from '@/components/market-sidebar/market-sidebar.vue'
@@ -746,7 +753,7 @@ const loadPlugins = async ({ notify = false, switching = false } = {}) => {
 		if (requestId !== loadRequestId || error?.name === 'AbortError') return
 
 		console.error('加载插件数据失败:', error)
-		loadError.value = error.message || '加载失败'
+		loadError.value = error?.errMsg || error?.message || '网络连接异常'
 		if (notify) updateRefreshToast('error', switching ? '数据源加载失败' : '插件数据刷新失败')
 		
 	} finally {
@@ -858,6 +865,9 @@ const calculatePageSize = (size) => {
 onResize(() => { updateDefaultDisplayMode(); calculatePageSize() })
 onShow(() => {
 	pageVisible.value = true
+	// #ifdef WEB
+	resetHomepageSeo()
+	// #endif
 	refreshTheme()
 	calculatePageSize()
 	if (plugins.value.length === 0 && !activeMarketRequest) {
@@ -896,7 +906,31 @@ onUnmounted(() => {
 	// #endif
 })
 
-onLoad(()=>{
+onLoad((options) => {
+	// 接收从公众号直达或外部链接传递进来的搜索词
+	let targetKeyword = options?.search || options?.keyword
+
+	// #ifdef H5
+	if (!targetKeyword && typeof window !== 'undefined') {
+		// 兜底支持 H5 全模式传参：
+		// 1. 普通查询参数：https://domain/?search=xxx#/
+		// 2. Hash 查询参数：https://domain/#/?search=xxx 或 https://domain/#/pages/index/index?search=xxx
+		if (window.location.search) {
+			const searchParams = new URLSearchParams(window.location.search)
+			targetKeyword = searchParams.get('search') || searchParams.get('keyword')
+		}
+		if (!targetKeyword && window.location.hash.includes('?')) {
+			const hashQuery = window.location.hash.slice(window.location.hash.indexOf('?') + 1)
+			const hashParams = new URLSearchParams(hashQuery)
+			targetKeyword = hashParams.get('search') || hashParams.get('keyword')
+		}
+	}
+	// #endif
+
+	if (targetKeyword) {
+		searchWords.value = [targetKeyword]
+	}
+
 	// #ifdef MP-QQ
 	console.log("qq小程序的神秘要求捏");
 	console.log("set qq.showShareMenu in index.vue");
@@ -2165,7 +2199,7 @@ function onShareTimeline() {
 .market-heading :deep(.search-bar) { min-height:54px; background:var(--surface); }
 .market-page.dark-mode .market-heading { margin:24px 32px 12px; padding:24px; border:1px solid var(--border); border-radius:12px; background:var(--bg-tertiary); }
 .catalogue-heading { display:flex; align-items:baseline; gap:10px; padding:14px 32px 0; }
-.catalogue-title { color:var(--text-primary); font-size:17px; font-weight:700; }
+.catalogue-title { margin:0; color:var(--text-primary); font-size:17px; font-weight:700; }
 .catalogue-meta { color:var(--text-tertiary); font-size:12px; }
 .result-header, .market-page:not(.dark-mode) .result-header { padding:8px 32px 12px; }
 .header-actions { justify-content:space-between; }
@@ -2283,5 +2317,12 @@ function onShareTimeline() {
  .search-row :deep(.brand-badge) { position:relative; }
  .search-row :deep(.brand-copy) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0, 0, 0, 0); white-space:nowrap; }
 }
+
+/* Feedback is confined to the control being operated. */
+.header-action, .navigation-item { transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease; }
+@media (hover: hover) {
+ .header-action:hover { background:var(--accent-soft); }
+}
+.header-action:active, .navigation-item:active { transform:scale(var(--interaction-press-scale, .99)); }
 
 </style>
