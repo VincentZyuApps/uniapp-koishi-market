@@ -1,12 +1,23 @@
+import { MARKET_PRESETS } from './market-presets.js'
+
 export const DEFAULT_MARKET_SEARCH_ENDPOINT = 'https://storeluna-cf.vincentzyu233.cn/storeluna/index.json'
 
 /**
  * 获取当前设置的 endpoint
  * @returns {string} 当前 endpoint
  */
-export function getCurrentEndpoint() {
+export function getManualMarketEndpoint() {
 	const savedEndpoint = uni.getStorageSync('market_endpoint')
-	return savedEndpoint || DEFAULT_MARKET_SEARCH_ENDPOINT
+	if (savedEndpoint) return savedEndpoint
+	const savedValue = uni.getStorageSync('market_preset_index')
+	if (savedValue === '' || savedValue == null) return ''
+	const index = Number(savedValue)
+	if (!Number.isInteger(index) || index < 0 || index >= MARKET_PRESETS.length) return ''
+	return MARKET_PRESETS[index].url || (index === MARKET_PRESETS.length - 1 ? uni.getStorageSync('market_custom_endpoint') || '' : '')
+}
+
+export function getCurrentEndpoint() {
+	return getManualMarketEndpoint() || uni.getStorageSync('market_auto_endpoint') || DEFAULT_MARKET_SEARCH_ENDPOINT
 }
 
 function isAbortError(error) {
@@ -36,118 +47,82 @@ export function fetchMarketData(config = {}) {
 		isConsoleOutput = true,
 		isShowToast = false,
 		loadingText = '加载插件数据中...',
+		timeout = 60000,
 		retryCount = 1
-	} = config;
-	
-	if (isConsoleOutput) {
-		console.log('-------[fetchMarketData]-------');
-		console.log('正在请求插件市场数据:', endpoint);
-		console.log('-------[fetchMarketData]-------');
-	}
-	
+	} = config
+	const retries = Number.isFinite(Number(retryCount)) ? Math.max(0, Math.floor(Number(retryCount))) : 0
 	let requestTask = null
+	let retryTimer = null
 	let settled = false
+	let rejectRequest
+
+	if (isConsoleOutput) console.log('正在请求插件市场数据:', endpoint)
+	if (isShowToast) uni.showLoading({ title: loadingText, mask: false })
 
 	const request = new Promise((resolve, reject) => {
-		const doRequest = (attemptsLeft) => {
-			if (isShowToast && attemptsLeft === retryCount) {
-				uni.showLoading({
-					title: loadingText,
-					mask: false
-				});
+		rejectRequest = reject
+		const finish = (error, result) => {
+			if (settled) return
+			settled = true
+			requestTask = null
+			if (retryTimer !== null) clearTimeout(retryTimer)
+			retryTimer = null
+			if (isShowToast) uni.hideLoading()
+			if (error) reject(error)
+			else {
+				if (isShowToast) uni.showToast({ title: '加载完成', icon: 'success', duration: 1500 })
+				resolve(result)
 			}
-			
+		}
+		const run = (remaining) => {
+			if (settled) return
 			requestTask = uni.request({
 				url: endpoint,
 				method: 'GET',
-				timeout: 30000, // 30秒超时
-				header: {
-					'Content-Type': 'application/json'
-				},
-				
+				timeout,
 				success: (res) => {
-					if (isShowToast) {
-						uni.hideLoading()
-					}
-
-					if (isConsoleOutput) {
-						console.log('-------[success]-------');
-						console.log('插件市场数据请求成功');
-						console.log('状态码:', res.statusCode);
-						console.log('数据大小:', JSON.stringify(res.data).length, 'bytes');
-						console.log('插件数量:', res.data?.objects?.length || 0);
-						console.log('-------[success]-------');
-					}
-					
+					if (settled) return
 					if (res.statusCode !== 200) {
-						if (attemptsLeft > 0) {
-							if (isConsoleOutput) console.log(`HTTP ${res.statusCode}，准备自动重试，剩余次数: ${attemptsLeft}`);
-							setTimeout(() => doRequest(attemptsLeft - 1), 600);
-							return;
-						}
-						settled = true
-						reject(new Error(`HTTP ${res.statusCode}: 请求失败`));
-						return;
+						if (remaining > 0) {
+							requestTask = null
+							retryTimer = setTimeout(() => { retryTimer = null; run(remaining - 1) }, 600)
+						} else finish(new Error(`HTTP ${res.statusCode}: 请求失败`))
+						return
 					}
-
-					try {
-						const marketData = parseMarketData(res.data);
-						settled = true;
-
-						if (isShowToast) {
-							uni.showToast({
-								title: '加载完成',
-								icon: 'success',
-								duration: 1500
-							});
-						}
-
-						resolve(marketData);
-					} catch (error) {
-						settled = true;
-						reject(error);
-					}
+					try { finish(null, parseMarketData(res.data)) }
+					catch (error) { finish(error) }
 				},
-				
 				fail: (err) => {
-					const aborted = isAbortError(err);
-					if (!aborted && attemptsLeft > 0) {
-						if (isConsoleOutput) {
-							console.log('-------[retry]-------');
-							console.log(`请求遇到网络异常，500ms 后自动重试，剩余次数: ${attemptsLeft}`);
-							console.log('异常详情:', err);
-							console.log('-------[retry]-------');
-						}
-						setTimeout(() => doRequest(attemptsLeft - 1), 500);
-						return;
+					if (settled) return
+					if (isAbortError(err)) return finish(createAbortError(err))
+					if (remaining > 0) {
+						requestTask = null
+						retryTimer = setTimeout(() => { retryTimer = null; run(remaining - 1) }, 500)
+						return
 					}
-
-					if (isShowToast) {
-						uni.hideLoading();
-					}
-
-					if (isConsoleOutput && !aborted) {
-						console.log('-------[fail]-------');
-						console.log('插件市场数据请求失败:', err);
-						console.log('-------[fail]-------');
-					}
-
-					settled = true;
-					reject(aborted ? createAbortError(err) : err);
+					if (isConsoleOutput) console.log('插件市场数据请求失败:', err)
+					const detail = err?.errMsg || err?.message || ''
+					const error = new Error(/timeout/i.test(detail)
+						? '请求超时，请检查网络后重试'
+						: '网络请求失败，请检查网络或数据源的跨域设置')
+					error.originalError = err
+					finish(error)
 				}
-			});
-		};
-
-		doRequest(retryCount);
-	});
+			})
+		}
+		run(retries)
+	})
 
 	request.abort = () => {
-		if (settled || !requestTask?.abort) return false;
-		requestTask.abort();
-		return true;
-	};
-
-	return request;
+		if (settled) return false
+		settled = true
+		if (retryTimer !== null) clearTimeout(retryTimer)
+		if (isShowToast) uni.hideLoading()
+		requestTask?.abort?.()
+		rejectRequest(createAbortError())
+		return true
+	}
+	return request
 }
 
 /**
@@ -156,14 +131,8 @@ export function fetchMarketData(config = {}) {
  * @returns {Object} 格式化后的数据
  */
 function parseMarketData(rawData) {
-	if (!rawData || !rawData.objects) {
-		return {
-			forceTime: 0,
-			mirror: '',
-			plugins: [],
-			categories: {},
-			badges: {}
-		};
+	if (!rawData || !Array.isArray(rawData.objects)) {
+		throw new Error('数据源返回的市场数据格式无效')
 	}
 	
 	const plugins = rawData.objects.map((item, index) => {

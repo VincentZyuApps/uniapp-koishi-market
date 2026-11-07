@@ -168,4 +168,5 @@ function toggleOption(key) {
 	line-height: 1.5;
 	overflow-wrap: anywhere;
 }
+.checkbox-row:active { transform: scale(var(--interaction-press-scale, 0.99)); }
 </style>

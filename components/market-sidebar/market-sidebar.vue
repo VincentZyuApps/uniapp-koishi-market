@@ -10,7 +10,7 @@
 				<view class="filter-group">
 					<view class="filter-title">排序方式</view>
 					<button tabindex="0" role="button" v-for="sort in sortOptions" :key="sort.key" class="filter-item" :class="{ active: activeSort === sort.key }" :aria-pressed="activeSort === sort.key" @click="handleSortClick(sort.key)">
-						<text class="filter-icon">{{ sort.icon }}</text>
+						<image class="filter-icon" :src="sort.icon" mode="aspectFit" />
 						<text class="filter-text">{{ sort.label }}</text>
 						<text v-if="activeSort === sort.key" class="order-icon">{{ sortOrder === 'desc' ? '↓' : '↑' }}</text>
 					</button>
@@ -18,7 +18,7 @@
 				<view class="filter-group">
 					<view class="filter-title">筛选条件</view>
 					<button tabindex="0" role="button" v-for="badge in badges" :key="badge.key" class="filter-item" :class="{ active: activeBadges.includes(badge.key), [badge.key]: true }" :aria-pressed="activeBadges.includes(badge.key)" @click="handleBadgeClick(badge.key)">
-						<text class="filter-icon">{{ badge.icon }}</text>
+						<image class="filter-icon" :src="badge.icon" mode="aspectFit" />
 						<text class="filter-text">{{ badge.label }}</text>
 						<text class="filter-count">{{ badge.count || 0 }}</text>
 					</button>
@@ -26,7 +26,7 @@
 				<view class="filter-group">
 					<view class="filter-title">插件分类</view>
 					<button tabindex="0" role="button" v-for="category in categories" :key="category.key" class="filter-item" :class="{ active: activeCategory === category.key }" :aria-pressed="activeCategory === category.key" @click="handleCategoryClick(category.key)">
-						<text class="filter-icon">{{ category.icon }}</text>
+						<image class="filter-icon" :src="category.icon" mode="aspectFit" />
 						<text class="filter-text">{{ category.label }}</text>
 						<text class="filter-count">{{ category.count || 0 }}</text>
 					</button>
@@ -284,4 +284,8 @@ const handleCategoryClick = (key) => {
 		color: var(--accent);
 	}
 }
+
+.filter-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.filter-item, .drawer-close, .drawer-done { transition:transform .18s ease, color .18s ease, background-color .18s ease; }
+.filter-item:active, .drawer-close:active, .drawer-done:active { transform:scale(var(--interaction-press-scale, .99)); }
 </style>

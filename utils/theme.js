@@ -2,6 +2,28 @@ import { ref, computed } from 'vue'
 
 // 全局单例响应式状态
 const themeMode = ref('system') // 'system' | 'light' | 'dark'
+export const THEME_PALETTES = [
+	{ value: 'koishi', label: 'Koishi' },
+	{ value: 'microsoft', label: 'Microsoft' },
+	{ value: 'apple', label: 'Apple' },
+	{ value: 'claude', label: 'Claude' },
+	{ value: 'openai', label: 'OpenAI' },
+	{ value: 'sky', label: '天蓝' },
+	{ value: 'forest', label: '森林绿' }
+]
+const paletteNames = new Set(THEME_PALETTES.map(item => item.value))
+const themePalette = ref('koishi')
+try {
+	const saved = uni.getStorageSync('theme_palette')
+	if (paletteNames.has(saved)) themePalette.value = saved
+} catch (e) {}
+const paletteClass = computed(() => `theme-${themePalette.value}`)
+
+function setThemePalette(value) {
+	if (!paletteNames.has(value)) return
+	themePalette.value = value
+	try { uni.setStorageSync('theme_palette', value) } catch (e) {}
+}
 const _systemChangeKey = ref(0)
 let _isListenerRegistered = false
 
@@ -159,6 +181,9 @@ export function useTheme() {
 
 	return {
 		themeMode,
+		themePalette,
+		paletteClass,
+		setThemePalette,
 		isDarkMode,
 		themeEmoji,
 		themeLabel,

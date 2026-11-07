@@ -1,18 +1,18 @@
 <template>
 	<view class="form-select" :class="{ 'is-open': isOpen, disabled }">
-		<view class="select-trigger" role="button" :aria-expanded="isOpen" @click="toggle">
+		<view class="select-trigger" role="button" tabindex="0" :aria-label="ariaLabel || placeholder" :aria-expanded="isOpen" @click="toggle" @keydown.enter.prevent.stop="toggle" @keydown.space.prevent.stop="toggle" @keydown.esc.stop="close">
 			<view class="selected-copy">
 				<text class="selected-label">{{ selectedOption ? selectedOption.label : placeholder }}</text>
 				<text v-if="selectedOption && selectedOption.description" class="selected-description">{{ selectedOption.description }}</text>
 			</view>
-			<text class="select-arrow">⌄</text>
+			<image class="select-arrow" :src="chevronDownIcon" mode="aspectFit" />
 		</view>
 
 		<view v-if="isOpen" class="option-menu">
 			<view
 				v-for="option in options"
 				:key="String(option.value)"
-				class="option-row"
+				class="option-row" role="button" tabindex="0" @keydown.enter.prevent.stop="selectOption(option)" @keydown.space.prevent.stop="selectOption(option)" @keydown.esc.stop="close"
 				:class="{ selected: option.value === modelValue }"
 				@click.stop="selectOption(option)"
 			>
@@ -20,6 +20,7 @@
 					<text class="option-label">{{ option.label }}</text>
 					<text v-if="option.description" class="option-description">{{ option.description }}</text>
 				</view>
+				<text v-if="option.meta" class="option-meta" :class="'option-meta--' + option.meta.state">{{ option.meta.text }}</text>
 				<text v-if="option.value === modelValue" class="selected-mark">✓</text>
 			</view>
 		</view>
@@ -28,6 +29,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import chevronDownIcon from '@/static/icons/chevron-down.png'
 
 const props = defineProps({
 	modelValue: {
@@ -38,6 +40,7 @@ const props = defineProps({
 		type: Array,
 		default: () => []
 	},
+	ariaLabel: { type: String, default: '' },
 	placeholder: {
 		type: String,
 		default: '请选择'
@@ -64,6 +67,11 @@ function toggle() {
 	if (props.disabled) return
 	isOpen.value = !isOpen.value
 	emit('open-change', isOpen.value)
+}
+
+function close() {
+ isOpen.value = false
+ emit('open-change', false)
 }
 
 function selectOption(option) {
@@ -153,9 +161,9 @@ function selectOption(option) {
 
 .select-arrow {
 	flex: 0 0 auto;
-	font-size: 35rpx;
-	line-height: 1;
-	color: var(--text-secondary, #656d76);
+	display: block;
+	width: 18px;
+	height: 18px;
 	transition: transform 0.2s ease;
 }
 
@@ -237,6 +245,17 @@ function selectOption(option) {
 	background: var(--accent-soft, #edeafa);
 }
 
+.option-meta {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	color: var(--text-tertiary, #746f82);
+}
+.option-meta--fast { color: var(--success-color, #1a7f37); }
+.option-meta--medium { color: var(--warning-color, #bf8700); }
+.option-meta--slow { color: var(--danger-color, #d1242f); }
+
 .selected-mark {
 	flex: 0 0 auto;
 	font-size: 28rpx;
@@ -274,11 +293,14 @@ function selectOption(option) {
 	line-height: 1.5;
 	overflow-wrap: anywhere;
 }
-.select-arrow, .selected-mark {
+.selected-mark {
 	font-size: 18px;
 	flex-shrink: 0;
 }
 .option-menu {
 	max-height: min(320px, 50vh);
 }
+
+.select-trigger:focus-visible, .option-row:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.select-trigger:active, .option-row:active { transform:scale(var(--interaction-press-scale, .99)); }
 </style>

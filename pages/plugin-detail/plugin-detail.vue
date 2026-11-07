@@ -1,98 +1,52 @@
 <template>
-	<view class="plugin-detail-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
-		<!-- 顶部导航栏 -->
-		<view class="detail-header">
-			<view class="back-btn" @click="goBack">
-				<text class="back-icon">←</text>
-				<text class="back-text">返回</text>
-			</view>
-			<view class="header-title">插件详情</view>
-			<view class="header-actions">
-				<!-- #ifdef WEB -->
-				<view class="github-link" @click="openGithub">
-					<image 
-						class="github-icon" 
-					:src="isDarkMode ? githubMarkDark : githubMarkLight"
-					mode="aspectFit"
-				/>
-					<text class="header-action-label">GitHub</text>
-				</view>
-				<!-- #endif -->
-				<view class="theme-toggle" @click="toggleTheme">
-					<text class="theme-icon">{{ themeEmoji }}</text>
-					<text class="header-action-label">{{ themeLabel }}</text>
-				</view>
-			</view>
-		</view>
-		
-		<!-- 加载状态 -->
-		<view v-if="isLoading" class="loading-container">
-			<view class="loading-spinner"></view>
-			<text class="loading-text">加载中...</text>
-		</view>
-		
-		<!-- 插件详情内容 -->
-		<styled-scroll-view v-else class="detail-content">
-			<view class="content-wrapper">
-				<!-- 插件头部信息 -->
-				<view class="plugin-header">
-					<view class="plugin-icon">
-						<!-- 如果有头像则显示头像，否则显示图标 -->
-						<image 
-							v-if="authorEmail" 
-							class="author-avatar"
-							:src="getAvatarUrl(authorEmail, currentMirrorIndex)"
-							mode="aspectFill"
-							@error="handleAvatarError"
-						/>
-						<view v-else class="icon-fallback">
-							<text class="icon-text">{{ getCategoryIcon(plugin.category) }}</text>
+<view class="plugin-detail-page" :class="[{ 'dark-mode': isDarkMode }, motionClass, paletteClass]" :style="pageStyle">
+ <view class="detail-header"><view class="header-inner">
+  <view class="header-identity">
+   <view class="back-btn" role="button" tabindex="0" aria-label="返回" @click="goBack" @keydown.enter.prevent="goBack" @keydown.space.prevent="goBack"><image class="ui-lucide" :src="uiIcons['arrow-left']" mode="aspectFit" /><text class="back-text">返回</text></view>
+   <view class="header-title">插件详情</view>
+  </view>
+  <view class="header-actions">
+   <!-- #ifdef WEB -->
+   <view class="github-link" role="button" tabindex="0" aria-label="打开 GitHub" @click="openGithub" @keydown.enter.prevent="openGithub" @keydown.space.prevent="openGithub"><image class="github-icon" :src="isDarkMode ? githubMarkDark : githubMarkLight" mode="aspectFit" /><text class="header-action-label">GitHub</text></view>
+   <!-- #endif -->
+   <view class="theme-toggle" role="button" tabindex="0" :aria-label="'切换主题，当前' + themeLabel" @click="toggleTheme" @keydown.enter.prevent="toggleTheme" @keydown.space.prevent="toggleTheme"><image class="ui-lucide" :src="isDarkMode ? uiIcons.sun : uiIcons.moon" mode="aspectFit" /><text class="header-action-label">{{ themeLabel }}</text></view>
+  </view>
+ </view></view>
+ <view v-if="isLoading" class="loading-container"><view class="loading-spinner"></view><text class="loading-text">加载中…</text></view>
+ <view v-else-if="loadError" class="loading-container" role="alert"><text class="loading-text">{{ loadError }}</text><button @click="goBack">返回市场</button></view>
+ <styled-scroll-view v-else class="detail-content"><view class="content-wrapper">
+  <view class="plugin-header">
+   <view class="plugin-icon"><image v-if="authorEmail" class="author-avatar" :src="getAvatarUrl(authorEmail, currentMirrorIndex)" mode="aspectFill" @error="handleAvatarError" /><view v-else class="icon-fallback"><image class="detail-fallback-icon" :src="uiIcons.package" mode="aspectFit" /></view></view>
+   <view class="plugin-basic-info"><view class="identity-title">
+<!-- #ifdef WEB --><h1 class="plugin-name">{{ plugin.shortname || plugin.name }}</h1><!-- #endif -->
+<!-- #ifndef WEB --><view class="plugin-name">{{ plugin.shortname || plugin.name }}</view><!-- #endif -->
+<!-- 徽章信息 -->
+				<view class="identity-badges" v-if="plugin.insecure || plugin.verified || plugin.portable">
+
+					<view class="badges-container">
+						<view class="badge verified" v-if="plugin.verified">
+							<image class="ui-lucide badge-icon" :src="uiIcons.check" mode="aspectFit" />
+							<text class="badge-text">官方认证</text>
 						</view>
-					</view>
-					<view class="plugin-basic-info">
-						<view class="plugin-name">{{ plugin.shortname || plugin.name }}</view>
-						<view class="plugin-package clickable" @click="copyNpmPackageLink">
-							<text>@{{ plugin._raw?.package?.name || plugin.name }}</text>
-							<text class="copy-hint">📋</text>
+						<view class="badge portable" v-if="plugin.portable">
+							<image class="ui-lucide badge-icon" :src="uiIcons['smartphone']" mode="aspectFit" />
+							<text class="badge-text">可移植</text>
 						</view>
-						<view class="plugin-author" v-if="plugin.author">
-							<text class="author-icon">👤</text>
-							<text>{{ plugin.author }}</text>
+						<view class="badge insecure" v-if="plugin.insecure">
+							<image class="ui-lucide badge-icon" :src="uiIcons['triangle-alert']" mode="aspectFit" />
+							<text class="badge-text">不安全</text>
 						</view>
 					</view>
 				</view>
-				
-				<!-- 插件描述 -->
-				<view class="section">
-					<view class="section-title">📝 描述</view>
-					<view class="section-content">
-						<rich-text-parser 
-							class="description-text" 
-							:text="getDescription(plugin.description || plugin._raw?.manifest?.description)"
-							:parse-images="true"
-							:parse-links="true"
-						/>
-					</view>
+
 				</view>
-				
-				<!-- 版本信息 -->
-				<view class="section">
-					<view class="section-title">🏷️ 版本信息</view>
-					<view class="info-grid">
-						<view class="info-item">
-							<text class="info-label">当前版本</text>
-							<text class="info-value">{{ plugin.version || 'N/A' }}</text>
-						</view>
-						<view class="info-item" v-if="plugin.package?.peerDependencies?.koishi">
-							<text class="info-label">Koishi 版本</text>
-							<text class="info-value">{{ plugin.package.peerDependencies.koishi }}</text>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 统计信息 -->
-				<view class="section">
-					<view class="section-title">📊 统计信息</view>
+    <view class="plugin-package clickable" role="button" tabindex="0" aria-label="复制 npm 插件链接" @click="copyNpmPackageLink" @keydown.enter.prevent="copyNpmPackageLink" @keydown.space.prevent="copyNpmPackageLink"><text>{{ plugin._raw?.package?.name || plugin.name }}</text><image class="ui-lucide copy-hint" :src="uiIcons.copy" mode="aspectFit" /></view>
+    <view class="plugin-author" v-if="plugin.author"><image class="ui-lucide author-icon" :src="uiIcons['user-round']" mode="aspectFit" /><text>{{ plugin.author }}</text></view>
+   </view>
+  </view>
+<!-- 统计信息 -->
+				<view class="stats-section" :class="{ 'has-quality': !!plugin._raw?.score }">
+
 					<view class="info-grid">
 						<view class="info-item">
 							<text class="info-label">下载量</text>
@@ -101,7 +55,7 @@
 						<view class="info-item">
 							<text class="info-label">评分</text>
 							<view class="rating-value">
-								<text class="stars">{{ renderStars(plugin.rating) }}</text>
+								<image class="ui-lucide" :src="uiIcons.star" mode="aspectFit" />
 								<text class="rating-number">{{ plugin.rating?.toFixed(1) || '0.0' }}</text>
 							</view>
 						</view>
@@ -123,65 +77,23 @@
 						</view>
 					</view>
 				</view>
-				
-				<!-- 徽章信息 -->
-				<view class="section" v-if="plugin.insecure || plugin.verified || plugin.portable">
-					<view class="section-title">🎖️ 徽章</view>
-					<view class="badges-container">
-						<view class="badge verified" v-if="plugin.verified">
-							<text class="badge-icon">✓</text>
-							<text class="badge-text">官方认证</text>
-						</view>
-						<view class="badge portable" v-if="plugin.portable">
-							<text class="badge-icon">📱</text>
-							<text class="badge-text">可移植</text>
-						</view>
-						<view class="badge insecure" v-if="plugin.insecure">
-							<text class="badge-icon">⚠️</text>
-							<text class="badge-text">不安全</text>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 发布者信息 -->
-				<view class="section" v-if="plugin._raw?.package?.publisher">
-					<view class="section-title">👤 发布者</view>
-					<view class="publisher-card clickable" @click="copyNpmAuthorLink(plugin._raw.package.publisher.username)">
-						<image 
-							class="publisher-avatar"
-							:src="getAvatarUrl(plugin._raw.package.publisher.email)" 
-							mode="aspectFill"
+
+				<view class="detail-columns"><view class="detail-main"><!-- 插件描述 -->
+				<view class="section">
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['file-text']" mode="aspectFit" /> 描述</view>
+					<view class="section-content">
+						<rich-text-parser
+							class="description-text"
+							:text="getDescription(plugin.description || plugin._raw?.manifest?.description)"
+							:parse-images="true"
+							:parse-links="true"
 						/>
-						<view class="publisher-info">
-							<text class="publisher-name">{{ plugin._raw.package.publisher.username }}</text>
-							<text class="publisher-email">{{ plugin._raw.package.publisher.email }}</text>
-						</view>
-						<text class="copy-hint">📋</text>
 					</view>
 				</view>
-				
-				<!-- 维护者信息 -->
-				<view class="section" v-if="plugin._raw?.package?.maintainers?.length">
-					<view class="section-title">🛠️ 维护者 ({{ plugin._raw.package.maintainers.length }})</view>
-					<view class="maintainers-list">
-						<view class="maintainer-card clickable" v-for="(maintainer, index) in plugin._raw.package.maintainers" :key="index" @click="copyNpmAuthorLink(maintainer.username)">
-							<image 
-								class="maintainer-avatar"
-								:src="getAvatarUrl(maintainer.email)" 
-								mode="aspectFill"
-							/>
-							<view class="maintainer-info">
-								<text class="maintainer-name">{{ maintainer.username }}</text>
-								<text class="maintainer-email">{{ maintainer.email }}</text>
-							</view>
-							<text class="copy-hint">📋</text>
-						</view>
-					</view>
-				</view>
-				
+
 				<!-- 服务实现 -->
 				<view class="section" v-if="plugin._raw?.manifest?.service">
-					<view class="section-title">⚙️ 服务</view>
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['settings']" mode="aspectFit" /> 服务</view>
 					<view class="service-info">
 						<view class="service-item" v-if="plugin._raw.manifest.service.implements?.length">
 							<text class="service-label">实现：</text>
@@ -209,49 +121,102 @@
 						</view>
 					</view>
 				</view>
-				
+
 				<!-- 关键词 -->
 				<view class="section" v-if="plugin._raw?.package?.keywords?.length">
-					<view class="section-title">🔖 关键词</view>
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['bookmark']" mode="aspectFit" /> 关键词</view>
 					<view class="keywords-container">
 						<view class="keyword-tag" v-for="(keyword, index) in plugin._raw.package.keywords" :key="index">
 							{{ keyword }}
 						</view>
 					</view>
 				</view>
-				
+
+				<!-- 发布者信息 -->
+				<view class="section" v-if="plugin._raw?.package?.publisher">
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['user-round']" mode="aspectFit" /> 发布者</view>
+					<view class="publisher-card clickable" role="button" tabindex="0" aria-label="复制发布者链接" @click="copyNpmAuthorLink(plugin._raw.package.publisher.username)" @keydown.enter.prevent="copyNpmAuthorLink(plugin._raw.package.publisher.username)" @keydown.space.prevent="copyNpmAuthorLink(plugin._raw.package.publisher.username)">
+						<image
+							class="publisher-avatar"
+							:alt="(plugin._raw.package.publisher.username || '发布者') + '的头像'"
+							:src="getAvatarUrl(plugin._raw.package.publisher.email)"
+							mode="aspectFill"
+						/>
+						<view class="publisher-info">
+							<text class="publisher-name">{{ plugin._raw.package.publisher.username }}</text>
+							<text class="publisher-email">{{ plugin._raw.package.publisher.email }}</text>
+						</view>
+						<image class="ui-lucide copy-hint" :src="uiIcons['copy']" mode="aspectFit" />
+					</view>
+				</view>
+
+				<!-- 维护者信息 -->
+				<view class="section" v-if="plugin._raw?.package?.maintainers?.length">
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['wrench']" mode="aspectFit" /> 维护者 ({{ plugin._raw.package.maintainers.length }})</view>
+					<view class="maintainers-list">
+						<view class="maintainer-card clickable" v-for="(maintainer, index) in plugin._raw.package.maintainers" :key="index" role="button" tabindex="0" aria-label="复制维护者链接" @click="copyNpmAuthorLink(maintainer.username)" @keydown.enter.prevent="copyNpmAuthorLink(maintainer.username)" @keydown.space.prevent="copyNpmAuthorLink(maintainer.username)">
+							<image
+								class="maintainer-avatar"
+								:alt="(maintainer.username || '维护者') + '的头像'"
+								:src="getAvatarUrl(maintainer.email)"
+								mode="aspectFill"
+							/>
+							<view class="maintainer-info">
+								<text class="maintainer-name">{{ maintainer.username }}</text>
+								<text class="maintainer-email">{{ maintainer.email }}</text>
+							</view>
+							<image class="ui-lucide copy-hint" :src="uiIcons['copy']" mode="aspectFit" />
+						</view>
+					</view>
+				</view>
+
+				</view><view class="detail-aside"><!-- 版本信息 -->
+				<view class="section">
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['tag']" mode="aspectFit" /> 版本信息</view>
+					<view class="info-grid">
+						<view class="info-item">
+							<text class="info-label">当前版本</text>
+							<text class="info-value">{{ plugin.version || 'N/A' }}</text>
+						</view>
+						<view class="info-item" v-if="plugin.package?.peerDependencies?.koishi">
+							<text class="info-label">Koishi 版本</text>
+							<text class="info-value">{{ plugin.package.peerDependencies.koishi }}</text>
+						</view>
+					</view>
+				</view>
+
 				<!-- #ifdef WEB -->
 				<!-- 链接信息 -->
 				<view class="section" v-if="plugin._raw?.package?.links">
-					<view class="section-title">🔗 相关链接</view>
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['link']" mode="aspectFit" /> 相关链接</view>
 					<view class="links-container">
-						<view class="link-item" v-if="plugin._raw.package.links.npm" @click="copyLink(plugin._raw.package.links.npm)">
-							<text class="link-icon">📦</text>
+						<view class="link-item" v-if="plugin._raw.package.links.npm" role="link" tabindex="0" aria-label="在新页面打开 NPM 链接" @click="openExternalLink(plugin._raw.package.links.npm)" @keydown.enter.prevent="openExternalLink(plugin._raw.package.links.npm)" @keydown.space.prevent="openExternalLink(plugin._raw.package.links.npm)">
+							<image class="ui-lucide link-icon" :src="uiIcons['package']" mode="aspectFit" />
 							<text class="link-text">NPM</text>
-							<text class="link-url">{{ plugin._raw.package.links.npm }}</text>
+							<text class="link-url">{{ decodeLink(plugin._raw.package.links.npm) }}</text>
 						</view>
-						<view class="link-item" v-if="plugin._raw.package.links.homepage" @click="copyLink(plugin._raw.package.links.homepage)">
-							<text class="link-icon">🏠</text>
+						<view class="link-item" v-if="plugin._raw.package.links.homepage" role="link" tabindex="0" aria-label="在新页面打开主页链接" @click="openExternalLink(plugin._raw.package.links.homepage)" @keydown.enter.prevent="openExternalLink(plugin._raw.package.links.homepage)" @keydown.space.prevent="openExternalLink(plugin._raw.package.links.homepage)">
+							<image class="ui-lucide link-icon" :src="uiIcons['house']" mode="aspectFit" />
 							<text class="link-text">主页</text>
-							<text class="link-url">{{ plugin._raw.package.links.homepage }}</text>
+							<text class="link-url">{{ decodeLink(plugin._raw.package.links.homepage) }}</text>
 						</view>
-						<view class="link-item" v-if="plugin._raw.package.links.repository" @click="copyLink(plugin._raw.package.links.repository)">
-							<text class="link-icon">💻</text>
+						<view class="link-item" v-if="plugin._raw.package.links.repository" role="link" tabindex="0" aria-label="在新页面打开仓库链接" @click="openExternalLink(plugin._raw.package.links.repository)" @keydown.enter.prevent="openExternalLink(plugin._raw.package.links.repository)" @keydown.space.prevent="openExternalLink(plugin._raw.package.links.repository)">
+							<image class="ui-lucide link-icon" :src="uiIcons['code']" mode="aspectFit" />
 							<text class="link-text">仓库</text>
-							<text class="link-url">{{ plugin._raw.package.links.repository }}</text>
+							<text class="link-url">{{ decodeLink(plugin._raw.package.links.repository) }}</text>
 						</view>
-						<view class="link-item" v-if="plugin._raw.package.links.bugs" @click="copyLink(plugin._raw.package.links.bugs)">
-							<text class="link-icon">🐛</text>
+						<view class="link-item" v-if="plugin._raw.package.links.bugs" role="link" tabindex="0" aria-label="在新页面打开问题反馈链接" @click="openExternalLink(plugin._raw.package.links.bugs)" @keydown.enter.prevent="openExternalLink(plugin._raw.package.links.bugs)" @keydown.space.prevent="openExternalLink(plugin._raw.package.links.bugs)">
+							<image class="ui-lucide link-icon" :src="uiIcons['bug']" mode="aspectFit" />
 							<text class="link-text">问题反馈</text>
-							<text class="link-url">{{ plugin._raw.package.links.bugs }}</text>
+							<text class="link-url">{{ decodeLink(plugin._raw.package.links.bugs) }}</text>
 						</view>
 					</view>
 				</view>
 				<!-- #endif -->
-				
+
 				<!-- 时间信息 -->
 				<view class="section">
-					<view class="section-title">⏰ 时间信息</view>
+					<view class="section-title"><image class="ui-lucide" :src="uiIcons['clock']" mode="aspectFit" /> 时间信息</view>
 					<view class="info-grid">
 						<view class="info-item" v-if="plugin.createdAt">
 							<text class="info-label">创建时间</text>
@@ -270,18 +235,22 @@
 							<text class="info-value">{{ getCategoryName(plugin.category) }}</text>
 						</view>
 					</view>
-				</view>
-			</view>
-		</styled-scroll-view>
-	</view>
+				</view></view></view>
+ </view></styled-scroll-view>
+</view>
 </template>
 
 <script setup>
+import { uiIcons } from '@/utils/ui-icons.js'
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { onLoad } from '@dcloudio/uni-app';
+import { onLoad, onShow, onHide } from '@dcloudio/uni-app';
+// #ifdef WEB
+import { setPluginSeo, resetHomepageSeo } from '@/utils/seo.js'
+// #endif
 import { getPlugin } from '@/utils/plugin-store.js';
+import { fetchMarketData } from '@/utils/request.js';
 import RichTextParser from '@/components/rich-text-parser/rich-text-parser.vue';
-import { simpleMd5 } from '@/utils/md5.js';
+import { AVATAR_MIRRORS, getAvatarUrl } from '@/utils/avatar.js';
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue';
 import { useMotionPreferences } from '@/utils/motion.js';
 import { usePageLayout } from '@/utils/layout.js'
@@ -292,87 +261,69 @@ import githubMarkDark from '@/static/github-mark-white.png'
 import githubMarkLight from '@/static/github-mark.png'
 
 // 主题模式（统一由 useTheme 管理）
-const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, paletteClass } = useTheme()
 const isLoading = ref(true);
+const loadError = ref('');
 const plugin = ref({});
 const avatarError = ref(false);
 const currentMirrorIndex = ref(0);
 const { pageStyle } = usePageLayout()
 const { motionClass } = useMotionPreferences();
+// #ifdef WEB
+let detailVisible = true
+// #endif
 
-// 从上一页接收插件数据
-onLoad((options) => {
+// Support both in-app navigation and a fresh visit to a shared detail URL.
+onLoad(async (options) => {
 	// #ifdef MP-QQ
 	loadFonts()
 	// #endif
 	try {
-		
-		// 从localStorage读取主题设置
-		const savedTheme = uni.getStorageSync('theme');
-		if (['system', 'light', 'dark'].includes(savedTheme)) {
-			themeMode.value = savedTheme;
-		}
-		
-		// 接收插件数据
-		const pluginName = options.name
-		const pluginRaw = options.plugin
-
-		if (pluginName) {
-			const name = decodeURIComponent(pluginName)
-			const data = getPlugin(name)
-			
-			if (data) {
-				plugin.value = data
-			} else {
-				console.error('插件数据未找到:', name)
-				uni.showToast({
-					title: '插件数据丢失，请返回重试',
-					icon: 'error',
-					duration: 2000
-				})
-				setTimeout(() => {
-					uni.navigateBack()
-				}, 2000)
-				return
+		const savedTheme = uni.getStorageSync('theme')
+		if (['system', 'light', 'dark'].includes(savedTheme)) themeMode.value = savedTheme
+		if (options.name) {
+			let name = options.name
+			try { name = decodeURIComponent(name) } catch (_) { /* Already decoded. */ }
+			// #ifdef WEB
+			if (detailVisible) setPluginSeo({ name })
+			// #endif
+			let data = getPlugin(name)
+			if (!data) {
+				const market = await fetchMarketData({ isConsoleOutput: false })
+				data = market.plugins.find(item => item.name === name || item.shortname === name)
 			}
-			
-			// 调试：打印当前插件的完整数据结构
-			console.log('=== 插件详情页 - 当前插件数据结构 ===')
-			console.log('插件名称:', plugin.value.shortname || plugin.value.name)
-			console.log('=======================================')
-			
-			isLoading.value = false;
-		} else if (pluginRaw) {
-			// 兼容旧版 URL 格式（直接传递 JSON）
-			plugin.value = JSON.parse(decodeURIComponent(pluginRaw))
-			isLoading.value = false
+			if (!data) throw new Error('当前数据源中未找到该插件')
+			plugin.value = data
+		} else if (options.plugin) {
+			plugin.value = JSON.parse(decodeURIComponent(options.plugin))
 		} else {
-			// 如果没有数据，显示错误并返回
-			uni.showToast({
-				title: '插件数据错误',
-				icon: 'error',
-				duration: 2000
-			});
-			setTimeout(() => {
-				uni.navigateBack();
-			}, 2000);
+			throw new Error('缺少插件信息')
 		}
+		// #ifdef WEB
+		if (detailVisible) setPluginSeo(plugin.value)
+		// #endif
 	} catch (error) {
-		console.error('加载插件详情失败:', error);
-		uni.showToast({
-			title: '加载失败',
-			icon: 'error',
-			duration: 2000
-		});
-		setTimeout(() => {
-			uni.navigateBack();
-		}, 2000);
+		loadError.value = error.message || '加载插件详情失败，请检查网络或数据源'
+	} finally {
+		isLoading.value = false
 	}
-});
+})
+
+// #ifdef WEB
+onShow(() => {
+	detailVisible = true
+	if (plugin.value.name || plugin.value.shortname) setPluginSeo(plugin.value)
+})
+onHide(() => {
+	detailVisible = false
+	resetHomepageSeo()
+})
+// #endif
 
 // 返回上一页
 const goBack = () => {
-	uni.navigateBack();
+	if (getCurrentPages().length > 1) uni.navigateBack()
+	else uni.reLaunch({ url: '/pages/index/index' })
 };
 
 // 获取描述文本（中文优先）
@@ -412,22 +363,6 @@ const handleAvatarError = () => {
 	}
 };
 
-// 获取分类图标
-const getCategoryIcon = (category) => {
-	const icons = {
-		adapter: '🔌',
-		extension: '🧩',
-		tool: '🔧',
-		game: '🎮',
-		image: '🖼️',
-		manage: '⚙️',
-		general: '📦',
-		webui: '🌐',
-		other: '📋'
-	};
-	return icons[category] || '📦';
-};
-
 // 获取分类名称
 const getCategoryName = (category) => {
 	const names = {
@@ -449,21 +384,6 @@ const getContributors = () => {
 	const contributors = plugin.value.contributors || [];
 	const maintainers = plugin.value.maintainers || [];
 	return [...contributors, ...maintainers];
-};
-
-// 渲染星级
-const renderStars = (rating) => {
-	if (!rating || rating < 0) rating = 0;
-	if (rating > 5) rating = 5;
-	
-	const fullStars = Math.floor(rating);
-	const hasHalfStar = rating % 1 >= 0.5;
-	const emptyStars = 5 - Math.ceil(rating);
-	
-	let stars = '★'.repeat(fullStars);
-	if (hasHalfStar) stars += '☆';
-	if (emptyStars > 0) stars += '☆'.repeat(emptyStars);
-	return stars;
 };
 
 // 格式化数字
@@ -493,6 +413,28 @@ const formatDate = (dateString) => {
 		minute: '2-digit'
 	});
 };
+
+// 显示解码后的链接，打开时保留原始编码以避免改变 URL 的含义。
+const decodeLink = (value) => {
+	const url = String(value || '')
+	try {
+		return decodeURIComponent(url)
+	} catch {
+		return url
+	}
+}
+
+// #ifdef WEB
+const openExternalLink = (value) => {
+	try {
+		const url = new URL(value)
+		if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Unsupported protocol')
+		window.open(url.href, '_blank', 'noopener,noreferrer')
+	} catch {
+		uni.showToast({ title: '链接地址无效', icon: 'none' })
+	}
+}
+// #endif
 
 // 复制链接
 const copyLink = (url) => {
@@ -572,996 +514,109 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.plugin-detail-page {
-	width: 100%;
-	height: 100vh;
-	background-color: var(--bg-primary, #ffffff);
-	display: flex;
-	flex-direction: column;
-}
-
-/* 顶部导航栏 */
-.detail-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 20rpx 30rpx;
-	background-color: var(--bg-secondary);
-	border-bottom: 2rpx solid var(--border-color);
-	flex-shrink: 0;
-}
-
-.back-btn {
-	display: flex;
-	align-items: center;
-	gap: 8rpx;
-	padding: 12rpx 20rpx;
-	background-color: var(--bg-primary);
-	border: 2rpx solid var(--border-color);
-	border-radius: 20rpx;
-	cursor: pointer;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.back-btn:hover {
-	background-color: var(--primary-color);
-	border-color: var(--primary-color);
-	color: white;
-	transform: translateX(-4rpx);
-	box-shadow: 0 4rpx 16rpx rgba(85, 70, 163, 0.25);
-}
-
-.back-btn:hover .back-icon,
-.back-btn:hover .back-text {
-	color: white;
-}
-
-.back-btn:active {
-	transform: scale(0.95) translateX(-2rpx);
-	background-color: var(--bg-tertiary);
-}
-
-.back-icon {
-	font-size: 32rpx;
-	color: var(--text-primary);
-	transition: all 0.3s ease;
-}
-
-.back-btn:hover .back-icon {
-	animation: arrowLeft 0.5s ease infinite;
-}
-
-@keyframes arrowLeft {
-	0%, 100% { transform: translateX(0); }
-	50% { transform: translateX(-6rpx); }
-}
-
-.back-text {
-	font-size: 28rpx;
-	color: var(--text-primary);
-}
-
-.header-title {
-	font-size: 32rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-}
-
-.theme-toggle {
-	display: flex;
-	align-items: center;
-	gap: 10rpx;
-	min-height: 60rpx;
-	padding: 3rpx 14rpx;
-	border: 2rpx solid var(--border-color);
-	background: var(--bg-secondary);
-	cursor: pointer;
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	border-radius: 32rpx;
-}
-
-.theme-toggle:hover {
-	border-color: var(--primary-color);
-	background: var(--accent-soft);
-	transform: translateY(-3rpx);
-}
-
-.theme-toggle:active {
-	transform: scale(0.97);
-}
-
-.theme-icon {
-	font-size: 36rpx;
-	display: block;
-	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle:hover .theme-icon {
-	transform: rotate(180deg) scale(1.1);
-}
-
-.theme-toggle:active .theme-icon {
-	transform: rotate(180deg) scale(0.92);
-}
-
-.header-action-label {
-	position: relative;
-	z-index: 1;
-	font-size: 22rpx;
-	line-height: 1;
-	white-space: nowrap;
-	color: var(--text-primary);
-}
-
-/* 加载状态 */
-.loading-container {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 20rpx;
-}
-
-.loading-spinner {
-	width: 60rpx;
-	height: 60rpx;
-	border: 4rpx solid var(--border-color);
-	border-top-color: var(--primary-color);
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-	to { transform: rotate(360deg); }
-}
-
-.loading-text {
-	font-size: 28rpx;
-	color: var(--text-secondary);
-}
-
-/* 内容区域 */
-.detail-content {
-	flex: 1;
-	height: 0;
-	min-height: 0;
-	box-sizing: border-box;
-}
-
-.content-wrapper {
-	padding: 30rpx;
-	max-width: 1200rpx;
-	margin: 0 auto;
-}
-
-/* 插件头部 */
-.plugin-header {
-	display: flex;
-	align-items: center;
-	gap: 30rpx;
-	padding: 40rpx;
-	background-color: var(--bg-secondary);
-	border-radius: 16rpx;
-	margin-bottom: 30rpx;
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	animation: slideDown 0.5s ease;
-}
-
-@keyframes slideDown {
-	from {
-		opacity: 0;
-		transform: translateY(-20rpx);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-.plugin-header:hover {
-	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
-	transform: translateY(-4rpx);
-}
-
-.plugin-icon {
-	width: 120rpx;
-	height: 120rpx;
-	background: linear-gradient(135deg, var(--primary-color), #7c66d4);
-	border-radius: 24rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	overflow: hidden;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.plugin-header:hover .plugin-icon {
-	transform: scale(1.1) rotate(5deg);
-	box-shadow: 0 8rpx 24rpx rgba(85, 70, 163, 0.3);
-}
-
-.author-avatar {
-	width: 100%;
-	height: 100%;
-	border-radius: 24rpx;
-}
-
-.icon-fallback {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.icon-text {
-	font-size: 80rpx;
-}
-
-.plugin-basic-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.plugin-name {
-	font-size: 40rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-	margin-bottom: 12rpx;
-	word-break: break-word;
-}
-
-.plugin-package {
-	font-size: 28rpx;
-	color: var(--text-secondary);
-	word-break: break-word;
-	margin-bottom: 8rpx;
-	display: flex;
-	align-items: center;
-	gap: 8rpx;
-}
-
-.plugin-author {
-	font-size: 26rpx;
-	color: var(--text-tertiary);
-	display: flex;
-	align-items: center;
-	gap: 6rpx;
-}
-
-.author-icon {
-	font-size: 24rpx;
-}
-
-/* 顶部右侧操作按钮组 */
-.header-actions {
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-}
-
-.github-link {
-	min-height: 60rpx;
-	padding: 3rpx 14rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10rpx;
-	background: rgba(255, 255, 255, 0.08);
-	backdrop-filter: blur(10rpx) saturate(180%);
-	-webkit-backdrop-filter: blur(10rpx) saturate(180%);
-	border: 2rpx solid rgba(255, 255, 255, 0.1);
-	border-radius: 32rpx;
-	cursor: pointer;
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	overflow: hidden;
-}
-
-.github-link::before {
-	content: '';
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-	opacity: 0;
-	transition: opacity 0.3s ease;
-}
-
-.github-link:hover::before {
-	opacity: 1;
-}
-
-.github-link:hover {
-	transform: translateY(-3rpx);
-	background: rgba(255, 255, 255, 0.2);
-	border-color: rgba(255, 255, 255, 0.3);
-	box-shadow: 0 4rpx 20rpx rgba(255, 255, 255, 0.2);
-}
-
-.github-link:active {
-	transform: scale(0.97);
-}
-
-.github-icon {
-	width: 40rpx;
-	height: 40rpx;
-	transition: transform 0.3s ease;
-}
-
-.github-link:hover .github-icon {
-	animation: detail-github-icon-spin 0.6s ease;
-}
-
-@keyframes detail-github-icon-spin {
-	from { transform: rotate(0) scale(1); }
-	60% { transform: rotate(300deg) scale(1.12); }
-	to { transform: rotate(360deg) scale(1); }
-}
-
-.clickable {
-	cursor: pointer;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	position: relative;
-	overflow: hidden;
-}
-
-.clickable::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: -100%;
-	width: 50%;
-	height: 100%;
-	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-	transition: left 0.5s ease;
-}
-
-.clickable:hover::before {
-	left: 100%;
-}
-
-.clickable:hover {
-	opacity: 0.9;
-	transform: translateY(-2rpx);
-	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-}
-
-.clickable:active {
-	transform: scale(0.98) translateY(0);
-	opacity: 0.7;
-}
-
-.copy-hint {
-	font-size: 24rpx;
-	opacity: 0.6;
-	margin-left: auto;
-	transition: all 0.3s ease;
-}
-
-.clickable:hover .copy-hint {
-	opacity: 1;
-	transform: scale(1.2);
-}
-
-/* 区块样式 */
-.section {
-	background-color: var(--bg-secondary);
-	border-radius: 16rpx;
-	padding: 30rpx;
-	margin-bottom: 30rpx;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	animation: sectionFadeIn 0.5s ease backwards;
-}
-
-.section:nth-child(1) { animation-delay: 0.1s; }
-.section:nth-child(2) { animation-delay: 0.15s; }
-.section:nth-child(3) { animation-delay: 0.2s; }
-.section:nth-child(4) { animation-delay: 0.25s; }
-.section:nth-child(5) { animation-delay: 0.3s; }
-.section:nth-child(6) { animation-delay: 0.35s; }
-.section:nth-child(7) { animation-delay: 0.4s; }
-.section:nth-child(8) { animation-delay: 0.45s; }
-
-@keyframes sectionFadeIn {
-	from {
-		opacity: 0;
-		transform: translateY(20rpx);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-.section:hover {
-	transform: translateY(-4rpx);
-	box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-	font-size: 32rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-	margin-bottom: 20rpx;
-	display: flex;
-	align-items: center;
-	gap: 12rpx;
-}
-
-.section-content {
-	color: var(--text-primary);
-	line-height: 1.8;
-}
-
-.description-text {
-	font-size: 28rpx;
-	color: var(--text-secondary);
-	line-height: 1.8;
-}
-
-/* 信息网格 */
-.info-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220rpx, 1fr));
-	gap: 24rpx;
-}
-
-@media (min-width: 768px) {
-	.info-grid {
-		grid-template-columns: repeat(4, 1fr);
-	}
-}
-
-.info-item {
-	display: flex;
-	flex-direction: column;
-	gap: 12rpx;
-	padding: 20rpx;
-	background-color: var(--bg-tertiary);
-	border-radius: 12rpx;
-	transition: all 0.25s ease;
-}
-
-.info-item:hover {
-	background-color: var(--bg-primary);
-	transform: scale(1.03);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-}
-
-.info-label {
-	font-size: 24rpx;
-	color: var(--text-tertiary);
-}
-
-.info-value {
-	font-size: 28rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-}
-
-.rating-value {
-	display: flex;
-	align-items: center;
-	gap: 12rpx;
-}
-
-.stars {
-	font-size: 28rpx;
-	color: #ffd700;
-}
-
-.rating-number {
-	font-size: 28rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-}
 
-/* 徽章 */
-.badges-container {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 16rpx;
-}
-
-.badge {
-	display: flex;
-	align-items: center;
-	gap: 8rpx;
-	padding: 12rpx 24rpx;
-	border-radius: 20rpx;
-	font-size: 24rpx;
-	transition: all 0.25s ease;
-}
-
-.badge:hover {
-	transform: scale(1.05);
-	filter: brightness(1.1);
-}
-
-.badge.verified {
-	background-color: rgba(26, 127, 55, 0.15);
-	color: var(--success-color);
-}
-
-.badge.portable {
-	background-color: rgba(191, 135, 0, 0.15);
-	color: var(--warning-color);
-}
-
-.badge.insecure {
-	background-color: rgba(209, 36, 47, 0.15);
-	color: var(--danger-color);
-}
-
-.badge-icon {
-	font-size: 28rpx;
-}
-
-.badge-text {
-	font-weight: 500;
-}
-
-/* 发布者卡片 */
-.publisher-card {
-	display: flex;
-	align-items: center;
-	gap: 24rpx;
-	padding: 24rpx;
-	background-color: var(--bg-tertiary);
-	border-radius: 12rpx;
-	transition: all 0.3s ease;
-}
-
-.publisher-card:hover {
-	background-color: var(--bg-primary);
-	transform: scale(1.02);
-	box-shadow: 0 4rpx 12rpx rgba(85, 70, 163, 0.1);
-}
-
-.publisher-avatar {
-	width: 80rpx;
-	height: 80rpx;
-	border-radius: 50%;
-	flex-shrink: 0;
-	transition: all 0.3s ease;
-}
-
-.publisher-avatar:hover {
-	transform: scale(1.1) rotate(5deg);
-	box-shadow: 0 4rpx 12rpx rgba(85, 70, 163, 0.3);
-}
-
-.publisher-info {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: 8rpx;
-}
-
-.publisher-name {
-	font-size: 28rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-}
-
-.publisher-email {
-	font-size: 24rpx;
-	color: var(--text-tertiary);
-	word-break: break-all;
-}
-
-/* 维护者列表 */
-.maintainers-list {
-	display: flex;
-	flex-direction: column;
-	gap: 16rpx;
-}
-
-.maintainer-card {
-	display: flex;
-	align-items: center;
-	gap: 20rpx;
-	padding: 20rpx;
-	background-color: var(--bg-tertiary);
-	border-radius: 12rpx;
-	transition: all 0.25s ease;
-}
-
-.maintainer-card:hover {
-	background-color: var(--bg-primary);
-	transform: translateX(8rpx);
-	box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-}
-
-.maintainer-avatar {
-	width: 64rpx;
-	height: 64rpx;
-	border-radius: 50%;
-	flex-shrink: 0;
-	transition: all 0.3s ease;
-}
-
-.maintainer-avatar:hover {
-	transform: scale(1.15) rotate(-5deg);
-	box-shadow: 0 2rpx 8rpx rgba(85, 70, 163, 0.3);
-}
-
-.maintainer-info {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	gap: 6rpx;
-}
-
-.maintainer-name {
-	font-size: 26rpx;
-	font-weight: 600;
-	color: var(--text-primary);
-}
-
-.maintainer-email {
-	font-size: 22rpx;
-	color: var(--text-tertiary);
-	word-break: break-all;
-}
-
-/* 服务信息 */
-.service-info {
-	display: flex;
-	flex-direction: column;
-	gap: 20rpx;
-}
-
-.service-item {
-	display: flex;
-	flex-direction: column;
-	gap: 12rpx;
-}
-
-.service-label {
-	font-size: 26rpx;
-	color: var(--text-secondary);
-	font-weight: 600;
-}
-
-.service-tags {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12rpx;
-}
-
-.service-tag {
-	padding: 8rpx 16rpx;
-	background-color: var(--bg-primary);
-	border: 2rpx solid var(--border-color);
-	border-radius: 12rpx;
-	font-size: 24rpx;
-	color: var(--text-primary);
-	transition: all 0.2s ease;
-}
-
-.service-tag:hover {
-	transform: scale(1.08);
-	box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
-}
-
-.service-tag.required {
-	background-color: rgba(85, 70, 163, 0.1);
-	border-color: var(--primary-color);
-	color: var(--primary-color);
-}
-
-.service-tag.optional {
-	background-color: rgba(191, 135, 0, 0.1);
-	border-color: var(--warning-color);
-	color: var(--warning-color);
-}
-
-/* 贡献者列表 */
-.contributors-list {
-	display: flex;
-	flex-direction: column;
-	gap: 16rpx;
-}
-
-.contributor {
-	display: flex;
-	flex-direction: column;
-	gap: 8rpx;
-	padding: 20rpx;
-	background-color: var(--bg-tertiary);
-	border-radius: 12rpx;
-}
-
-.contributor-name {
-	font-size: 28rpx;
-	font-weight: 500;
-	color: var(--text-primary);
-}
-
-.contributor-email {
-	font-size: 24rpx;
-	color: var(--text-secondary);
-}
-
-/* 关键词 */
-.keywords-container {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 16rpx;
-}
-
-.keyword-tag {
-	padding: 12rpx 24rpx;
-	background-color: var(--bg-tertiary);
-	border: 2rpx solid var(--border-color);
-	border-radius: 20rpx;
-	font-size: 24rpx;
-	color: var(--text-secondary);
-	transition: all 0.2s ease;
-}
-
-.keyword-tag:hover {
-	background: linear-gradient(135deg, var(--primary-color), #7c66d4);
-	color: #fff;
-	border-color: transparent;
-	transform: scale(1.05) rotate(-1deg);
-	box-shadow: 0 2rpx 8rpx rgba(85, 70, 163, 0.3);
-}
-
-/* 链接 */
-.links-container {
-	display: flex;
-	flex-direction: column;
-	gap: 16rpx;
-}
-
-.link-item {
-	display: flex;
-	align-items: center;
-	gap: 16rpx;
-	padding: 20rpx;
-	background-color: var(--bg-tertiary);
-	border-radius: 12rpx;
-	cursor: pointer;
-	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.link-item:hover {
-	background-color: var(--bg-primary);
-	transform: translateX(4rpx) scale(1.02);
-	box-shadow: -4rpx 0 0 0 var(--primary-color), 0 4rpx 12rpx rgba(85, 70, 163, 0.15);
-}
-
-.link-item:active {
-	transform: translateX(2rpx) scale(0.99);
-	background-color: var(--bg-primary);
-}
-
-.link-icon {
-	font-size: 32rpx;
-}
-
-.link-text {
-	font-size: 28rpx;
-	font-weight: 500;
-	color: var(--text-primary);
-	min-width: 80rpx;
-}
-
-.link-url {
-	flex: 1;
-	font-size: 24rpx;
-	color: var(--text-secondary);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-/* 更新时间 */
-.update-time {
-	font-size: 28rpx;
-	color: var(--text-secondary);
-}
-
-/* 移动端优化 */
-.plugin-detail-page {
-	height: 100vh;
-	height: 100dvh;
-	box-sizing: border-box;
-	overflow: hidden;
-	padding-bottom: max(var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px));
-}
-.detail-header {
-	width: 100%;
-	max-width: 960px;
-	margin: 0 auto;
-	padding: 12px 24px;
-	gap: 12px;
-	box-sizing: border-box;
-}
-.header-title {
-	font-size: var(--font-page);
-	line-height: 1.4;
-}
-.back-btn, .github-link, .theme-toggle {
-	min-height: 44px;
-	padding: 10px 8px;
-	gap: 6px;
-	box-sizing: border-box;
-	border-radius: 8px;
-}
-.header-actions {
-	gap: 8px;
-	flex-shrink: 0;
-}
-.back-text, .header-action-label {
-	font-size: var(--font-caption);
-}
-.back-icon, .theme-icon {
-	font-size: 20px;
-}
-.github-icon {
-	width: 20px;
-	height: 20px;
-}
-.detail-content {
-	flex: 1;
-	height: 0;
-	min-height: 0;
-	overflow: hidden;
-}
-.content-wrapper {
-	width: 100%;
-	max-width: 960px;
-	padding: 16px 24px;
-	box-sizing: border-box;
-}
-.plugin-header {
-	padding: 20px;
-	gap: 16px;
-	margin-bottom: 16px;
-	border-radius: 10px;
-}
-.plugin-icon {
-	width: 64px;
-	height: 64px;
-	flex-shrink: 0;
-}
-.icon-text {
-	font-size: 36px;
-}
-.plugin-name {
-	font-size: var(--font-page);
-	overflow-wrap: anywhere;
-}
-.plugin-package, .plugin-author {
-	font-size: var(--font-body);
-	min-width: 0;
-	gap: 6px;
-}
-.plugin-package > text:first-child, .plugin-author > text:last-child {
-	min-width: 0;
-	overflow-wrap: anywhere;
-}
-.copy-hint, .author-icon {
-	font-size: 16px;
-	flex-shrink: 0;
-}
-.section {
-	padding: 20px;
-	margin-bottom: 16px;
-	border-radius: 10px;
-	min-width: 0;
-}
-.section-title {
-	font-size: var(--font-section);
-	margin-bottom: 12px;
-}
-.description-text, .info-value, .rating-number, .publisher-name, .maintainer-name, .contributor-name, .service-label, .link-text, .update-time {
-	font-size: var(--font-body);
-	overflow-wrap: anywhere;
-}
-.info-grid {
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 12px;
-}
-.info-item {
-	min-width: 0;
-	padding: 12px;
-	gap: 8px;
-}
-.info-label, .publisher-email, .maintainer-email, .contributor-email, .badge, .service-tag, .keyword-tag, .link-url {
-	font-size: var(--font-caption);
-	overflow-wrap: anywhere;
-}
-.rating-value {
-	flex-wrap: wrap;
-	gap: 6px;
-}
-.stars {
-	font-size: 16px;
-}
-.publisher-card, .maintainer-card, .contributor, .link-item {
-	padding: 12px;
-	gap: 12px;
-	min-width: 0;
-}
-.publisher-info, .maintainer-info {
-	min-width: 0;
-}
-.publisher-avatar {
-	width: 40px;
-	height: 40px;
-}
-.maintainer-avatar {
-	width: 32px;
-	height: 32px;
-}
-.badge, .service-tag, .keyword-tag {
-	max-width: 100%;
-	min-width: 0;
-	padding: 6px 10px;
-	box-sizing: border-box;
-}
-.badge-icon, .link-icon {
-	font-size: 18px;
-	flex-shrink: 0;
-}
-.link-item {
-	flex-wrap: wrap;
-}
-.link-url {
-	flex-basis: 100%;
-	min-width: 0;
-	white-space: normal;
-}
-.loading-text {
-	font-size: var(--font-body);
-}
-@media (max-width: 900px) {
-	.info-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
-@media (max-width: 600px) {
-.detail-header {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	padding: 8px 16px;
-}
-.back-btn {
-	grid-column: 1;
-	grid-row: 1;
-	justify-self: start;
-}
-.header-actions {
-	grid-column: 2;
-	grid-row: 1;
-}
-.header-title {
-	grid-column: 1 / -1;
-	grid-row: 2;
-}
-.content-wrapper {
-	padding: 12px 16px;
-}
-.plugin-header {
-	flex-direction: column;
-	align-items: flex-start;
-	padding: 16px;
-}
-.plugin-basic-info {
-	width: 100%;
-}
-.section {
-	padding: 16px;
-}
-.info-grid {
-	grid-template-columns: minmax(0, 1fr);
-}
+.plugin-detail-page { display:flex; flex-direction:column; width:100%; height:100vh; min-height:0; background:var(--bg-primary); color:var(--text-primary); }
+.detail-header { flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--border); }
+.header-inner { box-sizing:border-box; max-width:1180px; min-height:64px; padding:10px 28px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.header-identity, .header-actions { display:flex; align-items:center; gap:12px; min-width:0; }
+.header-title { font-size:15px; font-weight:700; white-space:nowrap; }
+.back-btn, .github-link, .theme-toggle { display:flex; align-items:center; justify-content:center; gap:7px; box-sizing:border-box; min-height:38px; padding:8px 11px; border:1px solid var(--border); border-radius:10px; color:var(--text-secondary); background:var(--surface); cursor:pointer; font-size:13px; }
+.back-btn:hover, .github-link:hover, .theme-toggle:hover, .plugin-package:hover, .publisher-card:hover, .maintainer-card:hover, .link-item:hover { color:var(--accent); background:var(--accent-soft); }
+.back-btn:focus-visible, .github-link:focus-visible, .theme-toggle:focus-visible, .plugin-package:focus-visible, .publisher-card:focus-visible, .maintainer-card:focus-visible, .link-item:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.back-btn, .github-link, .theme-toggle, .plugin-package, .publisher-card, .maintainer-card, .link-item { transition:transform .18s ease, color .18s ease, background-color .18s ease, border-color .18s ease; }
+.back-btn:active, .github-link:active, .theme-toggle:active, .plugin-package:active, .publisher-card:active, .maintainer-card:active, .link-item:active { transform:scale(var(--interaction-press-scale, .99)); }
+.ui-lucide, .github-icon { width:17px; height:17px; flex-shrink:0; }
+.detail-content { flex:1; height:0; min-height:0; overflow:hidden; }
+.content-wrapper { box-sizing:border-box; width:100%; max-width:1180px; margin:0 auto; padding:36px 28px 72px; }
+.plugin-header { display:flex; align-items:flex-start; gap:22px; min-width:0; padding:4px 0 30px; }
+.plugin-icon { display:flex; align-items:center; justify-content:center; flex:0 0 76px; width:76px; height:76px; overflow:hidden; border:1px solid var(--border); border-radius:22px; background:var(--accent-soft); }
+.author-avatar { display:block; width:100%; height:100%; }
+.icon-fallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+.detail-fallback-icon { width:32px; height:32px; }
+.plugin-basic-info { flex:1; min-width:0; }
+.identity-title { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; }
+.plugin-name { margin:0; min-width:0; font-size:30px; line-height:1.2; font-weight:700; overflow-wrap:anywhere; }
+.plugin-package { display:inline-flex; align-items:center; gap:8px; max-width:100%; box-sizing:border-box; margin:8px 0 0 -6px; padding:4px 6px; border-radius:7px; color:var(--text-secondary); font-size:14px; cursor:pointer; }
+.plugin-package text { min-width:0; overflow-wrap:anywhere; }
+.copy-hint { width:15px; height:15px; opacity:.7; }
+.plugin-author { display:flex; align-items:center; gap:7px; margin-top:7px; color:var(--text-secondary); font-size:13px; overflow-wrap:anywhere; }
+.author-icon { width:15px; height:15px; }
+.identity-badges, .badges-container { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.badge { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:12px; line-height:1.2; }
+.badge.verified { color:var(--success-color); }
+.badge.insecure { color:var(--danger-color); }
+.badge-icon { width:14px; height:14px; }
+.stats-section { padding:0 24px; border:1px solid var(--border); border-radius:16px; background:var(--surface); }
+.stats-section .info-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); }
+.stats-section.has-quality .info-grid { grid-template-columns:repeat(6,minmax(0,1fr)); }
+.stats-section .info-item { min-width:0; padding:19px 16px; border-left:1px solid var(--border); }
+.stats-section .info-item:first-child { border-left:0; padding-left:0; }
+.info-item { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.info-label { color:var(--text-tertiary); font-size:12px; line-height:1.4; }
+.info-value, .rating-number { color:var(--text-primary); font-size:14px; font-weight:700; line-height:1.4; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.stats-section .info-value, .stats-section .rating-number { font-size:17px; }
+.rating-value { display:flex; align-items:center; gap:5px; }
+.rating-value .ui-lucide { width:15px; height:15px; }
+.detail-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(270px,340px); gap:56px; align-items:start; margin-top:38px; }
+.detail-main, .detail-aside { min-width:0; }
+.section { min-width:0; padding:0 0 26px; margin:0 0 26px; border-bottom:1px solid var(--border); }
+.section:last-child { margin-bottom:0; }
+.section-title { display:flex; align-items:center; gap:9px; margin-bottom:16px; color:var(--text-primary); font-size:16px; font-weight:700; line-height:1.4; }
+.section-title .ui-lucide { width:17px; height:17px; }
+.section-content, .description-text { color:var(--text-secondary); font-size:15px; line-height:1.8; overflow-wrap:anywhere; }
+.detail-aside { padding:24px; border:1px solid var(--border); border-radius:16px; background:var(--surface); }
+.detail-aside .section:last-child { border-bottom:0; padding-bottom:0; }
+.detail-aside .info-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; }
+.detail-aside .info-item { gap:5px; }
+.service-info { display:flex; flex-direction:column; gap:12px; }
+.service-item { display:flex; align-items:flex-start; gap:10px; color:var(--text-secondary); font-size:13px; }
+.service-label { flex-shrink:0; padding-top:5px; }
+.service-tags, .keywords-container { display:flex; flex-wrap:wrap; gap:8px; min-width:0; }
+.service-tag, .keyword-tag { display:inline-flex; box-sizing:border-box; max-width:100%; padding:5px 9px; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text-secondary); font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.service-tag.required { color:var(--accent); border-color:var(--accent); }
+.service-tag.optional { color:var(--warning-color); }
+.publisher-card, .maintainer-card { display:flex; align-items:center; gap:12px; box-sizing:border-box; min-width:0; padding:10px; margin-left:-10px; border-radius:10px; cursor:pointer; }
+.maintainers-list { display:flex; flex-direction:column; gap:2px; }
+.publisher-avatar, .maintainer-avatar { flex-shrink:0; width:40px; height:40px; border-radius:50%; background:var(--accent-soft); }
+.publisher-info, .maintainer-info { display:flex; flex:1; flex-direction:column; gap:3px; min-width:0; }
+.publisher-name, .maintainer-name { color:var(--text-primary); font-size:14px; font-weight:700; overflow-wrap:anywhere; }
+.publisher-email, .maintainer-email { color:var(--text-tertiary); font-size:12px; overflow-wrap:anywhere; }
+.links-container { display:flex; flex-direction:column; gap:3px; }
+.link-item { display:grid; grid-template-columns:17px minmax(0,1fr); gap:4px 9px; min-width:0; padding:10px; margin:0 -10px; border-radius:9px; cursor:pointer; }
+.link-icon { grid-row:1; }
+.link-text { color:var(--text-primary); font-size:13px; font-weight:700; }
+.link-url { grid-column:2; min-width:0; color:var(--text-tertiary); font-size:12px; line-height:1.5; overflow-wrap:anywhere; word-break:break-all; }
+.loading-container { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:var(--text-secondary); }
+.loading-spinner { width:26px; height:26px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:detail-spin .8s linear infinite; }
+.loading-text { font-size:14px; }
+@keyframes detail-spin { to { transform:rotate(360deg); } }
+.motion-ultra-low .loading-spinner { animation:none; }
+@media (max-width:900px) {
+ .detail-columns { grid-template-columns:minmax(0,1fr) minmax(240px,300px); gap:28px; }
+ .stats-section .info-grid, .stats-section.has-quality .info-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ .stats-section .info-item:nth-child(4) { border-left:0; padding-left:0; }
+ .stats-section .info-item:nth-child(n+4) { border-top:1px solid var(--border); }
+}
+@media (max-width:640px) {
+ .header-inner { min-height:56px; padding:8px 16px; }
+ .header-identity, .header-actions { gap:8px; }
+ .header-action-label, .back-text { display:none; }
+ .back-btn, .github-link, .theme-toggle { width:38px; padding:8px; }
+ .content-wrapper { padding:24px 16px 56px; }
+ .plugin-header { gap:15px; padding:0 0 24px; }
+ .plugin-icon { flex-basis:58px; width:58px; height:58px; border-radius:16px; }
+ .detail-fallback-icon { width:27px; height:27px; }
+ .plugin-name { font-size:23px; }
+ .plugin-package { font-size:13px; }
+ .stats-section { padding:0 16px; }
+ .stats-section .info-grid, .stats-section.has-quality .info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .stats-section .info-item { padding:15px 12px; }
+ .stats-section .info-item:nth-child(odd) { border-left:0; padding-left:0; }
+ .stats-section .info-item:nth-child(even) { border-left:1px solid var(--border); padding-left:16px; }
+ .stats-section .info-item:nth-child(n+3) { border-top:1px solid var(--border); }
+ .detail-columns { display:flex; flex-direction:column; gap:26px; margin-top:30px; }
+ .detail-main, .detail-aside { box-sizing:border-box; width:100%; }
+ .detail-aside { padding:20px; }
+ .section { padding-bottom:22px; margin-bottom:22px; }
 }
 </style>

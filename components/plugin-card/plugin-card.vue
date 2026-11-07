@@ -1,91 +1,40 @@
 <template>
-	<view class="plugin-card" @click="handleClick">
-		<!-- 头部：图标 + 名称 + 评分 -->
+	<view class="plugin-card" role="button" tabindex="0" @click="handleClick" @keydown.enter.prevent="handleClick" @keydown.space.prevent="handleClick">
 		<view class="card-header">
-			<view class="icon-container">
-				<view class="category-icon">
-					<text>{{ getCategoryIcon(plugin.category) }}</text>
-				</view>
-			</view>
-			
-			<view class="header-main">
-				<view class="title-row">
-					<text class="plugin-name">{{ plugin.shortname || plugin.name }}</text>
-					<view v-if="badge" class="badge-icon" :class="badge.type">
-						<text>{{ getBadgeIcon(badge.type) }}</text>
-					</view>
-				</view>
-				
-				<view class="rating-row">
-					<view class="stars">
-						<text 
-							v-for="i in 5" 
-							:key="i" 
-							class="star"
-							:class="{ filled: i <= Math.round(plugin.rating || 0) }"
-						>★</text>
-					</view>
-					<text class="rating-value">{{ (plugin.rating || 0).toFixed(1) }}</text>
-				</view>
-			</view>
+			<view class="category-icon"><image class="category-image" :src="packageIcon" mode="aspectFit" /></view>
+			<view class="header-main"><view class="title-row"><text class="plugin-name">{{ plugin.shortname || plugin.name }}</text><image v-if="badge" class="badge-image" :alt="badgeLabel" :src="badgeIcon" mode="aspectFit" /><image class="card-arrow" :src="uiIcons['arrow-right']" mode="aspectFit" /></view><text class="category-label">{{ categoryLabel }}</text></view>
 		</view>
-		
-		<!-- 描述 -->
-		<view class="card-description">
-			<text class="description-text">{{ previewDescription }}</text>
-		</view>
-		
-		<!-- 底部：版本、大小、下载量、作者 -->
-		<view class="card-footer">
-			<view class="footer-top">
-				<view v-if="plugin.installSize" class="footer-item">
-					<text class="footer-icon">📦</text>
-					<text class="footer-text">{{ formatSize(plugin.installSize) }}</text>
-				</view>
-				
-				<view v-if="plugin.downloads" class="footer-item">
-					<text class="footer-icon">📥</text>
-					<text class="footer-text">{{ plugin.downloads }}</text>
-				</view>
-			</view>
-			
-			<view class="footer-bottom">
-				<view class="footer-item footer-version">
-					<text class="footer-icon">🏷️</text>
-					<text class="footer-text">{{ plugin.version }}</text>
-				</view>
-				
-				<view class="author-avatar" v-if="authorEmail">
-					<image 
-						class="avatar-img" 
-						:src="getAvatarUrl(authorEmail, currentMirrorIndex)"
-						mode="aspectFill"
-						@error="handleAvatarError"
-					/>
-				</view>
-				<view class="author-avatar" v-else>
-					<text class="avatar-text">{{ getAvatarText(plugin.author) }}</text>
-				</view>
-			</view>
-		</view>
-</view>
+		<view class="card-description"><text class="description-text">{{ previewDescription }}</text></view>
+		<view class="card-metrics"><view class="metric" :aria-label="'评分 ' + (plugin.rating || 0).toFixed(1)"><image :src="uiIcons.star" mode="aspectFit" /><text>{{ (plugin.rating || 0).toFixed(1) }}</text></view><view class="metric" :aria-label="'下载量 ' + (plugin.downloads || 0)"><image :src="uiIcons.download" mode="aspectFit" /><text>{{ plugin.downloads || 0 }}</text></view><view class="metric" :aria-label="'大小 ' + (formatSize(plugin.installSize) || '未知')"><image :src="uiIcons.box" mode="aspectFit" /><text>{{ formatSize(plugin.installSize) || '—' }}</text></view></view>
+		<view class="card-footer"><view class="footer-item"><text class="footer-icon">版本</text><text class="footer-text">{{ plugin.version }}</text></view><view :id="avatarId" class="author-avatar"><image v-if="avatarSrc" :key="avatarSrc" class="avatar-img" :src="avatarSrc" mode="aspectFill" @load="onAvatarLoad" @error="handleAvatarError" /><text v-else class="avatar-text">{{ getAvatarText(plugin.author) }}</text></view></view>
+	</view>
 </template><script setup>
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, getCurrentInstance, nextTick } from 'vue'
 import { AVATAR_MIRRORS, getAvatarUrl, getAvatarText } from '@/utils/avatar.js'
+import { avatarSource, forgetAvatar, loadCachedAvatar, rememberAvatarUrl } from '@/utils/avatar-cache.js'
+import packageIcon from '@/static/icons/package.png'
+import { uiIcons } from '@/utils/ui-icons.js'
 
 const props = defineProps({
 	plugin: {
 		type: Object,
 		required: true
-	}
+	},
+	lazyAvatar: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['click'])
 
-const avatarError = ref(false)
-const avatarLoading = ref(true)
+const instance = getCurrentInstance()
+const avatarId = 'plugin-avatar-' + instance.uid
+const avatarSrc = ref('')
+const avatarVisible = ref(!props.lazyAvatar)
 const currentMirrorIndex = ref(0)
 let avatarTimeoutTimer = null
+let avatarObserver = null
+let releaseAvatar = () => {}
+let avatarRequest = 0
+let disposed = false
 
 const clearAvatarTimeout = () => {
 	if (avatarTimeoutTimer) {
@@ -103,8 +52,6 @@ const startAvatarTimeout = () => {
 
 // 获取作者邮箱
 const authorEmail = computed(() => {
-	if (avatarError.value) return null
-	
 	const plugin = props.plugin
 	
 	// 优先从 _raw.package.publisher 获取
@@ -126,38 +73,105 @@ const authorEmail = computed(() => {
 	return null
 })
 
-watch(authorEmail, (newEmail) => {
-	currentMirrorIndex.value = 0
-	avatarError.value = false
-	if (newEmail) {
-		avatarLoading.value = true
-		startAvatarTimeout()
-	} else {
-		clearAvatarTimeout()
-		avatarLoading.value = false
+function setAvatarSource(source, release = () => {}) {
+	clearAvatarTimeout()
+	releaseAvatar()
+	releaseAvatar = release
+	avatarSrc.value = source
+	if (source) startAvatarTimeout()
+}
+
+async function loadAvatar() {
+	const email = authorEmail.value
+	if (!email || !avatarVisible.value) return
+	const request = ++avatarRequest
+	const url = getAvatarUrl(email, currentMirrorIndex.value)
+	if (props.lazyAvatar) {
+		const entry = await loadCachedAvatar(url)
+		if (disposed || request !== avatarRequest) return
+		if (entry) {
+			const { source, release } = avatarSource(entry)
+			setAvatarSource(source, release)
+			return
+		}
 	}
+	if (!disposed && request === avatarRequest) setAvatarSource(url)
+}
+
+watch([authorEmail, avatarVisible], () => {
+	avatarRequest++
+	currentMirrorIndex.value = 0
+	setAvatarSource('')
+	loadAvatar()
 }, { immediate: true })
 
+onMounted(async () => {
+	if (!props.lazyAvatar) return
+	await nextTick()
+	if (disposed) return
+	const showAvatar = () => {
+		avatarVisible.value = true
+		avatarObserver?.disconnect()
+		avatarObserver = null
+	}
+	// #ifdef H5
+	const element = document.getElementById(avatarId)
+	if (element && typeof IntersectionObserver !== 'undefined') {
+		avatarObserver = new IntersectionObserver(entries => {
+			if (entries.some(entry => entry.isIntersecting)) showAvatar()
+		}, { rootMargin: '200px 0px' })
+		avatarObserver.observe(element)
+		return
+	}
+	// #endif
+	// #ifndef H5
+	if (typeof uni.createIntersectionObserver === 'function') {
+		try {
+			avatarObserver = uni.createIntersectionObserver(instance.proxy)
+			avatarObserver.relativeToViewport({ top: 200, bottom: 200 }).observe('#' + avatarId, result => {
+				if (result.intersectionRatio > 0) showAvatar()
+			})
+			return
+		} catch (_) { avatarObserver?.disconnect(); avatarObserver = null }
+	}
+	// #endif
+	showAvatar()
+})
+
 onUnmounted(() => {
+	disposed = true
+	avatarRequest++
+	avatarObserver?.disconnect()
 	clearAvatarTimeout()
+	releaseAvatar()
 })
 
 // 处理头像加载成功
 const onAvatarLoad = () => {
 	clearAvatarTimeout()
-	avatarLoading.value = false
+	if (props.lazyAvatar && authorEmail.value) {
+		const url = getAvatarUrl(authorEmail.value, currentMirrorIndex.value)
+		if (avatarSrc.value === url) rememberAvatarUrl(url)
+	}
 }
 
 // 处理头像加载错误 / 超时，按优先级 fallback
 const handleAvatarError = () => {
 	clearAvatarTimeout()
+	if (!authorEmail.value || !avatarSrc.value) return
+	const url = getAvatarUrl(authorEmail.value, currentMirrorIndex.value)
+	forgetAvatar(url)
+	// A temporary path may have expired. Retry the original URL before changing mirrors.
+	if (avatarSrc.value !== url) {
+		setAvatarSource(url)
+		return
+	}
 	if (currentMirrorIndex.value < AVATAR_MIRRORS.length - 1) {
 		currentMirrorIndex.value++
-		avatarLoading.value = true
-		startAvatarTimeout()
+		setAvatarSource('')
+		loadAvatar()
 	} else {
-		avatarError.value = true
-		avatarLoading.value = false
+		setAvatarSource('')
 	}
 }
 
@@ -189,40 +203,13 @@ const previewDescription = computed(() => {
 		.trim()
 })
 
-// 获取分类图标
-const getCategoryIcon = (category) => {
-	const icons = {
-		adapter: '🔌',
-		extension: '🧩',
-		tool: '🔧',
-		game: '🎮',
-		image: '🖼️',
-		manage: '⚙️',
-		general: '📦',
-		preset: '📋',
-		ai: '🤖',
-		gametool: '🎯',
-		life: '🌟',
-		media: '🎬',
-		meme: '😄',
-		webui: '🌐',
-		core: '💎',
-		other: '📄'
-	}
-	return icons[category] || '📦'
-}
+const categoryLabel = computed(() => {
+	const labels = { adapter: '适配器', extension: '扩展功能', tool: '实用工具', game: '娱乐玩法', image: '图片服务', manage: '管理工具', general: '通用功能', other: '其他' }
+	return labels[props.plugin.category] || props.plugin.category || '其他'
+})
 
-// 获取徽章图标
-const getBadgeIcon = (type) => {
-	const icons = {
-		verified: '✓',
-		preview: '👁',
-		insecure: '⚠',
-		portable: '📦',
-		newborn: '🎉'
-	}
-	return icons[type] || ''
-}
+const badgeLabel = computed(() => ({ verified: '官方认证', preview: '预览版', insecure: '不安全', portable: '可移植', newborn: '新发布' })[badge.value?.type] || '')
+const badgeIcon = computed(() => uiIcons[({ verified: 'shield-check', preview: 'eye', insecure: 'triangle-alert', portable: 'box', newborn: 'sparkles' })[badge.value?.type]] || uiIcons.box)
 
 // 格式化大小
 const formatSize = (bytes) => {
@@ -710,4 +697,69 @@ const handleClick = () => {
 		min-height: 0;
 	}
 }
+
+/* Shared catalogue surface: light workstation and dark connected grid. */
+.plugin-card {
+	min-height: 176px;
+	padding: 18px;
+	gap: 14px;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	background: var(--surface);
+	box-shadow: none;
+	transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+.plugin-card::before, .card-description::after { display: none; }
+.plugin-card:hover { transform: none; box-shadow: none; border-color: var(--accent); }
+.plugin-card:active { transform: scale(0.99); }
+.plugin-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.card-header { gap: 12px; align-items: center; }
+.category-icon { width: 42px; height: 42px; border: 0; border-radius: 11px; background: var(--accent-soft); }
+.category-image { width: 21px; height: 21px; }
+.plugin-card:hover .category-icon, .plugin-card:hover .author-avatar { transform: none; box-shadow: none; }
+.plugin-name { font-size: var(--font-card); font-weight: 700; line-height: 1.35; }
+.category-label { color: var(--text-tertiary); font-size: 12px; line-height: 1.4; }
+.star { color: var(--border); }
+.plugin-card:hover .star { animation: none; }
+.card-description { color: var(--text-secondary); }
+.card-footer { border-top: 1px solid var(--border); padding-top: 10px; }
+.footer-top, .footer-bottom { gap: 6px 12px; }
+.footer-icon { width: auto; color: var(--text-tertiary); font-size: 12px; }
+.plugin-card:hover .footer-item { color: var(--text-secondary); }
+.plugin-card:hover .footer-icon { transform: none; }
+.author-avatar { background: var(--accent-soft); }
+.avatar-text { color: var(--accent); }
+:global(.compact-mode) .plugin-card { border-radius: 4px; }
+@media (max-width: 600px) { .plugin-card { min-height: 150px; padding: 16px; } }
+
+/* Catalogue card: identity, description, then compact package metadata. */
+.plugin-card { display:flex; flex-direction:column; min-height:205px; padding:20px; gap:14px; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:none; box-sizing:border-box; }
+.plugin-card:hover { transform:translateY(-2px); border-color:var(--accent); }
+.card-header { display:flex; align-items:center; gap:12px; }
+.category-icon { display:flex; align-items:center; justify-content:center; width:42px; height:42px; flex:none; background:var(--accent-soft); border-radius:11px; }
+.category-image { width:21px; height:21px; }
+.header-main { flex:1; min-width:0; }
+.title-row { display:flex; align-items:center; gap:6px; min-width:0; }
+.plugin-name { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px; line-height:1.4; font-weight:700; }
+.badge-image, .card-arrow { width:16px; height:16px; flex:none; }
+.category-label { display:block; font-size:12px; color:var(--text-tertiary); }
+.card-description { flex:1; min-height:40px; color:var(--text-secondary); font-size:14px; line-height:1.5; }
+.description-text { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+.card-metrics { display:flex; gap:16px; flex-wrap:wrap; color:var(--text-secondary); font-size:12px; }
+.metric { display:flex; align-items:center; gap:5px; }
+.metric image { width:14px; height:14px; }
+.card-footer { display:flex; flex-direction:row; align-items:center; justify-content:space-between; min-height:26px; padding-top:12px; border-top:1px solid var(--border); }
+.footer-item { display:flex; align-items:center; gap:6px; color:var(--text-secondary); }
+.author-avatar { flex:none; width:25px; height:25px; }
+:global(.compact-mode) .plugin-card { border-radius:4px; }
+
+.card-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; align-items:center; }
+.metric { min-width:0; white-space:nowrap; }
+.metric text { overflow:hidden; text-overflow:ellipsis; }
+.card-header { min-height:42px; }
+.card-footer { margin-top:auto; }
+
+/* Only the card being operated receives press feedback. */
+.plugin-card { transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+.plugin-card:active { transform: scale(var(--interaction-press-scale, 0.99)); }
 </style>

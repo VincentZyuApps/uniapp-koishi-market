@@ -1,23 +1,27 @@
 <template>
-	<view class="settings-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
+	<view class="settings-page" :class="[{ 'dark-mode': isDarkMode, embedded }, motionClass, paletteClass]" :style="embedded ? { ...pageStyle, paddingTop: '0px' } : pageStyle">
 		<view class="settings-shell">
 			<view class="settings-header">
-				<button class="market-back-button" @click="returnToMarket">← 返回插件市场</button>
+				<button v-if="!embedded" class="market-back-button" @click="returnToMarket">← 返回插件市场</button>
 				<view class="header-copy">
-					<text class="header-title">⚙️ 设置</text>
+					<!-- #ifdef WEB -->
+					<h1 v-if="!embedded" class="header-title">设置</h1><text v-else class="header-title">设置</text>
+					<!-- #endif -->
+					<!-- #ifndef WEB --><text class="header-title">设置</text><!-- #endif -->
 					<text class="header-subtitle">管理插件市场数据源与连接状态</text>
 				</view>
-				<view class="theme-toggle" @click="toggleTheme">
-					<text class="theme-icon">{{ themeEmoji }}</text>
+				<view v-if="!embedded" class="theme-toggle" role="button" tabindex="0" :aria-label="'切换主题，当前' + themeLabel" @click="toggleTheme" @keydown.enter.prevent="toggleTheme" @keydown.space.prevent="toggleTheme">
+					<image class="ui-lucide" :src="isDarkMode ? uiIcons.sun : uiIcons.moon" mode="aspectFit" />
 					<text class="theme-label">{{ themeLabel }}</text>
 				</view>
 			</view>
 
-			<styled-scroll-view class="settings-content">
+			<styled-scroll-view class="settings-content" scrollbar-hover-edge>
+			<view class="settings-layout">
 			<!-- 插件市场源设置 -->
 			<view class="setting-section" :class="{ 'select-open': isPresetSelectOpen }">
 				<view class="section-title">
-					<text class="title-icon">🌐</text>
+					<image class="ui-lucide title-icon" :src="uiIcons['globe']" mode="aspectFit" />
 					<text class="title-text">插件市场数据源</text>
 				</view>
 				
@@ -68,7 +72,7 @@
 			<!-- 动画效果设置 -->
 			<view class="setting-section animation-section" :class="{ 'select-open': isMotionSelectOpen }">
 				<view class="section-title">
-					<text class="title-icon">✨</text>
+					<image class="ui-lucide title-icon" :src="uiIcons['sparkles']" mode="aspectFit" />
 					<text class="title-text">动画效果</text>
 				</view>
 				<view class="setting-item">
@@ -90,14 +94,57 @@
 				<text v-if="respectSystemMotion && systemReducedMotion" class="motion-system-notice">系统已声明减少动态，当前已自动降为超低档</text>
 				<text v-else class="motion-hint">自动档会保守选择低或中档，且不会自动启用高或超高档</text>
 			</view>
+
+			<view class="setting-section display-section">
+				<view class="section-title">
+					<image class="ui-lucide title-icon" :src="uiIcons.eye" mode="aspectFit" />
+					<text class="title-text">显示</text>
+				</view>
+				<view class="palette-heading">
+					<text class="motion-toggle-title">主题配色</text>
+					<text class="motion-toggle-description">每套配色均适配浅色与深色模式</text>
+				</view>
+				<view class="palette-grid" role="radiogroup" aria-label="主题配色">
+					<button v-for="palette in THEME_PALETTES" :key="palette.value" class="palette-option" :class="['palette-preview-' + palette.value, { selected: themePalette === palette.value }]" role="radio" :aria-checked="themePalette === palette.value" :aria-label="palette.label + '主题'" @click="setThemePalette(palette.value)">
+						<view class="palette-colors" aria-hidden="true"><view class="palette-color palette-color-base"></view><view class="palette-color palette-color-soft"></view><view class="palette-color palette-color-accent"></view></view>
+						<text class="palette-label">{{ palette.label }}</text>
+					</button>
+				</view>
+				<view class="display-mode-setting">
+					<text class="motion-toggle-title">展示模式</text>
+					<text class="motion-toggle-description">分页浏览或向下滚动查看全部插件</text>
+					<view class="display-mode-options" role="radiogroup" aria-label="展示模式">
+						<button v-for="option in displayModeOptions" :key="option.value" class="display-mode-option" :class="{ selected: displayMode === option.value }" role="radio" :aria-checked="displayMode === option.value" @click="setDisplayMode(option.value)">
+							<text class="display-mode-label">{{ option.label }}</text>
+							<text class="display-mode-description">{{ option.description }}</text>
+						</button>
+					</view>
+				</view>
+				<view class="motion-toggle-row">
+					<view class="motion-toggle-copy">
+						<text class="motion-toggle-title">紧凑模式</text>
+						<text class="motion-toggle-description">使用紧凑排列的插件列表</text>
+					</view>
+					<form-toggle :model-value="compactMode" aria-label="紧凑模式" on-label="已开启" off-label="已关闭" @update:model-value="setCompactMode" />
+				</view>
+				<!-- #ifdef WEB -->
+				<view class="motion-toggle-row">
+					<view class="motion-toggle-copy">
+						<text class="motion-toggle-title">显示快捷键</text>
+						<text class="motion-toggle-description">在桌面端翻页按钮旁显示按键提示，关闭后仍可使用快捷键</text>
+					</view>
+					<form-toggle :model-value="showKeyboardShortcuts" aria-label="显示快捷键" on-label="已显示" off-label="已隐藏" @update:model-value="setShowKeyboardShortcuts" />
+				</view>
+				<!-- #endif -->
+			</view>
 			
 			<!-- 测试连接按钮 -->
 			<view class="action-section">
 				<button class="test-btn" @click="testConnection" :disabled="isTesting">
-					<text>{{ isTesting ? '测试中...' : '🔍 测试连接' }}</text>
+					<text>{{ isTesting ? '测试中...' : '测试连接' }}</text>
 				</button>
 				<button class="reset-btn" @click="resetToDefault">
-					<text>🔄 恢复默认</text>
+					<image class="ui-lucide" :src="uiIcons['refresh-cw']" mode="aspectFit" /><text>恢复默认</text>
 				</button>
 			</view>
 			
@@ -115,7 +162,7 @@
 					</view>
 				</view>
 				<view v-if="testResult" class="result-summary">
-					<text class="result-icon">{{ testResult.success ? '✅' : '❌' }}</text>
+					<image class="ui-lucide result-icon" :src="testResult.success ? uiIcons.check : uiIcons['circle-alert']" mode="aspectFit" />
 					<text class="result-text">{{ testResult.message }}</text>
 				</view>
 			</view>
@@ -124,7 +171,7 @@
 			<view class="setting-section privacy-section">
 				<view class="privacy-entry-row" @click="openPrivacyModal">
 					<view class="privacy-entry-copy">
-						<text class="privacy-entry-title">📄 隐私政策与数据合规声明</text>
+						<text class="privacy-entry-title">隐私政策与数据合规声明</text>
 						<text class="privacy-entry-desc">了解剪贴板、本地存储与开源数据透明度原则</text>
 					</view>
 					<text class="privacy-entry-arrow">›</text>
@@ -132,10 +179,11 @@
 			</view>
 
 			<!-- 返回按钮 -->
-			<view class="back-section">
+			<view v-if="!embedded" class="back-section">
 				<button class="back-btn" @click="returnToMarket">
 					<text>← 返回插件市场</text>
 				</button>
+			</view>
 			</view>
 			</styled-scroll-view>
 		</view>
@@ -146,21 +194,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { uiIcons } from '@/utils/ui-icons.js'
+import { MARKET_PRESETS } from '@/utils/market-presets.js'
+import { useMarketLatency } from '@/utils/market-latency.js'
+
+const props = defineProps({ embedded: { type: Boolean, default: false }, activeSource: { type: String, default: '' } })
+const emit = defineEmits(['close', 'source-change', 'source-reset'])
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import FormSelect from '@/components/form-select/form-select.vue'
 import FormToggle from '@/components/form-toggle/form-toggle.vue'
 import PrivacyModal from '@/components/privacy-modal/privacy-modal.vue'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
 import { MOTION_OPTIONS, useMotionPreferences } from '@/utils/motion.js'
+import { useDisplayPreferences } from '@/utils/display-preferences.js'
 import { onLoad } from "@dcloudio/uni-app";
-import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData } from '../../utils/request.js'
+import { DEFAULT_MARKET_SEARCH_ENDPOINT, fetchMarketData, getCurrentEndpoint } from '../../utils/request.js'
 import { usePageLayout } from '@/utils/layout.js'
 
-import { useTheme } from '@/utils/theme.js'
+import { THEME_PALETTES, useTheme } from '@/utils/theme.js'
 import { loadFonts } from '@/utils/fonts.js'
 
 // 主题模式（统一由 useTheme 管理）
-const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, paletteClass, themePalette, setThemePalette } = useTheme()
 const isPrivacyModalVisible = ref(false)
 const openPrivacyModal = () => {
 	isPrivacyModalVisible.value = true
@@ -176,71 +231,15 @@ const {
 	setRespectSystemMotion
 } = useMotionPreferences()
 const motionOptions = MOTION_OPTIONS
+const { showKeyboardShortcuts, setShowKeyboardShortcuts, compactMode, setCompactMode, displayMode, setDisplayMode } = useDisplayPreferences()
+const displayModeOptions = [
+	{ value: 'paginated', label: '分页展示', description: '按页浏览插件' },
+	{ value: 'feed', label: '完全展示', description: '向下滚动加载更多' }
+]
 const isMotionSelectOpen = ref(false)
 
 // 预设源列表
-const presetSources = ref([
-	{
-		name: 'VincentZyu StoreLuna（CF CDN 推荐）',
-		url: 'https://storeluna-cf.vincentzyu233.cn/storeluna/index.json',
-		region: '全球',
-		description: '自建 Cloudflare Anycast CDN 镜像源，全球加速防刷'
-	},
-	{
-		name: 'VincentZyu StoreLuna（大陆直连）',
-		url: 'https://storeluna.vincentzyu233.cn/storeluna/index.json',
-		region: '中国大陆',
-		description: '自建深圳阿里云直连镜像源，大陆秒级低延迟'
-	},
-	{
-		name: 'NyanZone',
-		url: 'https://registry.nyan.zone/k/market/index.json',
-		region: '全球',
-		description: '官方推荐源，速度快且稳定'
-	},
-	{
-		name: '上学聚合源(大陆推荐)',
-		url: 'https://cdn.jsdmirror.com/gh/shangxueink/koishi-registry-aggregator@gh-pages/market.json',
-		region: '全球',
-		description: '聚合多个源的数据，插件最全'
-	},
-	{
-		name: 't4wefan（大陆）',
-		url: 'https://registry.koishi.t4wefan.pub/index.json',
-		region: '中国大陆',
-		description: '大陆镜像源，国内访问速度快'
-	},
-	{
-		name: 'Lipraty（大陆）',
-		url: 'https://koi.nyan.zone/registry/index.json',
-		region: '中国大陆',
-		description: '大陆镜像源，备选方案'
-	},
-	{
-		name: 'itzdrli（全球）',
-		url: 'https://kp.itzdrli.cc',
-		region: '全球',
-		description: '全球CDN源'
-	},
-	{
-		name: 'Q78KG（全球）',
-		url: 'https://koishi-registry.yumetsuki.moe/index.json',
-		region: '全球',
-		description: '社区维护源'
-	},
-	{
-		name: 'Koishi官方（全球）',
-		url: 'https://registry.koishi.chat/index.json',
-		region: '全球',
-		description: 'Koishi 官方源'
-	},
-	{
-		name: '自定义',
-		url: '',
-		region: '自定义',
-		description: '使用下方自定义地址'
-	}
-])
+const presetSources = ref(MARKET_PRESETS.map(source => ({ ...source })))
 
 // 当前选择的预设索引
 const selectedPresetIndex = ref(0)
@@ -253,12 +252,14 @@ const testResult = ref(null)
 const testProgress = ref([])
 const isPresetSelectOpen = ref(false)
 
+const { results: sourceLatencies, start: measureSources, stop: stopMeasuringSources } = useMarketLatency()
 const defaultPresetIndex = 0
 const customPresetIndex = computed(() => presetSources.value.length - 1)
 const presetSelectOptions = computed(() => presetSources.value.map((source, index) => ({
 	value: index,
 	label: source.name,
-	description: source.url || source.description
+	description: source.url || source.description,
+	meta: sourceLatencies.value[index]
 })))
 const isCustomPreset = computed(() => selectedPresetIndex.value === customPresetIndex.value)
 
@@ -278,17 +279,25 @@ onMounted(() => {
 	// #endif
 	
 	// 加载端点设置
-	const savedEndpoint = uni.getStorageSync('market_endpoint')
+	let savedEndpoint = getCurrentEndpoint()
 	const savedPresetIndex = uni.getStorageSync('market_preset_index')
 
 	// 兼容迁移：若历史保存的端点为已失效的旧 bluerosion 代理，自动无感更新为最新推荐端点
 	if (savedEndpoint && savedEndpoint.includes('bluerosion.vincentzyu233.cn')) {
-		uni.setStorageSync('market_endpoint', DEFAULT_MARKET_SEARCH_ENDPOINT)
+		savedEndpoint = DEFAULT_MARKET_SEARCH_ENDPOINT
+		uni.setStorageSync('market_endpoint', savedEndpoint)
+		emit('source-change')
 	}
 	
-	const savedIndex = Number(savedPresetIndex)
-	if (Number.isInteger(savedIndex) && savedIndex >= 0 && savedIndex < presetSources.value.length) {
+	const savedIndex = savedPresetIndex === '' || savedPresetIndex == null ? -1 : Number(savedPresetIndex)
+	const matchingIndex = presetSources.value.findIndex(source => source.url && source.url === savedEndpoint)
+	const manualEndpoint = uni.getStorageSync('market_endpoint')
+	if (manualEndpoint && savedEndpoint && matchingIndex < 0) {
+		selectedPresetIndex.value = customPresetIndex.value
+	} else if (Number.isInteger(savedIndex) && savedIndex >= 0 && savedIndex < presetSources.value.length && (savedIndex === matchingIndex || (savedIndex === customPresetIndex.value && !!manualEndpoint))) {
 		selectedPresetIndex.value = savedIndex
+	} else if (matchingIndex >= 0) {
+		selectedPresetIndex.value = matchingIndex
 	}
 
 	const savedCustomEndpoint = uni.getStorageSync('market_custom_endpoint')
@@ -298,6 +307,13 @@ onMounted(() => {
 		// 兼容旧版本：自定义地址曾与当前地址共用同一个存储键。
 		customEndpoint.value = savedEndpoint
 	}
+})
+
+// Keep the embedded settings in sync if automatic fallback changes the source.
+watch(() => props.activeSource, (endpoint) => {
+	if (!props.embedded || !endpoint) return
+	const index = presetSources.value.findIndex(source => source.url && source.url === endpoint)
+	selectedPresetIndex.value = index >= 0 ? index : customPresetIndex.value
 })
 
 // 预设源变化
@@ -314,8 +330,9 @@ const onPresetChange = (value) => {
 	}
 	
 	clearTestResult()
+	emit('source-change')
 	
-	uni.showToast({
+	if (!props.embedded) uni.showToast({
 		title: '已切换数据源',
 		icon: 'success'
 	})
@@ -332,8 +349,9 @@ const onCustomEndpointChange = () => {
 	uni.setStorageSync('market_custom_endpoint', endpoint)
 	uni.setStorageSync('market_endpoint', endpoint)
 	clearTestResult()
+	emit('source-change')
 
-	uni.showToast({
+	if (!props.embedded) uni.showToast({
 		title: '已保存自定义源',
 		icon: 'success'
 	})
@@ -341,6 +359,8 @@ const onCustomEndpointChange = () => {
 
 const onPresetSelectOpenChange = (isOpen) => {
 	isPresetSelectOpen.value = isOpen
+	if (isOpen) measureSources(presetSources.value.map((source, index) => index === customPresetIndex.value ? customEndpoint.value.trim() : source.url))
+	else stopMeasuringSources()
 }
 
 const onMotionSelectOpenChange = (isOpen) => {
@@ -436,11 +456,13 @@ const resetToDefault = () => {
 				selectedPresetIndex.value = defaultPresetIndex
 				customEndpoint.value = ''
 				uni.removeStorageSync('market_custom_endpoint')
-				uni.setStorageSync('market_preset_index', defaultPresetIndex)
-				uni.setStorageSync('market_endpoint', presetSources.value[defaultPresetIndex].url)
+				uni.removeStorageSync('market_preset_index')
+				uni.removeStorageSync('market_endpoint')
+				uni.removeStorageSync('market_auto_endpoint')
 				clearTestResult()
+				emit('source-reset')
 				
-				uni.showToast({
+				if (!props.embedded) uni.showToast({
 					title: '已恢复默认设置',
 					icon: 'success'
 				})
@@ -451,6 +473,7 @@ const resetToDefault = () => {
 
 // 无论入口来自哪里，都回到插件市场首页。
 const returnToMarket = () => {
+	if (props.embedded) { emit('close'); return }
 	const pages = getCurrentPages?.() || []
 	if (pages.length > 1) {
 		uni.navigateBack({ delta: 1 })
@@ -539,6 +562,7 @@ onLoad(()=>{
 }
 
 .header-title {
+	margin: 0;
 	display: block;
 	font-size: 48rpx;
 	font-weight: 600;
@@ -895,9 +919,15 @@ onLoad(()=>{
 }
 
 .reset-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	background-color: var(--bg-secondary);
 	color: var(--text-primary);
 	border: 2rpx solid var(--border-color);
+}
+.reset-btn > .ui-lucide {
+	margin-right: 8px;
 }
 
 .reset-btn:hover {
@@ -1299,4 +1329,77 @@ onLoad(()=>{
 	flex: none;
 }
 }
+
+.settings-page { background: var(--bg-primary); }
+.setting-section { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: none; animation: none; }
+.setting-section:hover { transform: none; box-shadow: none; }
+.section-title { border-color: var(--border); }
+.market-back-button, .theme-toggle { background: var(--surface); border-color: var(--border); border-radius: 10px; }
+.market-back-button:hover, .theme-toggle:hover { transform: none; box-shadow: none; }
+.theme-toggle:hover .theme-icon, .theme-toggle:active .theme-icon { transform: none; }
+.header-title { font-weight: 700; }
+.market-back-button:focus-visible, .test-btn:focus-visible, .reset-btn:focus-visible, .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ui-lucide { width:18px; height:18px; flex-shrink:0; vertical-align:middle; }
+.detail-fallback-icon { width:32px; height:32px; }
+
+.settings-layout { display:block; }
+.test-btn { color:var(--on-accent); }
+.section-title { display:flex; align-items:center; gap:10px; }
+@media (min-width: 900px) {
+ .settings-shell { max-width:1180px; }
+ .settings-layout { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; }
+ .setting-section { margin:0; }
+ .privacy-section, .action-section, .test-result, .back-section { grid-column:1 / -1; }
+ .action-section, .test-result { margin:0; }
+}
+
+/* H5 system confirmation must sit above the embedded settings dialog. */
+:global(uni-modal) { z-index: 1301; }
+.settings-page.embedded { width:100%; height:100%; }
+.settings-page.embedded .settings-header { padding-right:52px; }
+.settings-page.embedded .settings-layout { display:block; }
+.settings-page.embedded .setting-section, .settings-page.embedded .action-section, .settings-page.embedded .test-result { margin-bottom:16px; }
+
+/* Keep the scrollbar at the drawer edge and align content with the header. */
+.settings-shell { padding: 0 0 max(16px, var(--safe-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
+.settings-header { padding:16px 24px; }
+.settings-page.embedded .settings-header { padding-right:76px; }
+.settings-content { --scroll-padding: 0 24px 32px; }
+@media (max-width:600px) {
+	.settings-shell { padding-left:0; padding-right:0; }
+	.settings-header { padding:16px; }
+	.settings-page.embedded .settings-header { display:flex; padding-right:68px; }
+	.settings-content { --scroll-padding: 0 16px 24px; }
+}
+
+.palette-heading { margin-bottom: 14px; }
+.palette-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.palette-option { display:flex; flex-direction:column; align-items:stretch; min-width:0; min-height:78px; margin:0; padding:5px; overflow:hidden; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-secondary); line-height:1.3; text-align:left; }
+.palette-option::after { border:0; }
+.palette-option.selected { border:2px solid var(--accent); padding:4px; color:var(--text-primary); }
+.palette-option:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.palette-colors { display:flex; height:38px; overflow:hidden; border:1px solid var(--border); border-radius:6px; }
+.palette-color { flex:1; min-width:0; }
+.palette-color-base { background:var(--preview-base); }
+.palette-color-soft { background:var(--preview-soft); }
+.palette-color-accent { background:var(--preview-accent); }
+.palette-label { display:block; padding:6px 3px 2px; overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.display-mode-setting { margin-top:20px; }
+.display-mode-setting > text { display:block; }
+.display-mode-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:10px; }
+.display-mode-option { min-width:0; min-height:68px; margin:0; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface-subtle); color:var(--text-secondary); text-align:left; line-height:1.4; }
+.display-mode-option::after { border:0; }
+.display-mode-option.selected { border-color:var(--accent); background:var(--accent-soft); color:var(--text-primary); box-shadow:inset 0 0 0 1px var(--accent); }
+.display-mode-option:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.display-mode-label, .display-mode-description { display:block; }
+.display-mode-label { font-size:var(--font-body, 14px); font-weight:600; }
+.display-mode-description { margin-top:3px; color:var(--text-secondary); font-size:var(--font-caption, 12px); }
+.palette-option, .display-mode-option, .copy-btn, .test-btn, .reset-btn { transition:transform .18s ease, border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease; }
+@media (hover: hover) {
+ .palette-option:hover, .display-mode-option:hover { border-color:var(--accent); }
+}
+.palette-option:active, .display-mode-option:active, .copy-btn:active:not(:disabled), .test-btn:active:not(:disabled), .reset-btn:active { transform:scale(var(--interaction-press-scale, .99)); }
+.copy-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+@media (max-width:400px) { .palette-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 </style>

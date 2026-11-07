@@ -29,7 +29,7 @@ export function usePageLayout() {
 	return { pageStyle }
 }
 
-export function useDrawerFocus(open, dialogId, close) {
+export function useDrawerFocus(open, dialogId, close, initialFocus = () => '') {
 	// #ifdef WEB
 	let previousFocus = null
 	let previousOverflow = null
@@ -46,7 +46,7 @@ export function useDrawerFocus(open, dialogId, close) {
 	}
 
 	function handleKeydown(event) {
-		if (!open.value) return
+		if (!open.value || [...document.querySelectorAll('uni-modal')].some(modal => modal.getClientRects().length)) return
 		if (event.key === 'Escape') {
 			event.preventDefault()
 			event.stopPropagation()
@@ -90,7 +90,11 @@ export function useDrawerFocus(open, dialogId, close) {
 		document.body.style.overflow = 'hidden'
 		document.documentElement.style.overflow = 'hidden'
 		await nextTick()
-		if (open.value) document.getElementById(dialogId)?.querySelector('button, uni-button, [tabindex="0"]')?.focus()
+		if (open.value) {
+			const dialog = document.getElementById(dialogId)
+			const target = initialFocus() ? dialog?.querySelector(initialFocus()) : null
+			;(target || dialog?.querySelector('button, uni-button, [tabindex="0"]'))?.focus()
+		}
 	})
 
 	onMounted(() => document.addEventListener('keydown', handleKeydown, true))

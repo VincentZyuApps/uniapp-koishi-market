@@ -1,28 +1,38 @@
 <template>
-	<view class="agent-page" :class="[{ 'dark-mode': isDarkMode }, motionClass]" :style="pageStyle">
+	<view class="agent-page" :class="[{ 'dark-mode': isDarkMode, embedded }, motionClass, paletteClass]" :style="embedded ? { ...pageStyle, paddingTop: '0px' } : pageStyle">
 		<view class="agent-header">
-			<button class="home-button" @click="returnToMarket">
+			<button v-if="!embedded" class="home-button" @click="returnToMarket">
 				<text class="home-icon">←</text>
 				<text class="home-label">返回插件市场</text>
 			</button>
 			<view class="header-copy">
+				<!-- #ifdef WEB -->
+				<component :is="embedded ? 'div' : 'h1'" class="header-title">
+					<image class="ui-lucide" :src="uiIcons['bot']" mode="aspectFit" />
+					<text class="agent-wiki-link" @click="openAgentWiki">Agent</text>
+					<text> 找插件</text>
+				</component>
+				<!-- #endif -->
+				<!-- #ifndef WEB -->
 				<view class="header-title">
-					<text>🤖 </text>
+					<image class="ui-lucide" :src="uiIcons['bot']" mode="aspectFit" />
 					<text class="agent-wiki-link" @click="openAgentWiki">Agent</text>
 					<text> 找插件</text>
 				</view>
+				<!-- #endif -->
 				<text class="header-subtitle">生成提示词，交给你的 AI 助手检索 Koishi 插件</text>
 			</view>
-			<view class="theme-toggle" @click="toggleTheme">
-				<text class="theme-icon">{{ themeEmoji }}</text>
+			<view v-if="!embedded" class="theme-toggle" role="button" tabindex="0" :aria-label="'切换主题，当前' + themeLabel" @click="toggleTheme" @keydown.enter.prevent="toggleTheme" @keydown.space.prevent="toggleTheme">
+				<image class="ui-lucide" :src="isDarkMode ? uiIcons.sun : uiIcons.moon" mode="aspectFit" />
 				<text class="theme-label">{{ themeLabel }}</text>
 			</view>
 		</view>
 
 		<styled-scroll-view class="agent-content">
+			<view class="agent-layout">
 			<view class="tool-section" :class="{ 'select-open': openSelectKey === 'document' }">
 				<view class="section-title">
-					<text>📖 Agent 指南</text>
+					<image class="ui-lucide" :src="uiIcons['file-text']" mode="aspectFit" /><text>Agent 指南</text>
 				</view>
 				<form-select v-model="docPresetIndex" :options="docSelectOptions" :expanded="openSelectKey === 'document'" @change="persistPreferences" @open-change="onSelectOpenChange('document', $event)" />
 				<text class="field-hint">可选择 GitHub、GitLab、Codeberg 镜像，或填写自定义公开文档 URL</text>
@@ -35,7 +45,7 @@
 
 			<view class="tool-section" :class="{ 'select-open': openSelectKey === 'market' }">
 				<view class="section-title">
-					<text>🌐 插件市场数据源</text>
+					<image class="ui-lucide" :src="uiIcons['globe']" mode="aspectFit" /><text>插件市场数据源</text>
 				</view>
 				<form-select v-model="marketPresetIndex" :options="marketSelectOptions" :expanded="openSelectKey === 'market'" @change="persistPreferences" @open-change="onSelectOpenChange('market', $event)" />
 				<textarea v-if="isCustomMarketPreset" v-model="customMarketEndpoint" class="text-input compact-input" placeholder="输入插件市场 JSON 数据源" auto-height @blur="persistPreferences" />
@@ -48,7 +58,7 @@
 
 			<view class="tool-section">
 				<view class="section-title inline-title">
-					<text>🔌 网络代理</text>
+					<image class="ui-lucide" :src="uiIcons['plug']" mode="aspectFit" /><text>网络代理</text>
 					<form-toggle :model-value="proxyEnabled" @update:model-value="setProxyEnabled" />
 				</view>
 				<textarea v-if="proxyEnabled" v-model="proxyUrl" class="text-input compact-input" placeholder="例如：http://127.0.0.1:7890" auto-height @blur="persistPreferences" />
@@ -57,7 +67,7 @@
 
 			<view class="tool-section" :class="{ 'select-open': openSelectKey === 'category' }">
 				<view class="section-title">
-					<text>🎯 你的需求</text>
+					<image class="ui-lucide" :src="uiIcons['list']" mode="aspectFit" /><text>你的需求</text>
 				</view>
 				<form-select v-model="categoryIndex" :options="categorySelectOptions" :expanded="openSelectKey === 'category'" @change="persistPreferences" @open-change="onSelectOpenChange('category', $event)" />
 				<textarea v-model="requirement" class="text-input requirement-input" placeholder="补充你希望实现的功能、适用平台、约束条件或偏好" auto-height @blur="persistPreferences" />
@@ -66,34 +76,39 @@
 
 			<view class="tool-section">
 				<view class="section-title">
-					<text>📋 希望 Agent 输出</text>
+					<image class="ui-lucide" :src="uiIcons['copy']" mode="aspectFit" /><text>希望 Agent 输出</text>
 				</view>
 				<form-checkbox-group v-model="selectedOutputOptions" :options="outputOptions" @change="persistPreferences" />
 			</view>
 
 			<view class="prompt-section">
 				<view class="section-title inline-title">
-					<text>✨ 生成的提示词</text>
+					<image class="ui-lucide" :src="uiIcons['sparkles']" mode="aspectFit" /><text>生成的提示词</text>
 					<button class="reset-button" @click="resetPreferences">恢复默认</button>
 				</view>
 				<textarea class="prompt-preview" :value="promptText" :disabled="true" auto-height />
 				<button class="copy-button" :disabled="!canCopy" @click="copyPrompt">
-					<text>📋 复制提示词</text>
+					<image class="ui-lucide" :src="uiIcons['copy']" mode="aspectFit" /><text>复制提示词</text>
 				</button>
 				<view class="agent-boundary-note">
-					<text class="agent-boundary-title">💡 使用方式</text>
+					<text class="agent-boundary-title">使用方式</text>
 					<text class="agent-boundary-copy">本页仅生成可复制提示词，不提供 AI/LLM 后端，也不提供 API Key 或 BYOK 配置；请复制后在你自己的本地 Agent 中运行。</text>
 				</view>
 			</view>
 
-			<view class="back-section">
+			<view v-if="!embedded" class="back-section">
 				<button class="back-button" @click="returnToMarket">← 返回插件市场</button>
+			</view>
 			</view>
 		</styled-scroll-view>
 	</view>
 </template>
 
 <script setup>
+import { uiIcons } from '@/utils/ui-icons.js'
+
+const props = defineProps({ embedded: { type: Boolean, default: false } })
+const emit = defineEmits(['close'])
 import { computed, onMounted, ref } from 'vue'
 import FormCheckboxGroup from '@/components/form-checkbox-group/form-checkbox-group.vue'
 import FormSelect from '@/components/form-select/form-select.vue'
@@ -149,7 +164,7 @@ const outputOptions = [
 
 import { useTheme } from '@/utils/theme.js'
 
-const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme } = useTheme()
+const { themeMode, isDarkMode, themeEmoji, themeLabel, toggleTheme, paletteClass } = useTheme()
 const { motionClass } = useMotionPreferences()
 const { pageStyle } = usePageLayout()
 const docPresetIndex = ref(0)
@@ -268,6 +283,7 @@ function resetPreferences() {
 }
 
 function returnToMarket() {
+	if (props.embedded) { emit('close'); return }
 	const pages = getCurrentPages?.() || []
 	if (pages.length > 1) {
 		uni.navigateBack({ delta: 1 })
@@ -400,6 +416,7 @@ onMounted(() => {
 }
 
 .header-title {
+	margin: 0;
 	font-size: 44rpx;
 	font-weight: 700;
 	color: var(--text-primary);
@@ -627,12 +644,18 @@ onMounted(() => {
 }
 
 .copy-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	width: 100%;
 	margin-top: 22rpx;
 	padding: 24rpx;
 	background: var(--accent);
 	color: #ffffff;
 	transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+.copy-button > .ui-lucide {
+	margin-right: 8px;
 }
 
 @media (hover: hover) {
@@ -885,4 +908,43 @@ onMounted(() => {
 	padding: 16px;
 }
 }
+
+.agent-page, .agent-page.dark-mode { background: var(--bg-primary); }
+.tool-section, .prompt-section { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); animation: none; }
+.home-button, .theme-toggle { border-radius: 10px; background: var(--surface); }
+.home-button:hover, .theme-toggle:hover { transform: none; box-shadow: none; }
+.theme-toggle:hover .theme-icon, .theme-toggle:active .theme-icon { transform: none; }
+.home-button:focus-visible, .copy-button:focus-visible, .reset-button:focus-visible, .back-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ui-lucide { width:18px; height:18px; flex-shrink:0; vertical-align:middle; }
+.detail-fallback-icon { width:32px; height:32px; }
+
+.section-title, .header-title { display:flex; align-items:center; gap:8px; }
+.inline-title > text { flex:1; }
+@media (min-width: 1000px) {
+ .agent-page { max-width:1180px; }
+ .agent-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(340px, .85fr); gap:16px; align-items:start; }
+ .tool-section { grid-column:1; margin:0; }
+ .prompt-section { grid-column:2; grid-row:1 / span 6; position:sticky; top:0; margin:0; }
+ .back-section { grid-column:1; }
+}
+
+.agent-page.embedded { width:100%; height:100%; max-width:none; }
+.agent-page.embedded .agent-header { padding-right:52px; }
+.agent-page.embedded .agent-layout { display:block; }
+.agent-page.embedded .tool-section, .agent-page.embedded .prompt-section { position:static; margin-bottom:16px; }
+
+/* Keep the scrollbar at the page or drawer edge while aligning the content with the header. */
+.agent-page { max-width:none; padding-left:0; padding-right:0; }
+.agent-header { max-width:1008px; padding:16px 24px; }
+.agent-content { max-width:none; --scroll-padding:0 24px 24px; }
+.agent-layout { width:100%; max-width:960px; margin:0 auto; }
+.agent-page.embedded .agent-header { padding-right:76px; }
+@media (max-width:600px) {
+	.agent-header { padding:16px; }
+	.agent-page.embedded .agent-header { display:flex; padding-right:68px; }
+	.agent-content { --scroll-padding:0 16px 24px; }
+}
+.url-copy-button:active:not(:disabled), .copy-button:active:not(:disabled), .reset-button:active, .back-button:active { transform:scale(var(--interaction-press-scale, .99)); }
+.url-copy-button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 </style>

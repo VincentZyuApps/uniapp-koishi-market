@@ -1,5 +1,5 @@
 <template>
-	<view class="form-toggle" :class="{ checked: modelValue }" role="switch" :aria-checked="modelValue" @click="toggle">
+	<view class="form-toggle" :class="{ checked: modelValue }" role="switch" tabindex="0" :aria-checked="modelValue" @click="toggle" @keydown.enter.prevent="toggle" @keydown.space.prevent="toggle">
 		<view class="toggle-track">
 			<view class="toggle-thumb"></view>
 		</view>
@@ -49,6 +49,11 @@ function toggle() {
 
 .form-toggle:active {
 	transform: scale(0.94);
+}
+.form-toggle:focus-visible {
+	outline: 2px solid var(--accent, #5546a3);
+	outline-offset: 2px;
+	border-radius: 4px;
 }
 
 .toggle-track {
@@ -116,4 +121,5 @@ function toggle() {
 	font-size: var(--font-caption, 13px);
 	line-height: 1.5;
 }
+.form-toggle:active { transform: scale(var(--interaction-press-scale, 0.99)); }
 </style>

@@ -1,6 +1,6 @@
 <template>
-	<view class="styled-scroll-view">
-		<scroll-view :id="scrollId" class="scroll-native" :scroll-y="scrollEnabled" :scroll-top="scrollTop" :show-scrollbar="false" @scroll="handleScroll">
+	<view class="styled-scroll-view" :class="{ 'scrollbar-hover-edge': scrollbarHoverEdge, 'scrollbar-edge-visible': edgeHovered }">
+		<scroll-view :id="scrollId" class="scroll-native" :scroll-y="scrollEnabled" :scroll-top="scrollTop" :lower-threshold="600" :show-scrollbar="false" @scroll="handleScroll" @scrolltolower="emit('reach-end')">
 			<view :id="contentId" class="scroll-content"><slot /></view>
 		</scroll-view>
 		<view v-if="isScrollable" class="scrollbar-track" aria-hidden="true"><view class="scrollbar-thumb" :style="thumbStyle" /></view>
@@ -12,19 +12,24 @@ import { computed, getCurrentInstance, nextTick, onMounted, onUnmounted, onUpdat
 
 const props = defineProps({
 	scrollTop: { type: Number, default: 0 },
-	scrollEnabled: { type: Boolean, default: true }
+	scrollEnabled: { type: Boolean, default: true },
+	scrollbarHoverEdge: { type: Boolean, default: true }
 })
-const emit = defineEmits(['resize'])
+const emit = defineEmits(['resize', 'scroll', 'reach-end'])
 const instance = getCurrentInstance()
 const scrollId = 'styled-scroll-' + instance.uid
 const contentId = scrollId + '-content'
 const viewportHeight = ref(0)
 const scrollHeight = ref(0)
 const currentScrollTop = ref(0)
+const edgeHovered = ref(false)
 let viewportWidth = 0
 let pending = false
 let disposed = false
 let observer = null
+// #ifdef WEB
+let hoverTarget = null
+// #endif
 
 const isScrollable = computed(() => scrollHeight.value > viewportHeight.value + 1 && viewportHeight.value > 0)
 const trackHeight = computed(() => Math.max(0, viewportHeight.value - 12))
@@ -66,7 +71,20 @@ function refresh() {
 function handleScroll(event) {
 	currentScrollTop.value = event.detail.scrollTop || 0
 	scrollHeight.value = event.detail.scrollHeight || 0
+	emit('scroll', { scrollTop: currentScrollTop.value, scrollHeight: scrollHeight.value, viewportHeight: viewportHeight.value })
 	if (!viewportHeight.value) refresh()
+}
+
+function handlePointerMove(event) {
+	// #ifdef WEB
+	if (!props.scrollbarHoverEdge) return
+	const rect = event.currentTarget.getBoundingClientRect()
+	edgeHovered.value = event.clientX >= rect.right - 36
+	// #endif
+}
+
+function handlePointerLeave() {
+	edgeHovered.value = false
 }
 
 watch(() => props.scrollTop, (value) => { currentScrollTop.value = value })
@@ -77,6 +95,11 @@ onMounted(async () => {
 	uni.onWindowResize?.(refresh)
 	// #ifdef WEB
 	await nextTick()
+	if (!disposed && props.scrollbarHoverEdge) {
+		hoverTarget = document.getElementById(scrollId)?.parentElement
+		hoverTarget?.addEventListener('mousemove', handlePointerMove)
+		hoverTarget?.addEventListener('mouseleave', handlePointerLeave)
+	}
 	if (!disposed && typeof ResizeObserver !== 'undefined') {
 		observer = new ResizeObserver(refresh)
 		for (const targetId of [scrollId, contentId]) {
@@ -90,6 +113,10 @@ onMounted(async () => {
 onUnmounted(() => {
 	disposed = true
 	observer?.disconnect()
+	// #ifdef WEB
+	hoverTarget?.removeEventListener('mousemove', handlePointerMove)
+	hoverTarget?.removeEventListener('mouseleave', handlePointerLeave)
+	// #endif
 	uni.offWindowResize?.(refresh)
 })
 
@@ -159,6 +186,11 @@ export default {
 	border-radius: 999px;
 	background: var(--scrollbar-track, rgba(85, 70, 163, 0.12));
 	overflow: hidden;
+}
+
+@media (hover: hover) and (min-width: 601px) {
+	.scrollbar-hover-edge .scrollbar-track { opacity: 0; transition: opacity 0.16s ease; }
+	.scrollbar-hover-edge.scrollbar-edge-visible .scrollbar-track { opacity: 1; }
 }
 
 .scrollbar-thumb {

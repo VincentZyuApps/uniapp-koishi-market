@@ -11,7 +11,7 @@
 			<!-- 头部 -->
 			<view class="privacy-modal-header">
 				<view class="header-title-box">
-					<text class="header-icon">📄</text>
+					<image class="ui-lucide header-icon" :src="uiIcons['file-text']" mode="aspectFit" />
 					<text class="header-title">隐私政策与数据合规声明</text>
 				</view>
 				<button class="close-icon-btn" aria-label="关闭" @click="close">
@@ -37,6 +37,7 @@
 </template>
 
 <script setup>
+import { uiIcons } from '@/utils/ui-icons.js'
 import { ref, watch, nextTick } from 'vue'
 import { PRIVACY_HTML } from '@/utils/privacy-content.js'
 import StyledScrollView from '@/components/styled-scroll-view/styled-scroll-view.vue'
@@ -241,4 +242,7 @@ const handleRichTextClick = (e) => {
 		transform: translateY(0) scale(1);
 	}
 }
+
+.ui-lucide { width:18px; height:18px; flex-shrink:0; vertical-align:middle; }
+.detail-fallback-icon { width:32px; height:32px; }
 </style>
